@@ -1,9 +1,17 @@
+import AllStudentInquiry from "./components/AllStudentInquiry";
+import StudentManagement from "./components/StudentManagement";
+import TeacherManagement from "./components/TeacherManagement";
+
 export default function ManagementPage() {
   return (
-    <div className="flex h-full items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <h1 className="text-3xl font-semibold">출석 관리 시스템</h1>
-        <p className="text-zinc-600">관리 페이지</p>
+    <div className="flex h-full gap-6 p-6 bg-gradient-to-b from-[#FFFFFF] to-[#ECEDFF]">
+      {/* 왼쪽: 전체 학생 조회 */}
+      <AllStudentInquiry />
+      
+      {/* 오른쪽: 학생 관리 및 선생님 관리 */}
+      <div className="min-w-[600px] flex flex-col gap-6">
+        <StudentManagement />
+        <TeacherManagement />
       </div>
     </div>
   );
