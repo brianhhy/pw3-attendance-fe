@@ -41,11 +41,22 @@ interface StudentAttendance {
     time?: string;
 }
 
+interface ClassAttendanceData {
+    classRoomId: number;
+    className: string;
+    teacherName: string;
+    students: {
+        studentClassId: number;
+        studentName: string;
+        status: "ATTEND" | "LATE" | "ABSENT" | null;
+    }[];
+}
+
 interface TeacherAttendance {
     id: number;
     teacherId: number;
     date: string;
-    status: "attended" | "late" | "absent";
+    status: "attended" | "late" | "absent" | "ATTEND" | "LATE" | "ABSENT";
     time?: string;
 }
 
@@ -68,6 +79,7 @@ interface AttendanceStore {
     // 출석 정보
     studentAttendances: StudentAttendance[];
     teacherAttendances: TeacherAttendance[];
+    classAttendanceData: ClassAttendanceData[]; // 반별 출석 정보 (studentClassId 포함)
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     getAttendances: (date?: string) => Promise<void>;
@@ -93,6 +105,7 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     // 출석 정보 초기값
     studentAttendances: [],
     teacherAttendances: [],
+    classAttendanceData: [],
     selectedDate: getTodayDateString(),
     
     // 선택된 아이템 초기값
@@ -104,13 +117,10 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     // 학생 정보 가져오기
     getStudents: async () => {
         try {
-            console.log("[attendanceStore] 학생 정보 가져오기 시작");
             const response = await getStudentsList();
             console.log("[attendanceStore] 학생 정보 응답:", response);
             set({ students: response || [] });
-            console.log("[attendanceStore] 학생 정보 저장 완료, 학생 수:", (response || []).length);
         } catch (error) {
-            console.error("[attendanceStore] 학생 정보를 가져오는 중 오류 발생:", error);
             set({ students: [] });
         }
     },
@@ -118,13 +128,9 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     // 선생님 정보 가져오기
     getTeachers: async () => {
         try {
-            console.log("[attendanceStore] 선생님 정보 가져오기 시작");
             const response = await getTeacherList();
-            console.log("[attendanceStore] 선생님 정보 응답:", response);
             set({ teachers: response || [] });
-            console.log("[attendanceStore] 선생님 정보 저장 완료, 선생님 수:", (response || []).length);
         } catch (error) {
-            console.error("[attendanceStore] 선생님 정보를 가져오는 중 오류 발생:", error);
             set({ teachers: [] });
         }
     },
@@ -138,31 +144,24 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     // 출석 정보 가져오기
     getAttendances: async (date?: string) => {
         const targetDate = date || get().selectedDate || getTodayDateString();
-        const year = new Date(targetDate).getFullYear();
+        const schoolYear = new Date().getFullYear(); // 올해 연도
 
         try {
-            console.log("[attendanceStore] 출석 정보 가져오기 시작, 날짜:", targetDate, "년도:", year);
-            const [studentData, teacherData] = await Promise.all([
-                getStudentAttendances(year, targetDate),
+            const [classAttendanceData, teacherData] = await Promise.all([
+                getStudentAttendances(schoolYear, targetDate),
                 getTeacherAttendances(targetDate),
             ]);
 
-            console.log("[attendanceStore] 학생 출석 정보 응답:", studentData);
             console.log("[attendanceStore] 선생님 출석 정보 응답:", teacherData);
 
             set({
-                studentAttendances: studentData || [],
+                classAttendanceData: classAttendanceData || [],
                 teacherAttendances: teacherData || [],
                 selectedDate: targetDate,
             });
-
-            console.log("[attendanceStore] 출석 정보 저장 완료");
-            console.log("[attendanceStore] - 학생 출석 수:", (studentData || []).length);
-            console.log("[attendanceStore] - 선생님 출석 수:", (teacherData || []).length);
         } catch (error) {
-            console.error("[attendanceStore] 출석 정보를 가져오는 중 오류 발생:", error);
             set({
-                studentAttendances: [],
+                classAttendanceData: [],
                 teacherAttendances: [],
             });
         }

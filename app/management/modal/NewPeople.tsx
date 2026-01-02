@@ -37,7 +37,6 @@ export default function NewPeople({ open, onOpenChange, type }: NewPeopleProps) 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     // TODO: API 호출로 학생/선생님 추가
-    console.log("제출 데이터:", { type, ...formData })
     // 모달 닫기
     onOpenChange(false)
     // 폼 초기화

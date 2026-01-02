@@ -42,6 +42,7 @@ const Header = () => {
     const pathname = usePathname();
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [calendarMonth, setCalendarMonth] = useState(new Date());
     const calendarRef = useRef<HTMLDivElement>(null);
@@ -163,7 +164,6 @@ const Header = () => {
                 try {
                     recentSearches = JSON.parse(existingData);
                 } catch (e) {
-                    console.error("localStorage 데이터 파싱 오류:", e);
                     recentSearches = [];
                 }
             }
@@ -181,7 +181,6 @@ const Header = () => {
 
             // localStorage에 저장
             localStorage.setItem("recentSearchItems", JSON.stringify(recentSearches));
-            console.log("[Header] recentSearchItem 저장 완료:", recentSearchItem);
             
             // 같은 탭에서 변경 감지를 위한 커스텀 이벤트 발생
             window.dispatchEvent(new Event("localStorageUpdate"));
@@ -189,7 +188,7 @@ const Header = () => {
             // attendanceStore에 selectedItem 설정하여 SelfAttendance 컴포넌트에 반영
             setSelectedItem(recentSearchItem);
         } catch (error) {
-            console.error("[Header] localStorage 저장 중 오류 발생:", error);
+            // 에러 처리
         }
     };
 
@@ -276,7 +275,7 @@ const Header = () => {
         }
 
         return (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-[320px]">
+            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-[320px] max-[1200px]:scale-75 max-[1200px]:origin-top-center">
                 <div className="flex items-center justify-between mb-4">
                     <button
                         onClick={handlePrevMonth}
@@ -311,15 +310,15 @@ const Header = () => {
     return (
         <header className="flex flex-col relative bg-white">
             {/* Title, Description, 달력, 검색창 */}
-            <div className="flex flex-row justify-between items-center w-full px-5 py-5">
+            <div className="flex flex-row justify-between items-center w-full px-5 py-5 max-[1024px]:flex-col max-[1024px]:items-center max-[1024px]:gap-4">
                 {/* 왼쪽: Title과 Description */}
-                <div className="flex flex-col flex-shrink-0">
+                <div className="flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-left max-[1024px]:origin-center max-[1024px]:items-center max-[1024px]:text-center">
                     <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/statistics" ? 2 : pathname === "/message" ? 3 : 0].title}</span>
                     <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/statistics" ? 2 : pathname === "/message" ? 3 : 0].description}</span>
                 </div>
 
                 {/* 가운데: 달력 */}
-                <div className="absolute left-1/2 -translate-x-1/2">
+                <div className="absolute left-1/2 -translate-x-1/2 max-[1200px]:scale-75 max-[1200px]:origin-center max-[1024px]:relative max-[1024px]:left-auto max-[1024px]:translate-x-0">
                     <div className="relative">
                         <button
                             onClick={() => setIsCalendarOpen(!isCalendarOpen)}
@@ -331,31 +330,49 @@ const Header = () => {
                             </span>
                         </button>
                         {isCalendarOpen && (
-                            <div ref={calendarRef} className="absolute top-12 left-1/2 -translate-x-1/2 z-50">
+                            <div ref={calendarRef} className="absolute top-12 left-1/2 -translate-x-1/2 z-[9999]">
                                 {renderCalendar()}
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* 오른쪽: 검색창 - 출석 체크 페이지에서만 표시 */}
+                {/* 오른쪽: 검색창 - 출석 체크 페이지에서만 표시, 1024px 이하에서는 숨김 */}
                 {pathname === "/" && (
-                    <div className="relative flex flex-col flex-shrink-0">
-                        <div className="flex flex-row items-center gap-2 border-b-2 border-[#2C79FF]">
+                    <div className="relative flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-right max-[1024px]:hidden">
+                        <div className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${
+                            isSearchOpen || searchQuery ? "w-[300px] max-[768px]:w-[200px] max-[480px]:w-[130px]" : "w-10"
+                        }`}>
+                            <button
+                                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                                className="absolute left-0 z-10 flex items-center justify-center w-10 h-10 text-[#2C79FF] hover:text-[#2C79FF] transition-colors"
+                                aria-label="검색"
+                            >
+                                <Search className="h-5 w-5" />
+                            </button>
                             <input 
                                 type="text" 
                                 placeholder="학생명, 선생님 이름 입력" 
-                                className="w-[300px] h-[40px] p-2 focus:outline-none" 
+                                className={`w-full h-[40px] pl-10 pr-2 bg-[#F7F8FF] border-none focus:outline-none transition-all duration-300 ${
+                                    isSearchOpen || searchQuery ? "opacity-100" : "opacity-0 pointer-events-none"
+                                }`}
                                 value={searchQuery}
                                 onChange={handleSearchChange}
-                                onFocus={() => setIsSearchFocused(true)}
-                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                onFocus={() => {
+                                    setIsSearchFocused(true);
+                                    setIsSearchOpen(true);
+                                }}
+                                onBlur={() => setTimeout(() => {
+                                    setIsSearchFocused(false);
+                                    if (!searchQuery) {
+                                        setIsSearchOpen(false);
+                                    }
+                                }, 200)}
                             />
-                            <Search className="w-5 h-5 text-[#2C79FF]" />
                         </div>
                         
                         {isSearchFocused && searchResults.length > 0 && (
-                            <div className="absolute top-[42px] left-0 w-[300px] bg-gray-50 border border-gray-200 rounded-lg shadow-lg z-50 max-h-[400px] overflow-y-auto mt-1">
+                            <div className="absolute top-[42px] left-0 w-[300px] max-[768px]:w-[200px] max-[480px]:w-[150px] bg-gray-50 border border-gray-200 rounded-lg shadow-lg z-50 max-h-[400px] overflow-y-auto mt-1">
                                 {searchResults.map((result) => (
                                     <div
                                         key={`${result.type}-${result.id}`}

@@ -50,7 +50,6 @@ export default function StudentManagement() {
       try {
         await getStudents();
       } catch (error) {
-        console.error("학생 정보를 가져오는 중 오류 발생:", error);
       } finally {
         setIsLoading(false);
         clearTimeout(timeoutId);
@@ -159,7 +158,6 @@ export default function StudentManagement() {
                   className="h-8 w-8 p-0 text-gray-600 hover:text-blue-600"
                   onClick={() => {
                     // TODO: 수정 기능 구현
-                    console.log("수정:", student.id)
                   }}
                 >
                   <Edit className="h-4 w-4" />
@@ -170,7 +168,6 @@ export default function StudentManagement() {
                   className="h-8 w-8 p-0 text-gray-600 hover:text-red-600"
                   onClick={() => {
                     // TODO: 삭제 기능 구현
-                    console.log("삭제:", student.id)
                   }}
                 >
                   <Trash2 className="h-4 w-4" />

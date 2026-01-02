@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// 학생 출석 정보
-export const getStudentAttendances = async (year: number, date: string) => {
+// 학생 출석 정보 (반별 출석 정보)
+export const getStudentAttendances = async (schoolYear: number, date: string) => {
     const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/attendances/year/${year}/date/${date}`
+        `${process.env.NEXT_PUBLIC_API_URL}/attendances/classes/year/${schoolYear}/date/${date}`
     );
     return response.data;
 };
@@ -16,47 +16,43 @@ export const getTeacherAttendances = async (date: string) => {
     return response.data;
 };
 
-// 선생님 출석 체크
-export const markTeacherAttendance = async (teacherId: number, status: string, date: string) => {
-    const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/attendance/teacher/mark?date=${date}`,
-        {
-            teacherId: teacherId,
-            status: status
-        }
+// 특정 선생님의 출석 상태 조회
+export const getTeacherAttendanceStatus = async (teacherId: number, date: string) => {
+    const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/attendance/teacher/status?teacherId=${teacherId}&date=${date}`
     );
     return response.data;
 };
 
-// 학생 출석 체크
-export const markStudentAttendance = async (studentClassId: number, date: string) => {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/attendances/${studentClassId}/${date}`;
-    
-    console.log("[API] 학생 출석 체크 요청:", {
-        url,
-        method: "PUT",
-        studentClassId,
-        date
-    });
+// 선생님 출석 체크
+export const markTeacherAttendance = async (teacherId: number, status: "ATTEND" | "LATE", date: string) => {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/attendance/teacher/mark?teacherId=${teacherId}&status=${status}&date=${date}`;
     
     try {
-        const response = await axios.put(url, {
+        const response = await axios.post(url, {}, {
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-        console.log("[API] 학생 출석 체크 성공:", response.data);
         return response.data;
     } catch (error: any) {
-        console.error("[API] 학생 출석 체크 실패:", {
-            url,
-            studentClassId,
-            date,
-            errorStatus: error.response?.status,
-            statusText: error.response?.statusText,
-            data: error.response?.data,
-            message: error.message
+        throw error;
+    }
+};
+
+// 학생 출석 체크
+export const markStudentAttendance = async (studentClassId: number, date: string, status: "ATTEND" | "LATE") => {
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/attendances/${studentClassId}/${date}`;
+    
+    try {
+        // PUT 요청에 status를 body에 담아서 전송
+        const response = await axios.put(url, { status }, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
+        return response.data;
+    } catch (error: any) {
         throw error;
     }
 };

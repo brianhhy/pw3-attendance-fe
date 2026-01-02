@@ -149,23 +149,27 @@ export default function AllStudentInquiry() {
       // 학생 정보에서 studentClassId 찾기 (2025년 클래스 정보 사용)
       const student = students.find((s) => s.id === studentId);
       if (!student) {
-        console.error("학생을 찾을 수 없습니다:", studentId);
         return;
       }
 
       const currentYear = "2025";
       const classes2025 = student.classesByYear?.[currentYear];
       if (!classes2025 || classes2025.length === 0) {
-        console.error("2025년 클래스 정보를 찾을 수 없습니다:", student);
         return;
       }
 
       const studentClassId = classes2025[0].id;
-      await markStudentAttendance(studentClassId, selectedDate);
+      
+      // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
+      const currentHour = new Date().getHours();
+      const currentMinute = new Date().getMinutes();
+      const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
+      
+      await markStudentAttendance(studentClassId, selectedDate, attendanceStatus);
       // 출석 정보 다시 가져오기
       await getAttendances();
     } catch (error) {
-      console.error("출석 체크 실패:", error);
+      // 에러 처리
     }
   };
 
