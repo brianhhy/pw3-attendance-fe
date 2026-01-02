@@ -144,9 +144,24 @@ export default function AllStudentInquiry() {
       .filter((classItem): classItem is ClassData => classItem !== null);
   }, [classData, searchQuery]);
 
-  const handleAttendanceClick = async (studentId: number, status: "attended" | "absent") => {
+  const handleAttendanceClick = async (studentId: number) => {
     try {
-      await markStudentAttendance(studentId, selectedDate, status);
+      // 학생 정보에서 studentClassId 찾기 (2025년 클래스 정보 사용)
+      const student = students.find((s) => s.id === studentId);
+      if (!student) {
+        console.error("학생을 찾을 수 없습니다:", studentId);
+        return;
+      }
+
+      const currentYear = "2025";
+      const classes2025 = student.classesByYear?.[currentYear];
+      if (!classes2025 || classes2025.length === 0) {
+        console.error("2025년 클래스 정보를 찾을 수 없습니다:", student);
+        return;
+      }
+
+      const studentClassId = classes2025[0].id;
+      await markStudentAttendance(studentClassId, selectedDate);
       // 출석 정보 다시 가져오기
       await getAttendances();
     } catch (error) {
@@ -215,7 +230,7 @@ export default function AllStudentInquiry() {
                       <td className="py-3 px-4">
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleAttendanceClick(student.id, "attended")}
+                            onClick={() => handleAttendanceClick(student.id)}
                             className={`px-3 py-1 text-xs rounded ${
                               student.status === "attended"
                                 ? "bg-green-500 text-white"
@@ -225,7 +240,7 @@ export default function AllStudentInquiry() {
                             출석
                           </button>
                           <button
-                            onClick={() => handleAttendanceClick(student.id, "absent")}
+                            onClick={() => handleAttendanceClick(student.id)}
                             className={`px-3 py-1 text-xs rounded ${
                               student.status === "absent"
                                 ? "bg-pink-500 text-white"
