@@ -98,7 +98,21 @@ const Header = () => {
         // 학생 이름 검색
         students.forEach((student) => {
             if (student.name.toLowerCase().includes(query)) {
-                const description = `중학교 ${student.schoolYear}학년 ${student.classRoomId}반 학생`;
+                // 2025년 클래스 정보 가져오기
+                const currentYear = "2025";
+                const classes2025 = student.classesByYear?.[currentYear];
+                let description = "학생";
+                
+                if (classes2025 && classes2025.length > 0) {
+                    const classInfo = classes2025[0];
+                    // schoolType을 한글로 변환
+                    const schoolTypeName = classInfo.schoolType === "MIDDLE" ? "중학교" 
+                        : classInfo.schoolType === "HIGH" ? "고등학교"
+                        : classInfo.schoolType === "ELEMENTARY" ? "초등학교"
+                        : "학교";
+                    description = `${schoolTypeName} ${classInfo.grade}학년 ${classInfo.classNumber}반 학생`;
+                }
+                
                 results.push({ 
                     id: student.id,
                     name: student.name, 
@@ -162,8 +176,8 @@ const Header = () => {
             // 새로운 아이템을 맨 앞에 추가
             recentSearches.unshift(recentSearchItem);
 
-            // 최대 10개만 유지
-            recentSearches = recentSearches.slice(0, 10);
+            // 최대 5개만 유지
+            recentSearches = recentSearches.slice(0, 5);
 
             // localStorage에 저장
             localStorage.setItem("recentSearchItems", JSON.stringify(recentSearches));
@@ -295,30 +309,33 @@ const Header = () => {
     };
 
     return (
-        <header className="flex flex-row relative">
-            <div className="max-h-[127px] flex flex-row justify-between items-center w-full px-5">
+        <header className="flex flex-col relative bg-white">
+            {/* Title, Description, 달력, 검색창 */}
+            <div className="flex flex-row justify-between items-center w-full px-5 py-5">
                 {/* 왼쪽: Title과 Description */}
-                <div className="flex flex-col mt-5 flex-shrink-0">
+                <div className="flex flex-col flex-shrink-0">
                     <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/statistics" ? 2 : pathname === "/message" ? 3 : 0].title}</span>
                     <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/statistics" ? 2 : pathname === "/message" ? 3 : 0].description}</span>
                 </div>
 
-                {/* 중앙: 날짜 선택 컴포넌트 */}
-                <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-                    <button
-                        onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                        <Calendar className="w-5 h-5 text-[#2C79FF]" />
-                        <span className="text-lg font-medium text-[#2C79FF]">
-                            {formatDate(selectedDate)}
-                        </span>
-                    </button>
-                    {isCalendarOpen && (
-                        <div ref={calendarRef} className="absolute top-12 z-50">
-                            {renderCalendar()}
-                        </div>
-                    )}
+                {/* 가운데: 달력 */}
+                <div className="absolute left-1/2 -translate-x-1/2">
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            <Calendar className="w-5 h-5 text-[#2C79FF]" />
+                            <span className="text-lg font-medium text-[#2C79FF]">
+                                {formatDate(selectedDate)}
+                            </span>
+                        </button>
+                        {isCalendarOpen && (
+                            <div ref={calendarRef} className="absolute top-12 left-1/2 -translate-x-1/2 z-50">
+                                {renderCalendar()}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* 오른쪽: 검색창 - 출석 체크 페이지에서만 표시 */}

@@ -23,7 +23,7 @@ const Sidebar = () => {
     const pathname = usePathname();
 
     return (
-        <aside className="flex flex-col max-w-[300px] h-screen gap-[12px]">
+        <aside className="flex flex-col min-w-[200px] flex-shrink-0 h-screen gap-[12px]">
             <div className="flex flex-col items-center justify-center gap-[12px]">
                 <Image src="/images/logo.png" alt="logo" width={171} height={80} />
                 <p className="text-2xl font-medium text-[#2c79ff] text-[15px]">서빙고 파워웨이브 3부 출석부</p>

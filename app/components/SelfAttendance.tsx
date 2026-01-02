@@ -117,15 +117,26 @@ export default function SelfAttendance() {
                     return;
                 }
 
+                // classesByYear.2026의 첫 번째 항목의 id를 studentClassId로 사용
+                const classes2026 = student.classesByYear?.["2026"];
+                if (!classes2026 || classes2026.length === 0) {
+                    console.error("[SelfAttendance] 2026년 클래스 정보를 찾을 수 없습니다:", student);
+                    alert("2026년 클래스 정보를 찾을 수 없습니다.");
+                    return;
+                }
+
+                const studentClassId = classes2026[0].id;
+
                 console.log("[SelfAttendance] 학생 출석 체크 시작:", {
                     studentId: student.id,
-                    studentClassId: student.classRoomId,
+                    studentClassId: studentClassId,
                     date: selectedDate,
-                    student: student
+                    student: student,
+                    classes2026: classes2026
                 });
 
-                // studentId를 사용 (classRoomId가 아닌 실제 student.id)
-                const response = await markStudentAttendance(student.id, selectedDate);
+                // studentClassId를 사용하여 출석 체크
+                const response = await markStudentAttendance(studentClassId, selectedDate);
                 console.log("[SelfAttendance] 학생 출석 체크 응답:", response);
                 alert("출석 체크가 완료되었습니다.");
             } else if (selectedItem.type === "teacher") {
