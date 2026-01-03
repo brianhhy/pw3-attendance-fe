@@ -83,16 +83,64 @@ export default function TeacherAttendance() {
   }, [selectedDate, teachers]);
 
   const handleAttendanceClick = async (teacherId: number) => {
-    try {
-      // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
-      const currentHour = new Date().getHours();
-      const currentMinute = new Date().getMinutes();
-      const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
+    // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
+    const currentHour = new Date().getHours();
+    const currentMinute = new Date().getMinutes();
+    const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
 
+    // Optimistic update: 즉시 UI에 반영
+    setAttendanceStatuses(prev => ({
+      ...prev,
+      [teacherId]: {
+        status: attendanceStatus,
+      },
+    }));
+
+    try {
       await markTeacherAttendance(teacherId, attendanceStatus, selectedDate);
+      
+      // 출석 상태 다시 조회하여 선생님 리스트와 매칭 (서버 동기화)
+      // 약간의 지연을 주어 서버가 업데이트를 반영할 시간을 줌
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const attendanceResponse = await getTeacherAttendances(selectedDate);
+      const statuses: { [key: number]: { status?: string } } = {};
+      
+      if (Array.isArray(attendanceResponse)) {
+        attendanceResponse.forEach((item: any) => {
+          const id = item.teacherId || item.teacher_id || item.id;
+          if (id) {
+            statuses[id] = {
+              status: item.status,
+            };
+          }
+        });
+      }
+      
+      // 서버 응답이 있으면 서버 데이터로 업데이트, 없으면 기존 상태 유지
+      setAttendanceStatuses(prev => {
+        const updated = { ...prev };
+        // 서버 응답에 있는 항목만 업데이트 (기존 상태는 유지)
+        Object.keys(statuses).forEach(id => {
+          const teacherIdNum = Number(id);
+          if (statuses[teacherIdNum]?.status) {
+            updated[teacherIdNum] = statuses[teacherIdNum];
+          }
+        });
+        // 클릭한 선생님의 경우 서버 응답이 없거나 빈 값이면 optimistic update 유지
+        if ((!statuses[teacherId] || !statuses[teacherId].status) && prev[teacherId]?.status) {
+          updated[teacherId] = prev[teacherId];
+        }
+        return updated;
+      });
+      
+      // store도 업데이트 (다른 컴포넌트 동기화용)
       await getAttendances();
       
-      // 출석 상태 다시 조회하여 선생님 리스트와 매칭
+      setAlertType("success");
+      setAlertMessage("출석 체크가 완료되었습니다.");
+      setAlertOpen(true);
+    } catch (error: any) {
+      // 에러 발생 시 이전 상태로 롤백
       const attendanceResponse = await getTeacherAttendances(selectedDate);
       const statuses: { [key: number]: { status?: string } } = {};
       
@@ -108,11 +156,7 @@ export default function TeacherAttendance() {
       }
       
       setAttendanceStatuses(statuses);
-      
-      setAlertType("success");
-      setAlertMessage("출석 체크가 완료되었습니다.");
-      setAlertOpen(true);
-    } catch (error: any) {
+
       let errorMessage = "출석 체크 중 오류가 발생했습니다.";
       if (error.response?.status === 400) {
         const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";

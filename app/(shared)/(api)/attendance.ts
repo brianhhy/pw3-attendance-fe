@@ -19,7 +19,7 @@ export const getTeacherAttendances = async (date: string) => {
 
 
 // 선생님 출석 체크
-export const markTeacherAttendance = async (teacherId: number, status: "ATTEND" | "LATE", date: string) => {
+export const markTeacherAttendance = async (teacherId: number, status: "ATTEND" | "LATE" | "ABSENT" | "OTHER", date: string) => {
     const url = `${process.env.NEXT_PUBLIC_API_URL}/attendance/teacher/mark?teacherId=${teacherId}&status=${status}&date=${date}`;
     
     try {

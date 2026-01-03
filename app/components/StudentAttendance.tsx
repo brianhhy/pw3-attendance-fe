@@ -143,7 +143,30 @@ export default function StudentAttendance() {
           return a.classNumber - b.classNumber;
         });
 
-        setClassData(sortedClasses);
+        // 현재 optimistic update를 보존하면서 서버 데이터로 업데이트
+        setClassData(prevData => {
+          // prevData가 있고 optimistic update가 있는 경우 보존
+          if (prevData.length > 0) {
+            // 서버 데이터를 기반으로 업데이트하되, optimistic update가 있는 학생은 유지
+            return sortedClasses.map(classItem => {
+              const prevClassItem = prevData.find(c => c.id === classItem.id);
+              if (!prevClassItem) return classItem;
+              
+              return {
+                ...classItem,
+                students: classItem.students.map(student => {
+                  const prevStudent = prevClassItem.students.find(s => s.id === student.id);
+                  // 이전 상태에 출석 상태가 있고 서버 데이터에 없으면 이전 상태 유지 (optimistic update)
+                  if (prevStudent?.status && !student.status) {
+                    return prevStudent;
+                  }
+                  return student;
+                })
+              };
+            });
+          }
+          return sortedClasses;
+        });
       } catch (error) {
         console.error("반별 학생 정보 조회 실패:", error);
         setClassData([]);
@@ -154,7 +177,7 @@ export default function StudentAttendance() {
 
     fetchClassData();
     getAttendances();
-  }, [selectedDate, getAttendances]);
+  }, [selectedDate]);
 
   // 검색어에 따라 필터링된 클래스 데이터
   const filteredClassData = useMemo(() => {
@@ -184,16 +207,29 @@ export default function StudentAttendance() {
   }, [classData, searchQuery]);
 
   const handleAttendanceClick = async (studentId: number, studentClassId: number) => {
+    // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
+    const currentHour = new Date().getHours();
+    const attendanceStatus = currentHour < 9 ? "ATTEND" : "LATE";
+    
+    // Optimistic update: 즉시 UI에 반영
+    const mappedStatus: "attended" | "late" = attendanceStatus === "ATTEND" ? "attended" : "late";
+    setClassData(prevData => 
+      prevData.map(classItem => ({
+        ...classItem,
+        students: classItem.students.map(student => 
+          student.id === studentId && student.studentClassId === studentClassId
+            ? { ...student, status: mappedStatus }
+            : student
+        )
+      }))
+    );
+    
     try {
-      // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
-      const currentHour = new Date().getHours();
-      const attendanceStatus = currentHour < 9 ? "ATTEND" : "LATE";
-      
       await markStudentAttendance(studentClassId, selectedDate, attendanceStatus);
-      // 출석 정보 다시 가져오기
-      await getAttendances();
       
-      // getStudentAttendances를 다시 호출하여 최신 상태 반영
+      // getStudentAttendances를 다시 호출하여 최신 상태 반영 (서버 동기화)
+      // 약간의 지연을 주어 서버가 업데이트를 반영할 시간을 줌
+      await new Promise(resolve => setTimeout(resolve, 100));
       const schoolYear = 2026;
       const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
       
@@ -215,7 +251,79 @@ export default function StudentAttendance() {
         });
       }
       
-      // 클래스 데이터 업데이트
+      // 클래스 데이터 업데이트 (서버 응답이 있으면 서버 데이터로, 없으면 기존 상태 유지)
+      setClassData(prevData => 
+        prevData.map(classItem => {
+          const classRoomId = classItem.id;
+          const classAttendance = attendanceMap[classRoomId || 0] || {};
+          
+          return {
+            ...classItem,
+            students: classItem.students.map(student => {
+              // 현재 업데이트 중인 학생인지 확인
+              const currentStudentClassId = student.studentClassId;
+              const isUpdatingStudent = student.id === studentId && currentStudentClassId === studentClassId;
+              const status = currentStudentClassId ? classAttendance[currentStudentClassId] : null;
+              
+              let mappedStatus: "attended" | "late" | "absent" | undefined = student.status; // 기존 상태 유지
+              
+              // 서버 응답에 상태가 있으면 서버 데이터로 업데이트
+              if (status) {
+                const statusUpper = String(status).toUpperCase();
+                if (statusUpper === "ATTEND") {
+                  mappedStatus = "attended";
+                } else if (statusUpper === "LATE") {
+                  mappedStatus = "late";
+                } else if (statusUpper === "ABSENT") {
+                  mappedStatus = "absent";
+                }
+              }
+              
+              // 현재 업데이트 중인 학생이고 서버 응답이 없으면 optimistic update 유지
+              if (isUpdatingStudent && !status && student.status) {
+                mappedStatus = student.status;
+              }
+              
+              return {
+                ...student,
+                status: mappedStatus,
+              };
+            })
+          };
+        })
+      );
+      
+      // store도 업데이트 (다른 컴포넌트 동기화용)
+      await getAttendances();
+      
+      // 성공 Alert 표시
+      setAlertType("success");
+      setAlertMessage("출석 체크가 완료되었습니다.");
+      setAlertOpen(true);
+    } catch (error: any) {
+      console.error("출석 체크 실패:", error);
+      
+      // 에러 발생 시 이전 상태로 롤백
+      const schoolYear = 2026;
+      const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
+      
+      const attendanceMap: { [key: number]: { [key: number]: string } } = {};
+      if (Array.isArray(attendanceResponse)) {
+        attendanceResponse.forEach((classItem: any) => {
+          const classRoomId = classItem.classRoomId || classItem.class_room_id;
+          if (classRoomId && classItem.students) {
+            attendanceMap[classRoomId] = {};
+            classItem.students.forEach((student: any) => {
+              const studentClassId = student.studentClassId || student.student_class_id;
+              const status = student.status;
+              if (studentClassId && status) {
+                attendanceMap[classRoomId][studentClassId] = status;
+              }
+            });
+          }
+        });
+      }
+      
       setClassData(prevData => 
         prevData.map(classItem => {
           const classRoomId = classItem.id;
@@ -247,13 +355,6 @@ export default function StudentAttendance() {
           };
         })
       );
-      
-      // 성공 Alert 표시
-      setAlertType("success");
-      setAlertMessage("출석 체크가 완료되었습니다.");
-      setAlertOpen(true);
-    } catch (error: any) {
-      console.error("출석 체크 실패:", error);
       
       // 에러 Alert 표시
       let errorMessage = "출석 체크 중 오류가 발생했습니다.";
@@ -342,7 +443,7 @@ export default function StudentAttendance() {
   return (
     <div className="w-[700px] h-[710px] flex flex-col p-2">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
-        <h2 className="text-2xl font-semibold whitespace-nowrap">전체 학생 조회</h2>
+        <h2 className="text-2xl font-semibold whitespace-nowrap">학생 출석</h2>
         <div
           className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${
             isSearchOpen ? "w-64" : "w-10"
@@ -402,34 +503,19 @@ export default function StudentAttendance() {
                       <td className="py-3 px-4 text-sm">{idx + 1}</td>
                       <td className="py-3 px-4 text-sm">{student.name}</td>
                       <td className="py-3 px-4">
-                        {student.status === "attended" ? (
-                          <div className="px-3 py-1 text-xs rounded bg-[#9EFC9B] text-[#00CB18] font-semibold inline-block">
-                            출석
-                          </div>
-                        ) : student.status === "late" ? (
-                          <div className="px-3 py-1 text-xs rounded bg-[#FCD39B] text-[#F39200] font-semibold inline-block">
-                            지각
-                          </div>
-                        ) : student.status === "absent" ? (
-                          <div className="px-3 py-1 text-xs rounded bg-pink-500 text-white font-semibold inline-block">
-                            결석
-                          </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleAttendanceClick(student.id, student.studentClassId || classItem.id || 0)}
-                              className="px-3 py-1 text-xs rounded bg-green-100 text-green-700 hover:bg-green-200"
-                            >
-                              출석
-                            </button>
-                            <button
-                              onClick={() => handleAbsenceClick(student.id, student.studentClassId || classItem.id || 0)}
-                              className="px-3 py-1 text-xs rounded bg-pink-100 text-pink-700 hover:bg-pink-200"
-                            >
-                              결석
-                            </button>
-                          </div>
-                        )}
+                        <button
+                          onClick={() => handleAttendanceClick(student.id, student.studentClassId || classItem.id || 0)}
+                          disabled={student.status === "attended" || student.status === "late"}
+                          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-opacity ${
+                            student.status === "attended"
+                              ? "bg-[#9EFC9B] text-[#00CB18] cursor-not-allowed"
+                              : student.status === "late"
+                              ? "bg-[#FCD39B] text-[#F39200] cursor-not-allowed"
+                              : "bg-[#d9d9d9] text-[#697077] hover:opacity-90"
+                          }`}
+                        >
+                          {student.status === "attended" ? "출석" : student.status === "late" ? "지각" : "출석"}
+                        </button>
                       </td>
                     </tr>
                   ))}
