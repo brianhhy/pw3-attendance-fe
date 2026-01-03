@@ -25,7 +25,7 @@ const descriptions: Description[] = [
     },
     {
         title: "관리",
-        description: "새로운 학생과 선생님을 추가하고 관리하세요!",
+        description: "새로운 학생과 선생님을 추가하고 출석 상태를 관리하세요!",
     },
     {
         title: "통계",
@@ -223,7 +223,16 @@ const Header = () => {
     };
 
     const handleNextMonth = () => {
-        setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1));
+        const nextMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const nextMonthStart = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
+        nextMonthStart.setHours(0, 0, 0, 0);
+        
+        // 다음 달이 미래가 아니면 이동 가능
+        if (nextMonthStart <= today) {
+            setCalendarMonth(nextMonth);
+        }
     };
 
     const isToday = (day: number): boolean => {
@@ -244,6 +253,14 @@ const Header = () => {
         );
     };
 
+    const isFuture = (day: number): boolean => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const checkDate = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), day);
+        checkDate.setHours(0, 0, 0, 0);
+        return checkDate > today;
+    };
+
     const renderCalendar = () => {
         const daysInMonth = getDaysInMonth(calendarMonth);
         const firstDay = getFirstDayOfMonth(calendarMonth);
@@ -257,12 +274,16 @@ const Header = () => {
 
         // 날짜 추가
         for (let day = 1; day <= daysInMonth; day++) {
+            const future = isFuture(day);
             days.push(
                 <button
                     key={day}
-                    onClick={() => handleDateSelect(day)}
+                    onClick={() => !future && handleDateSelect(day)}
+                    disabled={future}
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm transition-colors ${
-                        isSelected(day)
+                        future
+                            ? "text-gray-300 cursor-not-allowed"
+                            : isSelected(day)
                             ? "bg-[#2C79FF] text-white font-bold"
                             : isToday(day)
                             ? "bg-gray-200 font-semibold"
@@ -273,6 +294,12 @@ const Header = () => {
                 </button>
             );
         }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const nextMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+        nextMonth.setHours(0, 0, 0, 0);
+        const isNextMonthFuture = nextMonth > today;
 
         return (
             <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-[320px] max-[1200px]:scale-75 max-[1200px]:origin-top-center">
@@ -288,7 +315,12 @@ const Header = () => {
                     </span>
                     <button
                         onClick={handleNextMonth}
-                        className="p-1 hover:bg-gray-100 rounded"
+                        disabled={isNextMonthFuture}
+                        className={`p-1 rounded ${
+                            isNextMonthFuture 
+                                ? "opacity-30 cursor-not-allowed" 
+                                : "hover:bg-gray-100"
+                        }`}
                     >
                         <ChevronRight className="w-5 h-5" />
                     </button>
@@ -308,7 +340,7 @@ const Header = () => {
     };
 
     return (
-        <header className="flex flex-col relative bg-white">
+        <header className="flex flex-col relative bg-white z-50">
             {/* Title, Description, 달력, 검색창 */}
             <div className="flex flex-row justify-between items-center w-full px-5 py-5 max-[1024px]:flex-col max-[1024px]:items-center max-[1024px]:gap-4">
                 {/* 왼쪽: Title과 Description */}
@@ -318,11 +350,11 @@ const Header = () => {
                 </div>
 
                 {/* 가운데: 달력 */}
-                <div className="absolute left-1/2 -translate-x-1/2 max-[1200px]:scale-75 max-[1200px]:origin-center max-[1024px]:relative max-[1024px]:left-auto max-[1024px]:translate-x-0">
+                <div className="absolute left-1/2 -translate-x-1/2 max-[1200px]:scale-75 max-[1200px]:origin-center max-[1024px]:relative max-[1024px]:left-auto max-[1024px]:translate-x-0 z-50">
                     <div className="relative">
                         <button
                             onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors relative z-50"
                         >
                             <Calendar className="w-5 h-5 text-[#2C79FF]" />
                             <span className="text-lg font-medium text-[#2C79FF]">
@@ -330,7 +362,7 @@ const Header = () => {
                             </span>
                         </button>
                         {isCalendarOpen && (
-                            <div ref={calendarRef} className="absolute top-12 left-1/2 -translate-x-1/2 z-[9999]">
+                            <div ref={calendarRef} className="absolute top-12 left-1/2 -translate-x-1/2 z-[99999]">
                                 {renderCalendar()}
                             </div>
                         )}

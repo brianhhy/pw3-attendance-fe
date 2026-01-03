@@ -1,5 +1,6 @@
 import StudentManagement from "./components/StudentManagement";
 import TeacherManagement from "./components/TeacherManagement";
+import AttendanceManagement from "./components/AttendanceManagement";
 
 export default function ManagementPage() {
   return (
@@ -8,6 +9,10 @@ export default function ManagementPage() {
       <div className="min-w-[600px] flex flex-col gap-6">
         <StudentManagement />
         <TeacherManagement />
+      </div>
+      {/* 출석 관리 */}
+      <div className="flex-1 flex flex-col">
+        <AttendanceManagement />
       </div>
     </div>
   );
