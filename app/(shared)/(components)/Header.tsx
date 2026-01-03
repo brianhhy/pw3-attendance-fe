@@ -338,7 +338,7 @@ const Header = () => {
                 </div>
 
                 {/* 오른쪽: 검색창 - 출석 체크 페이지에서만 표시, 1024px 이하에서는 숨김 */}
-                {pathname === "/" && (
+                {/* {pathname === "/" && (
                     <div className="relative flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-right max-[1024px]:hidden">
                         <div className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${
                             isSearchOpen || searchQuery ? "w-[300px] max-[768px]:w-[200px] max-[480px]:w-[130px]" : "w-10"
@@ -392,7 +392,7 @@ const Header = () => {
                             </div>
                         )}
                     </div>
-                )}
+                )} */}
             </div>
         </header>
     )
