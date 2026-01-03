@@ -16,3 +16,11 @@ export const getStudentClassesBySchoolYear = async (schoolYear?: number, date?: 
     return response.data;
 }
 
+// 반별 학생 정보 조회 (학년도별)
+export const getStudentClassesByYear = async (schoolYear: number) => {
+    const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/student-classes/school-year/${schoolYear}`
+    );
+    return response.data;
+}
+

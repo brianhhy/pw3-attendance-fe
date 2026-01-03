@@ -3,7 +3,7 @@
 import useAttendanceStore from "@/app/(shared)/(store)/attendanceStore";
 import { useEffect, useState, useMemo } from "react";
 import { User, Check, Clock, X, ArrowLeft, Search } from "lucide-react";
-import { markStudentAttendance, markTeacherAttendance, getTeacherAttendanceStatus } from "@/app/(shared)/(api)/attendance";
+import { markStudentAttendance, markTeacherAttendance, getTeacherAttendances } from "@/app/(shared)/(api)/attendance";
 
 interface RecentSearchItem {
     id: number;
@@ -48,8 +48,22 @@ export default function SelfAttendance() {
             if (selectedItem.type === "teacher") {
                 const fetchTeacherStatus = async () => {
                     try {
-                        const status = await getTeacherAttendanceStatus(selectedItem.id, selectedDate);
-                        setTeacherAttendanceStatus(status);
+                        const allTeacherAttendances = await getTeacherAttendances(selectedDate);
+                        // 배열에서 해당 선생님의 출석 상태 찾기
+                        const teacherAttendance = Array.isArray(allTeacherAttendances)
+                            ? allTeacherAttendances.find((item: any) => {
+                                const teacherId = item.teacherId || item.teacher_id || item.id;
+                                return teacherId === selectedItem.id;
+                            })
+                            : null;
+                        
+                        if (teacherAttendance) {
+                            setTeacherAttendanceStatus({
+                                status: teacherAttendance.status || teacherAttendance.attendanceStatus || teacherAttendance.attendance_status
+                            });
+                        } else {
+                            setTeacherAttendanceStatus(null);
+                        }
                     } catch (error) {
                         // 출석 정보가 없을 수도 있음 (아직 출석하지 않은 경우)
                         setTeacherAttendanceStatus(null);
@@ -191,8 +205,21 @@ export default function SelfAttendance() {
                 await markTeacherAttendance(teacher.id, attendanceStatus, selectedDate);
                 await getAttendances();
                 // 출석 상태 다시 조회
-                const status = await getTeacherAttendanceStatus(teacher.id, selectedDate);
-                setTeacherAttendanceStatus(status);
+                const allTeacherAttendances = await getTeacherAttendances(selectedDate);
+                const teacherAttendance = Array.isArray(allTeacherAttendances)
+                    ? allTeacherAttendances.find((item: any) => {
+                        const teacherId = item.teacherId || item.teacher_id || item.id;
+                        return teacherId === teacher.id;
+                    })
+                    : null;
+                
+                if (teacherAttendance) {
+                    setTeacherAttendanceStatus({
+                        status: teacherAttendance.status || teacherAttendance.attendanceStatus || teacherAttendance.attendance_status
+                    });
+                } else {
+                    setTeacherAttendanceStatus(null);
+                }
                 alert("출석 체크가 완료되었습니다.");
             }
         } catch (error: any) {
