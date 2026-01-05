@@ -306,7 +306,7 @@ export default function AttendanceManagement() {
               ) : filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-500 text-sm">
-                    {searchQuery ? "검색 결과가 없습니다" : "출석 정보가 없습니다"}
+                    {searchQuery ? "검색 결과가 없습니다" : "출석 정보가 없습니다."}
                   </td>
                 </tr>
               ) : (

@@ -28,6 +28,10 @@ const descriptions: Description[] = [
         description: "새로운 학생과 선생님을 추가하고 출석 상태를 관리하세요!",
     },
     {
+        title: "매칭",
+        description: "새로운 학생과 선생님을 반에 배정하세요!",
+    },
+    {
         title: "통계",
         description: "반별 출석률, 요일별 출석률과 같은 다양한 지표를 확인하세요!!",
     },
@@ -36,6 +40,7 @@ const descriptions: Description[] = [
         description: "학생과 학부모에게 메시지를 보내보세요!",
     },
 ]
+
 
 const Header = () => {
 
@@ -345,12 +350,12 @@ const Header = () => {
             <div className="flex flex-row justify-between items-center w-full px-5 py-5 max-[1024px]:flex-col max-[1024px]:items-center max-[1024px]:gap-4">
                 {/* 왼쪽: Title과 Description */}
                 <div className="flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-left max-[1024px]:origin-center max-[1024px]:items-center max-[1024px]:text-center">
-                    <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/statistics" ? 2 : pathname === "/message" ? 3 : 0].title}</span>
-                    <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/statistics" ? 2 : pathname === "/message" ? 3 : 0].description}</span>
+                    <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
+                    <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
                 </div>
 
-                {/* 가운데: 달력 */}
-                <div className="absolute left-1/2 -translate-x-1/2 max-[1200px]:scale-75 max-[1200px]:origin-center max-[1024px]:relative max-[1024px]:left-auto max-[1024px]:translate-x-0 z-50">
+                {/* 오른쪽: 달력 */}
+                <div className="flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-right max-[1024px]:relative max-[1024px]:left-auto max-[1024px]:translate-x-0 z-50">
                     <div className="relative">
                         <button
                             onClick={() => setIsCalendarOpen(!isCalendarOpen)}
@@ -362,7 +367,7 @@ const Header = () => {
                             </span>
                         </button>
                         {isCalendarOpen && (
-                            <div ref={calendarRef} className="absolute top-12 left-1/2 -translate-x-1/2 z-[99999]">
+                            <div ref={calendarRef} className="absolute top-12 right-0 z-[99999]">
                                 {renderCalendar()}
                             </div>
                         )}
