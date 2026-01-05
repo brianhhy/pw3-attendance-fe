@@ -83,10 +83,10 @@ export default function TeacherAttendance() {
   }, [selectedDate, teachers]);
 
   const handleAttendanceClick = async (teacherId: number) => {
-    // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
-    const currentHour = new Date().getHours();
-    const currentMinute = new Date().getMinutes();
-    const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
+      // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
+      const currentHour = new Date().getHours();
+      const currentMinute = new Date().getMinutes();
+      const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
 
     // Optimistic update: 즉시 UI에 반영
     setAttendanceStatuses(prev => ({
@@ -156,7 +156,7 @@ export default function TeacherAttendance() {
       }
       
       setAttendanceStatuses(statuses);
-
+      
       let errorMessage = "출석 체크 중 오류가 발생했습니다.";
       if (error.response?.status === 400) {
         const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";

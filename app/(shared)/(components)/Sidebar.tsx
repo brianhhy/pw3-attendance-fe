@@ -13,7 +13,8 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
     { href: "/", label: "출석 체크", icon: ClipboardCheck },
-    { href: "/management", label: "관리", icon: Users },
+    { href: "/management", label: "관리", icon: Settings },
+    { href: "/matching", label: "반 매칭", icon: Users },
     { href: "/statistics", label: "통계", icon: BarChart },
     { href: "/message", label: "메시지", icon: Mail },
 ];
@@ -54,7 +55,7 @@ const Sidebar = () => {
             </div>
 
             <div className="px-[18px] py-[10px]">
-                <button className="w-full px-[15px] py-[10px] rounded-[5px] bg-[#B3CFFF] text-white text-[25px] font-medium hover:bg-[#2C79FF] transition-colors flex flex-row items-center justify-center gap-[8px]">
+                <button className="w-full px-[15px] py-[10px] rounded-[5px] bg-[#B3CFFF] text-white text-[25px] font-medium hover:bg-[#2C79FF] transition-colors flex flex-row items-center justify-center gap-[8px] cursor-pointer">
                     <Share className="w-[25px] h-[25px]" />
                     <p>출석부 내보내기</p>
                 </button>
