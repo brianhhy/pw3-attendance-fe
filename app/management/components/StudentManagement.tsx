@@ -96,7 +96,7 @@ export default function StudentManagement() {
   }
 
   return (
-    <div className="w-full max-w-[600px] bg-transparent p-3">
+    <div className="w-full max-w-[700px] bg-transparent p-3">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">학생 관리</h1>
         <div

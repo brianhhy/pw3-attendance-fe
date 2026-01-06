@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import useTeacherStore from "../../(shared)/(store)/teacherStore"
 import NewPeople from "../modal/NewPeople"
+import { deleteTeacher } from "../../(shared)/(api)/teacher"
+import Alert from "../../(shared)/(modal)/Alert"
 
 // 날짜 포맷팅
 const formatDate = (dateString: string | null): string => {
@@ -21,6 +23,9 @@ export default function TeacherManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertType, setAlertType] = useState<"success" | "error">("success");
+  const [alertMessage, setAlertMessage] = useState("");
 
   useEffect(() => {
     setIsLoading(true);
@@ -75,8 +80,26 @@ export default function TeacherManagement() {
     return teacher[key] || "-";
   }
 
+  // 선생님 삭제 핸들러
+  const handleDelete = async (teacherId: number) => {
+    try {
+      await deleteTeacher(teacherId);
+      // 삭제 성공 후 리스트 새로고침
+      await getTeachers();
+      setAlertType("success");
+      setAlertMessage("선생님이 성공적으로 삭제되었습니다.");
+      setAlertOpen(true);
+    } catch (error: any) {
+      console.error("선생님 삭제 실패:", error);
+      setAlertType("error");
+      const errorMessage = error.response?.data?.message || error.message || "선생님 삭제 중 오류가 발생했습니다.";
+      setAlertMessage(errorMessage);
+      setAlertOpen(true);
+    }
+  }
+
   return (
-    <div className="w-full max-w-[600px] bg-transparent p-3">
+    <div className="w-full max-w-[700px] bg-transparent p-3">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">선생님 관리</h1>
         <div
@@ -146,9 +169,7 @@ export default function TeacherManagement() {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 text-gray-600 hover:text-red-600"
-                  onClick={() => {
-                    // TODO: 삭제 기능 구현
-                  }}
+                  onClick={() => handleDelete(teacher.id)}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -174,6 +195,14 @@ export default function TeacherManagement() {
         open={isModalOpen} 
         onOpenChange={setIsModalOpen} 
         type="teacher" 
+      />
+
+      {/* Alert 모달 */}
+      <Alert
+        open={alertOpen}
+        onOpenChange={setAlertOpen}
+        type={alertType}
+        message={alertMessage}
       />
     </div>
   )
