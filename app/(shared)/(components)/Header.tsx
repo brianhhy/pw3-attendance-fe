@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Search, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import useAttendanceStore from "../(store)/attendanceStore";
+import { getStudentAttendances } from "../(api)/attendance";
 
 interface Description{
     title: string;
@@ -64,7 +65,6 @@ const Header = () => {
     } = useAttendanceStore();
 
     useEffect(() => {
-        // 출석 체크 페이지에서만 학생/선생님 정보 가져오기
         if (pathname === "/") {
             getStudents();
             getTeachers();
@@ -95,23 +95,19 @@ const Header = () => {
     }, [isCalendarOpen]);
 
     const searchResults = useMemo(() => {
-        // 출석 체크 페이지가 아니면 검색 결과 없음
         if (pathname !== "/" || !searchQuery.trim()) return [];
 
         const query = searchQuery.toLowerCase();
         const results: SearchResult[] = [];
 
-        // 학생 이름 검색
         students.forEach((student) => {
             if (student.name.toLowerCase().includes(query)) {
-                // 2025년 클래스 정보 가져오기
                 const currentYear = "2025";
                 const classes2025 = student.classesByYear?.[currentYear];
                 let description = "학생";
                 
                 if (classes2025 && classes2025.length > 0) {
                     const classInfo = classes2025[0];
-                    // schoolType을 한글로 변환
                     const schoolTypeName = classInfo.schoolType === "MIDDLE" ? "중학교" 
                         : classInfo.schoolType === "HIGH" ? "고등학교"
                         : classInfo.schoolType === "ELEMENTARY" ? "초등학교"
@@ -128,7 +124,6 @@ const Header = () => {
             }
         });
 
-        // 선생님 이름 검색
         teachers.forEach((teacher) => {
             if (teacher.name.toLowerCase().includes(query)) {
                 results.push({ 
@@ -140,7 +135,7 @@ const Header = () => {
             }
         });
 
-        return results.slice(0, 10); // 최대 10개만 표시
+        return results.slice(0, 10);
     }, [pathname, searchQuery, students, teachers]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,7 +146,6 @@ const Header = () => {
         setSearchQuery(result.name);
         setIsSearchFocused(false);
         
-        // localStorage에 recentSearchItem 저장
         try {
             const recentSearchItem = {
                 id: result.id,
@@ -161,7 +155,6 @@ const Header = () => {
                 status: "before" as const,
             };
 
-            // 기존 localStorage 데이터 가져오기
             const existingData = localStorage.getItem("recentSearchItems");
             let recentSearches: typeof recentSearchItem[] = [];
             
@@ -173,27 +166,20 @@ const Header = () => {
                 }
             }
 
-            // 중복 제거 (같은 id와 type이면 제거)
             recentSearches = recentSearches.filter(
                 (item) => !(item.id === recentSearchItem.id && item.type === recentSearchItem.type)
             );
 
-            // 새로운 아이템을 맨 앞에 추가
             recentSearches.unshift(recentSearchItem);
 
-            // 최대 5개만 유지
             recentSearches = recentSearches.slice(0, 5);
 
-            // localStorage에 저장
             localStorage.setItem("recentSearchItems", JSON.stringify(recentSearches));
             
-            // 같은 탭에서 변경 감지를 위한 커스텀 이벤트 발생
             window.dispatchEvent(new Event("localStorageUpdate"));
             
-            // attendanceStore에 selectedItem 설정하여 SelfAttendance 컴포넌트에 반영
             setSelectedItem(recentSearchItem);
         } catch (error) {
-            // 에러 처리
         }
     };
 
@@ -215,7 +201,7 @@ const Header = () => {
         return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
     };
 
-    const handleDateSelect = (day: number) => {
+    const handleDateSelect = async (day: number) => {
         const year = calendarMonth.getFullYear();
         const month = calendarMonth.getMonth() + 1;
         const dateString = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -234,7 +220,6 @@ const Header = () => {
         const nextMonthStart = new Date(nextMonth.getFullYear(), nextMonth.getMonth(), 1);
         nextMonthStart.setHours(0, 0, 0, 0);
         
-        // 다음 달이 미래가 아니면 이동 가능
         if (nextMonthStart <= today) {
             setCalendarMonth(nextMonth);
         }
@@ -272,12 +257,10 @@ const Header = () => {
         const days = [];
         const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
-        // 빈 칸 추가
         for (let i = 0; i < firstDay; i++) {
             days.push(<div key={`empty-${i}`} className="w-10 h-10"></div>);
         }
 
-        // 날짜 추가
         for (let day = 1; day <= daysInMonth; day++) {
             const future = isFuture(day);
             days.push(
@@ -346,15 +329,12 @@ const Header = () => {
 
     return (
         <header className="flex flex-col relative bg-white z-50">
-            {/* Title, Description, 달력, 검색창 */}
             <div className="flex flex-row justify-between items-center w-full px-5 py-5 max-[1024px]:flex-col max-[1024px]:items-center max-[1024px]:gap-4">
-                {/* 왼쪽: Title과 Description */}
                 <div className="flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-left max-[1024px]:origin-center max-[1024px]:items-center max-[1024px]:text-center">
                     <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
                     <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
                 </div>
 
-                {/* 오른쪽: 달력 */}
                 <div className="flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-right max-[1024px]:relative max-[1024px]:left-auto max-[1024px]:translate-x-0 z-50">
                     <div className="relative">
                         <button
@@ -374,7 +354,6 @@ const Header = () => {
                     </div>
                 </div>
 
-                {/* 오른쪽: 검색창 - 출석 체크 페이지에서만 표시, 1024px 이하에서는 숨김 */}
                 {/* {pathname === "/" && (
                     <div className="relative flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-right max-[1024px]:hidden">
                         <div className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${

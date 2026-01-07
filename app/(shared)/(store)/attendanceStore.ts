@@ -70,21 +70,18 @@ interface RecentSearchItem {
 }
 
 interface AttendanceStore {
-    // 학생/선생님 정보
     students: StudentItem[];
     teachers: TeacherItem[];
     getStudents: () => Promise<void>;
     getTeachers: () => Promise<void>;
     
-    // 출석 정보
     studentAttendances: StudentAttendance[];
     teacherAttendances: TeacherAttendance[];
-    classAttendanceData: ClassAttendanceData[]; // 반별 출석 정보 (studentClassId 포함)
+    classAttendanceData: ClassAttendanceData[];
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     getAttendances: (date?: string) => Promise<void>;
     
-    // 선택된 아이템 (출석 체크용)
     selectedItem: RecentSearchItem | null;
     setSelectedItem: (item: RecentSearchItem | null) => void;
 }
@@ -98,23 +95,19 @@ const getTodayDateString = (): string => {
 };
 
 const useAttendanceStore = create<AttendanceStore>((set, get) => ({
-    // 학생/선생님 정보 초기값
     students: [],
     teachers: [],
     
-    // 출석 정보 초기값
     studentAttendances: [],
     teacherAttendances: [],
     classAttendanceData: [],
     selectedDate: getTodayDateString(),
     
-    // 선택된 아이템 초기값
     selectedItem: null,
     setSelectedItem: (item: RecentSearchItem | null) => {
         set({ selectedItem: item });
     },
     
-    // 학생 정보 가져오기
     getStudents: async () => {
         try {
             const response = await getStudentsList();
@@ -125,7 +118,6 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         }
     },
     
-    // 선생님 정보 가져오기
     getTeachers: async () => {
         try {
             const response = await getTeacherList();
@@ -135,16 +127,14 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         }
     },
     
-    // 날짜 설정 및 출석 정보 가져오기
     setSelectedDate: (date: string) => {
         set({ selectedDate: date });
         get().getAttendances(date);
     },
     
-    // 출석 정보 가져오기
     getAttendances: async (date?: string) => {
         const targetDate = date || get().selectedDate || getTodayDateString();
-        const schoolYear = new Date().getFullYear(); // 올해 연도
+        const schoolYear = new Date().getFullYear();
 
         try {
             const [classAttendanceData, teacherData] = await Promise.all([

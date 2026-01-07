@@ -8,7 +8,6 @@ import useTeacherStore from "../../(shared)/(store)/teacherStore"
 import NewPeople from "../modal/NewPeople"
 import Alert from "../../(shared)/(modal)/Alert"
 
-// 날짜 포맷팅
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return "-";
   const date = new Date(dateString);
@@ -31,7 +30,6 @@ export default function TeacherManagement() {
     setIsLoading(true);
     setHasTimedOut(false);
     
-    // 타임아웃 설정 (5초)
     const timeoutId = setTimeout(() => {
       setHasTimedOut(true);
       setIsLoading(false);
@@ -54,7 +52,6 @@ export default function TeacherManagement() {
     };
   }, [getTeachers]);
 
-  // 검색 필터링
   const filteredTeachers = teachers.filter((teacher) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -69,7 +66,6 @@ export default function TeacherManagement() {
     { icon: <Tag className="h-4 w-4" />, label: "기타", key: "memo" },
   ]
 
-  // 선생님 데이터에서 필터에 해당하는 값 가져오기
   const getTeacherValue = (teacher: any, key: string): string => {
     if (key === "birth") {
       return formatDate(teacher.birth);
@@ -149,7 +145,6 @@ export default function TeacherManagement() {
         )}
       </div>
 
-      {/* New Teacher Button */}
       <div className="mt-2 flex justify-start">
         <Button 
           variant="ghost" 
@@ -163,14 +158,12 @@ export default function TeacherManagement() {
         </Button>
       </div>
 
-      {/* New People Modal */}
       <NewPeople 
         open={isModalOpen} 
         onOpenChange={async (open) => {
           setIsModalOpen(open);
           if (!open) {
             setSelectedTeacher(null);
-            // 모달이 닫힐 때 리스트 새로고침
             await getTeachers();
           }
         }} 
@@ -178,7 +171,6 @@ export default function TeacherManagement() {
         initialData={selectedTeacher}
       />
 
-      {/* Alert 모달 */}
       <Alert
         open={alertOpen}
         onOpenChange={setAlertOpen}
