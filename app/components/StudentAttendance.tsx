@@ -23,7 +23,6 @@ interface ClassData {
   }>;
 }
 
-// 학교 타입을 한글로 변환
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
     case "MIDDLE":
@@ -51,13 +50,10 @@ export default function StudentAttendance() {
     const fetchClassData = async () => {
       try {
         setIsLoading(true);
-        // 2026년도 반별 학생 정보 조회
         const classResponse = await getStudentClassesByYear(2026);
-        // 출석 정보 조회 (students.status 포함)
         const schoolYear = 2026;
         const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
         
-        // 출석 정보를 classRoomId를 키로 하는 맵으로 변환
         const attendanceMap: { [key: number]: { [key: number]: string } } = {};
         if (Array.isArray(attendanceResponse)) {
           attendanceResponse.forEach((classItem: any) => {
@@ -75,17 +71,14 @@ export default function StudentAttendance() {
           });
         }
         
-        // API 응답을 ClassData 형식으로 변환
         const transformedData: ClassData[] = classResponse.map((classItem: any) => {
           const classRoomId = classItem.classRoomId;
           const classAttendance = attendanceMap[classRoomId] || {};
           
-          // 출석 상태와 함께 학생 정보 매핑
           const studentsWithStatus = classItem.students?.map((student: any) => {
             const studentClassId = student.id;
             const status = classAttendance[studentClassId];
             
-            // status를 소문자로 변환하여 매핑 (ATTEND -> attended, LATE -> late, ABSENT -> absent)
             let mappedStatus: "attended" | "late" | "absent" | undefined;
             if (status) {
               const statusUpper = String(status).toUpperCase();
@@ -117,9 +110,7 @@ export default function StudentAttendance() {
           };
         });
 
-        // 반별로 정렬 (중학교 우선 > 학년 > 반 순서)
         const sortedClasses = transformedData.sort((a, b) => {
-          // 학교 타입 우선순위: MIDDLE > ELEMENTARY > HIGH
           const getSchoolTypePriority = (schoolType: string): number => {
             if (schoolType === "MIDDLE") return 1;
             if (schoolType === "ELEMENTARY") return 2;
@@ -134,39 +125,14 @@ export default function StudentAttendance() {
             return priorityA - priorityB;
           }
           
-          // 같은 학교 타입이면 학년 순서
           if (a.grade !== b.grade) {
             return a.grade - b.grade;
           }
           
-          // 같은 학년이면 반 순서
           return a.classNumber - b.classNumber;
         });
 
-        // 현재 optimistic update를 보존하면서 서버 데이터로 업데이트
-        setClassData(prevData => {
-          // prevData가 있고 optimistic update가 있는 경우 보존
-          if (prevData.length > 0) {
-            // 서버 데이터를 기반으로 업데이트하되, optimistic update가 있는 학생은 유지
-            return sortedClasses.map(classItem => {
-              const prevClassItem = prevData.find(c => c.id === classItem.id);
-              if (!prevClassItem) return classItem;
-              
-              return {
-                ...classItem,
-                students: classItem.students.map(student => {
-                  const prevStudent = prevClassItem.students.find(s => s.id === student.id);
-                  // 이전 상태에 출석 상태가 있고 서버 데이터에 없으면 이전 상태 유지 (optimistic update)
-                  if (prevStudent?.status && !student.status) {
-                    return prevStudent;
-                  }
-                  return student;
-                })
-              };
-            });
-          }
-          return sortedClasses;
-        });
+        setClassData(sortedClasses);
       } catch (error) {
         console.error("반별 학생 정보 조회 실패:", error);
         setClassData([]);
@@ -179,7 +145,6 @@ export default function StudentAttendance() {
     getAttendances();
   }, [selectedDate]);
 
-  // 검색어에 따라 필터링된 클래스 데이터
   const filteredClassData = useMemo(() => {
     if (!searchQuery.trim()) {
       return classData;
@@ -188,12 +153,10 @@ export default function StudentAttendance() {
     const query = searchQuery.toLowerCase();
     return classData
       .map((classItem) => {
-        // 각 반의 학생 중 검색어와 일치하는 학생만 필터링
         const filteredStudents = classItem.students.filter((student) =>
           student.name.toLowerCase().includes(query)
         );
 
-        // 필터링된 학생이 있는 반만 반환
         if (filteredStudents.length === 0) {
           return null;
         }
@@ -207,11 +170,9 @@ export default function StudentAttendance() {
   }, [classData, searchQuery]);
 
   const handleAttendanceClick = async (studentId: number, studentClassId: number) => {
-    // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
     const currentHour = new Date().getHours();
     const attendanceStatus = currentHour < 9 ? "ATTEND" : "LATE";
     
-    // Optimistic update: 즉시 UI에 반영
     const mappedStatus: "attended" | "late" = attendanceStatus === "ATTEND" ? "attended" : "late";
     setClassData(prevData => 
       prevData.map(classItem => ({
@@ -227,13 +188,10 @@ export default function StudentAttendance() {
     try {
       await markStudentAttendance(studentClassId, selectedDate, attendanceStatus);
       
-      // getStudentAttendances를 다시 호출하여 최신 상태 반영 (서버 동기화)
-      // 약간의 지연을 주어 서버가 업데이트를 반영할 시간을 줌
       await new Promise(resolve => setTimeout(resolve, 100));
       const schoolYear = 2026;
       const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
       
-      // 출석 정보를 classRoomId를 키로 하는 맵으로 변환
       const attendanceMap: { [key: number]: { [key: number]: string } } = {};
       if (Array.isArray(attendanceResponse)) {
         attendanceResponse.forEach((classItem: any) => {
@@ -251,7 +209,6 @@ export default function StudentAttendance() {
         });
       }
       
-      // 클래스 데이터 업데이트 (서버 응답이 있으면 서버 데이터로, 없으면 기존 상태 유지)
       setClassData(prevData => 
         prevData.map(classItem => {
           const classRoomId = classItem.id;
@@ -260,14 +217,12 @@ export default function StudentAttendance() {
           return {
             ...classItem,
             students: classItem.students.map(student => {
-              // 현재 업데이트 중인 학생인지 확인
               const currentStudentClassId = student.studentClassId;
               const isUpdatingStudent = student.id === studentId && currentStudentClassId === studentClassId;
               const status = currentStudentClassId ? classAttendance[currentStudentClassId] : null;
               
-              let mappedStatus: "attended" | "late" | "absent" | undefined = student.status; // 기존 상태 유지
+              let mappedStatus: "attended" | "late" | "absent" | undefined = student.status;
               
-              // 서버 응답에 상태가 있으면 서버 데이터로 업데이트
               if (status) {
                 const statusUpper = String(status).toUpperCase();
                 if (statusUpper === "ATTEND") {
@@ -279,7 +234,6 @@ export default function StudentAttendance() {
                 }
               }
               
-              // 현재 업데이트 중인 학생이고 서버 응답이 없으면 optimistic update 유지
               if (isUpdatingStudent && !status && student.status) {
                 mappedStatus = student.status;
               }
@@ -293,17 +247,14 @@ export default function StudentAttendance() {
         })
       );
       
-      // store도 업데이트 (다른 컴포넌트 동기화용)
       await getAttendances();
       
-      // 성공 Alert 표시
       setAlertType("success");
       setAlertMessage("출석 체크가 완료되었습니다.");
       setAlertOpen(true);
     } catch (error: any) {
       console.error("출석 체크 실패:", error);
       
-      // 에러 발생 시 이전 상태로 롤백
       const schoolYear = 2026;
       const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
       
@@ -356,7 +307,6 @@ export default function StudentAttendance() {
         })
       );
       
-      // 에러 Alert 표시
       let errorMessage = "출석 체크 중 오류가 발생했습니다.";
       if (error.response?.status === 400) {
         const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";
@@ -378,14 +328,11 @@ export default function StudentAttendance() {
   const handleAbsenceClick = async (studentId: number, studentClassId: number) => {
     try {
       await markStudentAttendance(studentClassId, selectedDate, "ABSENT");
-      // 출석 정보 다시 가져오기
       await getAttendances();
       
-      // getStudentAttendances를 다시 호출하여 최신 상태 반영
       const schoolYear = 2026;
       const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
       
-      // 출석 정보를 classRoomId를 키로 하는 맵으로 변환
       const attendanceMap: { [key: number]: { [key: number]: string } } = {};
       if (Array.isArray(attendanceResponse)) {
         attendanceResponse.forEach((classItem: any) => {
@@ -403,7 +350,6 @@ export default function StudentAttendance() {
         });
       }
       
-      // 클래스 데이터 업데이트
       setClassData(prevData => 
         prevData.map(classItem => {
           const classRoomId = classItem.id;
@@ -528,7 +474,6 @@ export default function StudentAttendance() {
         </div>
       </div>
       
-      {/* Alert 모달 */}
       <Alert
         open={alertOpen}
         onOpenChange={setAlertOpen}

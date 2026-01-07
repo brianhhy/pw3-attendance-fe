@@ -26,7 +26,6 @@ interface NewPeopleProps {
   initialData?: any
 }
 
-// 날짜를 YYYY-MM-DD 형식으로 변환
 const formatDateForInput = (dateString: string | null): string => {
   if (!dateString) return "";
   const date = new Date(dateString);
@@ -36,7 +35,6 @@ const formatDateForInput = (dateString: string | null): string => {
   return `${year}-${month}-${day}`;
 };
 
-// teacherType을 소문자로 변환 (TEACHER -> teacher)
 const formatTeacherType = (teacherType: string | null): string => {
   if (!teacherType) return "";
   const typeMap: { [key: string]: string } = {
@@ -111,15 +109,12 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
           })
         }
       }
-      // 성공 alert 표시
       setAlertType("success")
       setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 ${isEditMode ? "수정" : "추가"}되었습니다.`)
       setAlertOpen(true)
-      // 성공 시 모달 닫기
       onOpenChange(false)
     } catch (error: any) {
       console.error(`${isEditMode ? "수정" : "추가"} 실패:`, error)
-      // 실패 alert 표시 - 에러 메시지 우선순위
       let errorMessage = `${isEditMode ? "수정" : "추가"}에 실패했습니다.`
       if (error.response?.data) {
         const errorData = error.response.data
@@ -155,15 +150,12 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
       } else {
         await deleteTeacher(initialData.id);
       }
-      // 성공 alert 표시
       setAlertType("success");
       setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 삭제되었습니다.`);
       setAlertOpen(true);
-      // 성공 시 모달 닫기
       onOpenChange(false);
     } catch (error: any) {
       console.error("삭제 실패:", error);
-      // 실패 alert 표시
       let errorMessage = "삭제에 실패했습니다.";
       if (error.response?.data) {
         const errorData = error.response.data;
@@ -179,10 +171,8 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
 
   const isStudent = type === "student"
 
-  // initialData가 변경되거나 모달이 열릴 때 폼 데이터 설정
   useEffect(() => {
     if (open && initialData) {
-      // 수정 모드: 기존 데이터로 폼 채우기
       setFormData({
         name: initialData.name || "",
         birth: formatDateForInput(initialData.birth),
@@ -194,7 +184,6 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
         memo: initialData.memo || "",
       })
     } else if (open && !initialData) {
-      // 새로 추가 모드: 폼 초기화
       setFormData({
         name: "",
         birth: "",

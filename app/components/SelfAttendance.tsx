@@ -44,12 +44,10 @@ export default function SelfAttendance() {
         if (selectedItem) {
             getAttendances();
             
-            // teacher인 경우 개별 출석 상태 조회
             if (selectedItem.type === "teacher") {
                 const fetchTeacherStatus = async () => {
                     try {
                         const allTeacherAttendances = await getTeacherAttendances(selectedDate);
-                        // 배열에서 해당 선생님의 출석 상태 찾기
                         const teacherAttendance = Array.isArray(allTeacherAttendances)
                             ? allTeacherAttendances.find((item: any) => {
                                 const teacherId = item.teacherId || item.teacher_id || item.id;
@@ -65,7 +63,6 @@ export default function SelfAttendance() {
                             setTeacherAttendanceStatus(null);
                         }
                     } catch (error) {
-                        // 출석 정보가 없을 수도 있음 (아직 출석하지 않은 경우)
                         setTeacherAttendanceStatus(null);
                     }
                 };
@@ -95,7 +92,6 @@ export default function SelfAttendance() {
     }, []);
 
     useEffect(() => {
-        // localStorage에서 최근 검색어 가져오기
         try {
             const storedData = localStorage.getItem("recentSearchItems");
             if (storedData) {
@@ -109,7 +105,6 @@ export default function SelfAttendance() {
         }
     }, []);
 
-    // localStorage 변경 감지 (다른 탭이나 컴포넌트에서 변경 시 반영)
     useEffect(() => {
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === "recentSearchItems") {
@@ -119,14 +114,12 @@ export default function SelfAttendance() {
                         setRecentSearches(parsedData);
                     }
                 } catch (error) {
-                    // 에러 무시
                 }
             }
         };
 
         window.addEventListener("storage", handleStorageChange);
         
-        // 같은 탭에서의 변경도 감지하기 위한 커스텀 이벤트 리스너
         const handleCustomStorageChange = () => {
             try {
                 const storedData = localStorage.getItem("recentSearchItems");
@@ -135,7 +128,6 @@ export default function SelfAttendance() {
                     setRecentSearches(parsedData);
                 }
             } catch (error) {
-                // 에러 무시
             }
         };
 
@@ -152,13 +144,11 @@ export default function SelfAttendance() {
 
         try {
             if (selectedItem.type === "student") {
-                // 학생인 경우 - classAttendanceData에서 studentName으로 매칭하여 studentClassId 찾기
                 let studentClassId: number | null = null;
                 
                 for (const classData of classAttendanceData) {
                     if (!classData.students || !Array.isArray(classData.students)) continue;
                     
-                    // studentName으로 매칭
                     const student = classData.students.find((s: any) => 
                         s.studentName === selectedItem.name
                     );
@@ -174,18 +164,14 @@ export default function SelfAttendance() {
                     return;
                 }
 
-                // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
                 const currentHour = new Date().getHours();
                 const currentMinute = new Date().getMinutes();
                 const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
 
-                // studentClassId와 status를 사용하여 출석 체크
                 await markStudentAttendance(studentClassId, selectedDate, attendanceStatus);
                 await getAttendances();
                 alert("출석 체크가 완료되었습니다.");
             } else if (selectedItem.type === "teacher") {
-                // 선생님인 경우
-                // 타입 변환을 고려하여 선생님 찾기
                 const teacher = teachers.find((t) => 
                     t.id === selectedItem.id || 
                     Number(t.id) === Number(selectedItem.id) ||
@@ -197,14 +183,12 @@ export default function SelfAttendance() {
                     return;
                 }
 
-                // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
                 const currentHour = new Date().getHours();
                 const currentMinute = new Date().getMinutes();
                 const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
 
                 await markTeacherAttendance(teacher.id, attendanceStatus, selectedDate);
                 await getAttendances();
-                // 출석 상태 다시 조회
                 const allTeacherAttendances = await getTeacherAttendances(selectedDate);
                 const teacherAttendance = Array.isArray(allTeacherAttendances)
                     ? allTeacherAttendances.find((item: any) => {
@@ -239,12 +223,10 @@ export default function SelfAttendance() {
         }
     };
 
-    // 출석 완료 여부 확인 (useMemo로 최적화)
     const isAttendanceCompleted = useMemo(() => {
         if (!selectedItem) return false;
         
         if (selectedItem.type === "student") {
-            // classAttendanceData에서 studentName으로 매칭하여 status 확인
             for (const classData of classAttendanceData) {
                 if (!classData.students || !Array.isArray(classData.students)) continue;
                 
@@ -253,7 +235,6 @@ export default function SelfAttendance() {
                 );
                 
                 if (student && student.status) {
-                    // status를 string으로 변환하여 비교
                     const statusStr = String(student.status);
                     const statusUpper = statusStr.toUpperCase();
                     const isAttend = statusUpper === "ATTEND" || statusUpper === "ATTENDED" || statusStr === "ATTEND";
@@ -262,13 +243,10 @@ export default function SelfAttendance() {
             }
             return false;
         } else {
-            // teacher의 경우, API로 조회한 출석 상태 확인
             if (!teacherAttendanceStatus || !teacherAttendanceStatus.status) {
                 return false;
             }
             
-            // status를 string으로 변환하여 비교 (타입 안전성을 위해)
-            // "ATTEND", "attended", "ATTENDED" 모두 확인
             const statusStr = String(teacherAttendanceStatus.status);
             const statusUpper = statusStr.toUpperCase();
             const isAttend = statusUpper === "ATTEND" || statusUpper === "ATTENDED" || statusStr === "ATTEND";
@@ -278,14 +256,12 @@ export default function SelfAttendance() {
     }, [selectedItem, selectedDate, studentAttendances, teacherAttendances, students, teacherAttendanceStatus, classAttendanceData]);
 
 
-    // 검색 결과 계산
     const searchResults = useMemo(() => {
         if (!searchQuery.trim()) return [];
         
         const query = searchQuery.toLowerCase();
         const results: RecentSearchItem[] = [];
         
-        // 학생 이름 검색
         students.forEach((student) => {
             if (student.name.toLowerCase().includes(query)) {
                 const currentYear = "2025";
@@ -311,7 +287,6 @@ export default function SelfAttendance() {
             }
         });
         
-        // 선생님 이름 검색
         teachers.forEach((teacher) => {
             if (teacher.name.toLowerCase().includes(query)) {
                 results.push({ 
@@ -335,7 +310,6 @@ export default function SelfAttendance() {
         setSearchQuery("");
         setIsSearchFocused(false);
         
-        // localStorage에 recentSearchItem 저장
         try {
             const existingData = localStorage.getItem("recentSearchItems");
             let recentSearches: RecentSearchItem[] = [];
@@ -348,27 +322,20 @@ export default function SelfAttendance() {
                 }
             }
             
-            // 중복 제거
             recentSearches = recentSearches.filter(
                 (item) => !(item.id === result.id && item.type === result.type)
             );
-            
-            // 새로운 아이템을 맨 앞에 추가
+
             recentSearches.unshift(result);
             
-            // 최대 5개만 유지
             recentSearches = recentSearches.slice(0, 5);
             
-            // localStorage에 저장
             localStorage.setItem("recentSearchItems", JSON.stringify(recentSearches));
             
-            // 같은 탭에서 변경 감지를 위한 커스텀 이벤트 발생
             window.dispatchEvent(new Event("localStorageUpdate"));
             
-            // attendanceStore에 selectedItem 설정
             setSelectedItem(result);
         } catch (error) {
-            // 에러 처리
         }
     };
 

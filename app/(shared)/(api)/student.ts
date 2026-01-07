@@ -93,4 +93,3 @@ export const getStudentClassesByYear = async (schoolYear: number) => {
     );
     return response.data;
 }
-

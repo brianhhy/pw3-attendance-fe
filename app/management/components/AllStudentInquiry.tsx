@@ -19,7 +19,6 @@ interface ClassData {
   }>;
 }
 
-// 학교 타입을 한글로 변환
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
     case "MIDDLE":
@@ -48,23 +47,18 @@ export default function AllStudentInquiry() {
   useEffect(() => {
     if (students.length === 0) return;
 
-    // 현재 연도 (2025)
     const currentYear = "2025";
     
-    // 반별로 학생 그룹화
     const groupedByClass: { [key: string]: ClassData } = {};
 
     students.forEach((student) => {
-      // 2025년 클래스 정보 가져오기
       const classes2025 = student.classesByYear?.[currentYear];
       if (!classes2025 || classes2025.length === 0) return;
 
-      // 첫 번째 클래스 정보 사용 (보통 학생은 한 반에만 속함)
       const classInfo = classes2025[0];
       const key = `${classInfo.schoolType}-${classInfo.grade}-${classInfo.classNumber}`;
       
       if (!groupedByClass[key]) {
-        // 담임 선생님 찾기 (classNumber로 찾기)
         const teacher = teachers.find((t) => t.number === String(classInfo.classNumber));
         groupedByClass[key] = {
           schoolType: classInfo.schoolType,
@@ -76,7 +70,6 @@ export default function AllStudentInquiry() {
         };
       }
 
-      // 출석 상태 확인
       const attendance = studentAttendances.find(
         (a) => a.studentId === student.id && a.date === selectedDate
       );
@@ -88,9 +81,7 @@ export default function AllStudentInquiry() {
       });
     });
 
-    // 반별로 정렬 (중학교 우선 > 학년 > 반 순서)
     const sortedClasses = Object.values(groupedByClass).sort((a, b) => {
-      // 학교 타입 우선순위: MIDDLE > ELEMENTARY > HIGH
       const getSchoolTypePriority = (schoolType: string): number => {
         if (schoolType === "MIDDLE") return 1;
         if (schoolType === "ELEMENTARY") return 2;
@@ -105,19 +96,16 @@ export default function AllStudentInquiry() {
         return priorityA - priorityB;
       }
       
-      // 같은 학교 타입이면 학년 순서
       if (a.grade !== b.grade) {
         return a.grade - b.grade;
       }
       
-      // 같은 학년이면 반 순서
       return a.classNumber - b.classNumber;
     });
 
     setClassData(sortedClasses);
   }, [students, teachers, studentAttendances, selectedDate]);
 
-  // 검색어에 따라 필터링된 클래스 데이터
   const filteredClassData = useMemo(() => {
     if (!searchQuery.trim()) {
       return classData;
@@ -126,12 +114,10 @@ export default function AllStudentInquiry() {
     const query = searchQuery.toLowerCase();
     return classData
       .map((classItem) => {
-        // 각 반의 학생 중 검색어와 일치하는 학생만 필터링
         const filteredStudents = classItem.students.filter((student) =>
           student.name.toLowerCase().includes(query)
         );
 
-        // 필터링된 학생이 있는 반만 반환
         if (filteredStudents.length === 0) {
           return null;
         }
@@ -146,7 +132,6 @@ export default function AllStudentInquiry() {
 
   const handleAttendanceClick = async (studentId: number) => {
     try {
-      // 학생 정보에서 studentClassId 찾기 (2025년 클래스 정보 사용)
       const student = students.find((s) => s.id === studentId);
       if (!student) {
         return;
@@ -160,16 +145,13 @@ export default function AllStudentInquiry() {
 
       const studentClassId = classes2025[0].id;
       
-      // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
       const currentHour = new Date().getHours();
       const currentMinute = new Date().getMinutes();
       const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
       
       await markStudentAttendance(studentClassId, selectedDate, attendanceStatus);
-      // 출석 정보 다시 가져오기
       await getAttendances();
     } catch (error) {
-      // 에러 처리
     }
   };
 

@@ -19,7 +19,6 @@ interface AttendanceItem {
   date: string;
 }
 
-// 학교 타입을 한글로 변환
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
     case "MIDDLE":
@@ -33,7 +32,6 @@ const getSchoolTypeName = (schoolType: string): string => {
   }
 };
 
-// 상태를 한글로 변환
 const getStatusName = (status: string | null): string => {
   if (!status) return "-";
   switch (status.toUpperCase()) {
@@ -50,7 +48,6 @@ const getStatusName = (status: string | null): string => {
   }
 };
 
-// 상태에 따른 색상
 const getStatusColor = (status: string | null): string => {
   if (!status) return "bg-gray-100 text-gray-600";
   switch (status.toUpperCase()) {
@@ -83,7 +80,6 @@ export default function AttendanceManagement() {
         setIsLoading(true);
         const schoolYear = 2026;
         
-        // 학생과 선생님 출석 정보 가져오기
         const [studentAttendances, teacherAttendances] = await Promise.all([
           getStudentAttendances(schoolYear, selectedDate),
           getTeacherAttendances(selectedDate),
@@ -91,7 +87,6 @@ export default function AttendanceManagement() {
 
         const items: AttendanceItem[] = [];
 
-        // 학생 출석 정보 처리
         if (Array.isArray(studentAttendances)) {
           studentAttendances.forEach((classItem: any) => {
             const classRoomId = classItem.classRoomId || classItem.class_room_id;
@@ -102,7 +97,6 @@ export default function AttendanceManagement() {
                 const studentClassId = student.studentClassId || student.student_class_id;
                 const status = student.status;
                 
-                // UNCHECKED가 아닌 경우만 추가
                 if (status && status.toUpperCase() !== "UNCHECKED") {
                   items.push({
                     id: student.studentId || student.student_id || student.id || studentClassId,
@@ -119,13 +113,11 @@ export default function AttendanceManagement() {
           });
         }
 
-        // 선생님 출석 정보 처리
         if (Array.isArray(teacherAttendances)) {
           teacherAttendances.forEach((teacher: any) => {
             const teacherId = teacher.teacherId || teacher.teacher_id || teacher.id;
             const status = teacher.status || teacher.attendanceStatus || teacher.attendance_status;
             
-            // UNCHECKED가 아닌 경우만 추가
             if (status && status.toUpperCase() !== "UNCHECKED") {
               items.push({
                 id: teacherId,
@@ -152,7 +144,6 @@ export default function AttendanceManagement() {
     getAttendances();
   }, [selectedDate, getAttendances]);
 
-  // 검색어에 따라 필터링
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) {
       return attendanceItems;
@@ -175,7 +166,6 @@ export default function AttendanceManagement() {
         await markTeacherAttendance(item.teacherId, newStatus, selectedDate);
       }
 
-      // 출석 정보 다시 가져오기
       const schoolYear = 2026;
       const [studentAttendances, teacherAttendances] = await Promise.all([
         getStudentAttendances(schoolYear, selectedDate),
@@ -184,7 +174,6 @@ export default function AttendanceManagement() {
 
       const items: AttendanceItem[] = [];
 
-      // 학생 출석 정보 처리
       if (Array.isArray(studentAttendances)) {
         studentAttendances.forEach((classItem: any) => {
           const classRoomId = classItem.classRoomId || classItem.class_room_id;
@@ -211,7 +200,6 @@ export default function AttendanceManagement() {
         });
       }
 
-      // 선생님 출석 정보 처리
       if (Array.isArray(teacherAttendances)) {
         teacherAttendances.forEach((teacher: any) => {
           const teacherId = teacher.teacherId || teacher.teacher_id || teacher.id;
@@ -395,7 +383,6 @@ export default function AttendanceManagement() {
         </div>
       </div>
 
-      {/* Alert 모달 */}
       <Alert
         open={alertOpen}
         onOpenChange={setAlertOpen}

@@ -7,7 +7,6 @@ import { useState, useEffect } from "react"
 import useStudentStore from "../../(shared)/(store)/studentStore"
 import NewPeople from "../modal/NewPeople"
 
-// 학교 타입을 한글로 변환
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
     case "MIDDLE":
@@ -21,7 +20,6 @@ const getSchoolTypeName = (schoolType: string): string => {
   }
 };
 
-// 날짜 포맷팅
 const formatDate = (dateString: string | null): string => {
   if (!dateString) return "-";
   const date = new Date(dateString);
@@ -41,7 +39,6 @@ export default function StudentManagement() {
     setIsLoading(true);
     setHasTimedOut(false);
     
-    // 타임아웃 설정 (5초)
     const timeoutId = setTimeout(() => {
       setHasTimedOut(true);
       setIsLoading(false);
@@ -64,7 +61,6 @@ export default function StudentManagement() {
     };
   }, [getStudents]);
 
-  // 검색 필터링
   const filteredStudents = students.filter((student) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -80,7 +76,6 @@ export default function StudentManagement() {
     { icon: <Tag className="h-4 w-4" />, label: "기타", key: "memo" },
   ]
 
-  // 학생 데이터에서 필터에 해당하는 값 가져오기
   const getStudentValue = (student: any, key: string): string => {
     if (key === "birth") {
       return formatDate(student.birth);
@@ -164,7 +159,6 @@ export default function StudentManagement() {
         )}
       </div>
 
-      {/* New Student Button */}
       <div className="mt-2 flex justify-start">
         <Button 
           variant="ghost" 
@@ -178,14 +172,12 @@ export default function StudentManagement() {
         </Button>
       </div>
 
-      {/* New People Modal */}
       <NewPeople 
         open={isModalOpen} 
         onOpenChange={async (open) => {
           setIsModalOpen(open);
           if (!open) {
             setSelectedStudent(null);
-            // 모달이 닫힐 때 리스트 새로고침
             await getStudents();
           }
         }} 

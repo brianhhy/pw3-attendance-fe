@@ -28,21 +28,16 @@ export default function TeacherAttendance() {
   }, [getTeachers, getAttendances]);
 
   useEffect(() => {
-    // 선생님 리스트와 출석 상태를 매칭
     const fetchAndMatchTeacherStatuses = async () => {
       try {
-        // 1. 선생님 리스트는 이미 store에서 가져옴 (teachers)
-        // 2. 출석 상태 조회
         const attendanceResponse = await getTeacherAttendances(selectedDate);
         
         console.log("출석 상태 API 응답:", attendanceResponse);
         
-        // 3. 출석 상태를 teacherId를 키로 하는 객체로 변환
         const statuses: { [key: number]: { status?: string } } = {};
         
         if (Array.isArray(attendanceResponse)) {
           attendanceResponse.forEach((item: any) => {
-            // teacherId 필드명이 다를 수 있으므로 여러 가능성 확인
             const teacherId = item.teacherId || item.teacher_id || item.id;
             const status = item.status || item.attendanceStatus || item.attendance_status;
             
@@ -53,7 +48,6 @@ export default function TeacherAttendance() {
             }
           });
         } else if (attendanceResponse && typeof attendanceResponse === 'object') {
-          // 배열이 아닌 객체인 경우 처리
           Object.keys(attendanceResponse).forEach((key) => {
             const item = attendanceResponse[key];
             const teacherId = item?.teacherId || item?.teacher_id || item?.id || Number(key);
@@ -69,7 +63,6 @@ export default function TeacherAttendance() {
         
         console.log("변환된 출석 상태:", statuses);
         
-        // 4. 선생님 리스트의 각 선생님과 출석 상태 매칭
         setAttendanceStatuses(statuses);
       } catch (error) {
         console.error("선생님 출석 정보 조회 실패:", error);
@@ -83,12 +76,10 @@ export default function TeacherAttendance() {
   }, [selectedDate, teachers]);
 
   const handleAttendanceClick = async (teacherId: number) => {
-      // 현재 시간에 따라 출석 상태 결정 (오전 9시 이전: ATTEND, 9시 이후: LATE)
       const currentHour = new Date().getHours();
       const currentMinute = new Date().getMinutes();
       const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
 
-    // Optimistic update: 즉시 UI에 반영
     setAttendanceStatuses(prev => ({
       ...prev,
       [teacherId]: {
@@ -99,8 +90,6 @@ export default function TeacherAttendance() {
     try {
       await markTeacherAttendance(teacherId, attendanceStatus, selectedDate);
       
-      // 출석 상태 다시 조회하여 선생님 리스트와 매칭 (서버 동기화)
-      // 약간의 지연을 주어 서버가 업데이트를 반영할 시간을 줌
       await new Promise(resolve => setTimeout(resolve, 100));
       const attendanceResponse = await getTeacherAttendances(selectedDate);
       const statuses: { [key: number]: { status?: string } } = {};
@@ -116,31 +105,26 @@ export default function TeacherAttendance() {
         });
       }
       
-      // 서버 응답이 있으면 서버 데이터로 업데이트, 없으면 기존 상태 유지
       setAttendanceStatuses(prev => {
         const updated = { ...prev };
-        // 서버 응답에 있는 항목만 업데이트 (기존 상태는 유지)
         Object.keys(statuses).forEach(id => {
           const teacherIdNum = Number(id);
           if (statuses[teacherIdNum]?.status) {
             updated[teacherIdNum] = statuses[teacherIdNum];
           }
         });
-        // 클릭한 선생님의 경우 서버 응답이 없거나 빈 값이면 optimistic update 유지
         if ((!statuses[teacherId] || !statuses[teacherId].status) && prev[teacherId]?.status) {
           updated[teacherId] = prev[teacherId];
         }
         return updated;
       });
       
-      // store도 업데이트 (다른 컴포넌트 동기화용)
       await getAttendances();
       
       setAlertType("success");
       setAlertMessage("출석 체크가 완료되었습니다.");
       setAlertOpen(true);
     } catch (error: any) {
-      // 에러 발생 시 이전 상태로 롤백
       const attendanceResponse = await getTeacherAttendances(selectedDate);
       const statuses: { [key: number]: { status?: string } } = {};
       
@@ -209,7 +193,6 @@ export default function TeacherAttendance() {
     return `중학교 1학년 ${teacher.number}반 담임`;
   };
 
-  // 검색어에 따라 필터링된 선생님 목록
   const filteredTeachers = teachers.filter((teacher) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
@@ -258,7 +241,6 @@ export default function TeacherAttendance() {
                   key={teacher.id}
                   className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200"
                 >
-                  {/* 왼쪽: 이름과 직책 정보 */}
                   <div className="flex flex-col">
                     <span className="text-2xl font-bold text-black">
                       {teacher.name}
@@ -268,7 +250,6 @@ export default function TeacherAttendance() {
                     </span>
                   </div>
 
-                  {/* 오른쪽: 출석 버튼 */}
                   <button
                     onClick={() => handleAttendanceClick(teacher.id)}
                     disabled={isMarked}
@@ -291,7 +272,6 @@ export default function TeacherAttendance() {
         )}
       </div>
       
-      {/* Alert 모달 */}
       <Alert
         open={alertOpen}
         onOpenChange={setAlertOpen}
