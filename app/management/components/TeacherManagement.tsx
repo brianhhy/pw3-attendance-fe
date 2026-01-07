@@ -1,12 +1,11 @@
 "use client"
 
-import { Search, Calendar, Phone, Building2, Tag, Plus, Edit, Trash2 } from "lucide-react"
+import { Search, Calendar, Phone, Building2, Tag, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import useTeacherStore from "../../(shared)/(store)/teacherStore"
 import NewPeople from "../modal/NewPeople"
-import { deleteTeacher } from "../../(shared)/(api)/teacher"
 import Alert from "../../(shared)/(modal)/Alert"
 
 // 날짜 포맷팅
@@ -26,6 +25,7 @@ export default function TeacherManagement() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
+  const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -80,23 +80,6 @@ export default function TeacherManagement() {
     return teacher[key] || "-";
   }
 
-  // 선생님 삭제 핸들러
-  const handleDelete = async (teacherId: number) => {
-    try {
-      await deleteTeacher(teacherId);
-      // 삭제 성공 후 리스트 새로고침
-      await getTeachers();
-      setAlertType("success");
-      setAlertMessage("선생님이 성공적으로 삭제되었습니다.");
-      setAlertOpen(true);
-    } catch (error: any) {
-      console.error("선생님 삭제 실패:", error);
-      setAlertType("error");
-      const errorMessage = error.response?.data?.message || error.message || "선생님 삭제 중 오류가 발생했습니다.";
-      setAlertMessage(errorMessage);
-      setAlertOpen(true);
-    }
-  }
 
   return (
     <div className="w-full max-w-[700px] bg-transparent p-3">
@@ -148,32 +131,19 @@ export default function TeacherManagement() {
           </div>
         ) : (
           filteredTeachers.map((teacher) => (
-            <div key={teacher.id} className="group relative grid grid-cols-5 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+            <div 
+              key={teacher.id} 
+              className="group relative grid grid-cols-5 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setIsModalOpen(true);
+                setSelectedTeacher(teacher);
+              }}
+            >
               {filters.map((filter) => (
                 <div key={filter.key} className="text-xs truncate">
                   {getTeacherValue(teacher, filter.key)}
                 </div>
               ))}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-gray-600 hover:text-blue-600"
-                  onClick={() => {
-                    // TODO: 수정 기능 구현
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-gray-600 hover:text-red-600"
-                  onClick={() => handleDelete(teacher.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           ))
         )}
@@ -184,7 +154,10 @@ export default function TeacherManagement() {
         <Button 
           variant="ghost" 
           className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedTeacher(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus className="h-4 w-4 mr-2" />새 선생님
         </Button>
@@ -193,8 +166,16 @@ export default function TeacherManagement() {
       {/* New People Modal */}
       <NewPeople 
         open={isModalOpen} 
-        onOpenChange={setIsModalOpen} 
-        type="teacher" 
+        onOpenChange={async (open) => {
+          setIsModalOpen(open);
+          if (!open) {
+            setSelectedTeacher(null);
+            // 모달이 닫힐 때 리스트 새로고침
+            await getTeachers();
+          }
+        }} 
+        type="teacher"
+        initialData={selectedTeacher}
       />
 
       {/* Alert 모달 */}

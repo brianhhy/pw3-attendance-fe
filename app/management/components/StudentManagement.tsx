@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Calendar, Phone, Users, Building2, Tag, Plus, Edit, Trash2 } from "lucide-react"
+import { Search, Calendar, Phone, Users, Building2, Tag, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
@@ -35,6 +35,7 @@ export default function StudentManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -145,34 +146,19 @@ export default function StudentManagement() {
           </div>
         ) : (
           filteredStudents.map((student) => (
-            <div key={student.id} className="group relative grid grid-cols-6 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+            <div 
+              key={student.id} 
+              className="group relative grid grid-cols-6 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setIsModalOpen(true);
+                setSelectedStudent(student);
+              }}
+            >
               {filters.map((filter) => (
                 <div key={filter.key} className="text-xs truncate">
                   {getStudentValue(student, filter.key)}
                 </div>
               ))}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-gray-600 hover:text-blue-600"
-                  onClick={() => {
-                    // TODO: 수정 기능 구현
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-gray-600 hover:text-red-600"
-                  onClick={() => {
-                    // TODO: 삭제 기능 구현
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           ))
         )}
@@ -183,7 +169,10 @@ export default function StudentManagement() {
         <Button 
           variant="ghost" 
           className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedStudent(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus className="h-4 w-4 mr-2" />새 학생
         </Button>
@@ -192,8 +181,16 @@ export default function StudentManagement() {
       {/* New People Modal */}
       <NewPeople 
         open={isModalOpen} 
-        onOpenChange={setIsModalOpen} 
-        type="student" 
+        onOpenChange={async (open) => {
+          setIsModalOpen(open);
+          if (!open) {
+            setSelectedStudent(null);
+            // 모달이 닫힐 때 리스트 새로고침
+            await getStudents();
+          }
+        }} 
+        type="student"
+        initialData={selectedStudent}
       />
     </div>
   )
