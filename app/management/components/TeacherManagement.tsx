@@ -1,11 +1,12 @@
 "use client"
 
-import { Search, Calendar, Phone, Building2, Tag, Plus, Edit, Trash2 } from "lucide-react"
+import { Search, Calendar, Phone, Building2, Tag, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import useTeacherStore from "../../(shared)/(store)/teacherStore"
 import NewPeople from "../modal/NewPeople"
+import Alert from "../../(shared)/(modal)/Alert"
 
 // 날짜 포맷팅
 const formatDate = (dateString: string | null): string => {
@@ -21,6 +22,10 @@ export default function TeacherManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertType, setAlertType] = useState<"success" | "error">("success");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -75,8 +80,9 @@ export default function TeacherManagement() {
     return teacher[key] || "-";
   }
 
+
   return (
-    <div className="w-full max-w-[600px] bg-transparent p-3">
+    <div className="w-full max-w-[700px] bg-transparent p-3">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">선생님 관리</h1>
         <div
@@ -125,34 +131,19 @@ export default function TeacherManagement() {
           </div>
         ) : (
           filteredTeachers.map((teacher) => (
-            <div key={teacher.id} className="group relative grid grid-cols-5 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+            <div 
+              key={teacher.id} 
+              className="group relative grid grid-cols-5 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+              onClick={() => {
+                setIsModalOpen(true);
+                setSelectedTeacher(teacher);
+              }}
+            >
               {filters.map((filter) => (
                 <div key={filter.key} className="text-xs truncate">
                   {getTeacherValue(teacher, filter.key)}
                 </div>
               ))}
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-gray-600 hover:text-blue-600"
-                  onClick={() => {
-                    // TODO: 수정 기능 구현
-                  }}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 text-gray-600 hover:text-red-600"
-                  onClick={() => {
-                    // TODO: 삭제 기능 구현
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           ))
         )}
@@ -163,7 +154,10 @@ export default function TeacherManagement() {
         <Button 
           variant="ghost" 
           className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setSelectedTeacher(null);
+            setIsModalOpen(true);
+          }}
         >
           <Plus className="h-4 w-4 mr-2" />새 선생님
         </Button>
@@ -172,8 +166,24 @@ export default function TeacherManagement() {
       {/* New People Modal */}
       <NewPeople 
         open={isModalOpen} 
-        onOpenChange={setIsModalOpen} 
-        type="teacher" 
+        onOpenChange={async (open) => {
+          setIsModalOpen(open);
+          if (!open) {
+            setSelectedTeacher(null);
+            // 모달이 닫힐 때 리스트 새로고침
+            await getTeachers();
+          }
+        }} 
+        type="teacher"
+        initialData={selectedTeacher}
+      />
+
+      {/* Alert 모달 */}
+      <Alert
+        open={alertOpen}
+        onOpenChange={setAlertOpen}
+        type={alertType}
+        message={alertMessage}
       />
     </div>
   )
