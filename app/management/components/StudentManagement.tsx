@@ -73,7 +73,7 @@ export default function StudentManagement() {
     { icon: <Phone className="h-4 w-4" />, label: "전화번호", key: "phone" },
     { icon: <Users className="h-4 w-4" />, label: "부모님 연락처", key: "parentPhone" },
     { icon: <Building2 className="h-4 w-4" />, label: "소속 학교", key: "school" },
-    { icon: <Tag className="h-4 w-4" />, label: "기타", key: "memo" },
+    { icon: <Tag className="h-4 w-4" />, label: "소속 반", key: "class" },
   ]
 
   const getStudentValue = (student: any, key: string): string => {
@@ -81,12 +81,13 @@ export default function StudentManagement() {
       return formatDate(student.birth);
     }
     if (key === "school") {
-      const currentYear = "2025";
-      const classes2025 = student.classesByYear?.[currentYear];
-      const classInfo = classes2025?.[0];
-      return classInfo 
-        ? `${getSchoolTypeName(classInfo.schoolType)} ${classInfo.grade}학년 ${classInfo.classNumber}반`
-        : student.school || "-";
+      return student.school || "-";
+    }
+    if (key === "class") {
+      const currentYear = new Date().getFullYear().toString();
+      const classesCurrentYear = student.classesByYear?.[currentYear];
+      const classInfo = classesCurrentYear?.[0];
+      return classInfo?.name || "-";
     }
     return student[key] || "-";
   }
