@@ -60,6 +60,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
   const [alertType, setAlertType] = useState<"success" | "error">("success")
   const [alertMessage, setAlertMessage] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [shouldAnimate, setShouldAnimate] = useState(false)
   
   const isEditMode = !!initialData
 
@@ -172,6 +173,18 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
   const isStudent = type === "student"
 
   useEffect(() => {
+    if (open) {
+      // 모달이 열릴 때 약간의 지연을 두고 애니메이션 트리거
+      const timer = setTimeout(() => {
+        setShouldAnimate(true)
+      }, 10)
+      return () => clearTimeout(timer)
+    } else {
+      setShouldAnimate(false)
+    }
+  }, [open])
+
+  useEffect(() => {
     if (open && initialData) {
       setFormData({
         name: initialData.name || "",
@@ -200,7 +213,11 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[500px] border-0 bg-[#F9F9FF] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 !duration-300 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95">
+        <DialogContent className={`sm:max-w-[500px] border-0 bg-[#F9F9FF] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-out ${
+          shouldAnimate 
+            ? 'opacity-100 scale-100' 
+            : 'opacity-0 scale-95'
+        }`}>
           <DialogHeader>
             <DialogTitle>{isEditMode ? (isStudent ? "학생 정보 수정" : "선생님 정보 수정") : (isStudent ? "새 학생" : "새 선생님")}</DialogTitle>
             <DialogDescription>

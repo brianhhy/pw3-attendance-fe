@@ -71,7 +71,10 @@ export default function TeacherManagement() {
       return formatDate(teacher.birth);
     }
     if (key === "number") {
-      return teacher.number || "-";
+      const currentYear = new Date().getFullYear().toString();
+      const classesCurrentYear = teacher.classesByYear?.[currentYear];
+      const classInfo = classesCurrentYear?.[0];
+      return classInfo?.name || "-";
     }
     return teacher[key] || "-";
   }
