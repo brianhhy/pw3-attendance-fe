@@ -4,6 +4,7 @@ import useAttendanceStore from "@/app/(shared)/(store)/attendanceStore";
 import { useEffect, useState, useMemo } from "react";
 import { User, Check, Clock, X, ArrowLeft, Search } from "lucide-react";
 import { markStudentAttendance, markTeacherAttendance, getTeacherAttendances } from "@/app/(shared)/(api)/attendance";
+import AttendanceLogModal from "@/app/(shared)/(modal)/AttendanceLogModal";
 
 interface RecentSearchItem {
     id: number;
@@ -33,6 +34,7 @@ export default function SelfAttendance() {
     const [teacherAttendanceStatus, setTeacherAttendanceStatus] = useState<{ status?: string } | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [isLogModalOpen, setIsLogModalOpen] = useState(false);
 
     useEffect(() => {
         getTeachers();
@@ -170,7 +172,7 @@ export default function SelfAttendance() {
 
                 await markStudentAttendance(studentClassId, selectedDate, attendanceStatus);
                 await getAttendances();
-                alert("출석 체크가 완료되었습니다.");
+                setIsLogModalOpen(true);
             } else if (selectedItem.type === "teacher") {
                 const teacher = teachers.find((t) => 
                     t.id === selectedItem.id || 
@@ -204,7 +206,7 @@ export default function SelfAttendance() {
                 } else {
                     setTeacherAttendanceStatus(null);
                 }
-                alert("출석 체크가 완료되었습니다.");
+                setIsLogModalOpen(true);
             }
         } catch (error: any) {
             let errorMessage = "출석 체크 중 오류가 발생했습니다.";
@@ -517,6 +519,14 @@ export default function SelfAttendance() {
                     </div>
                 );
             })()}
+
+            <AttendanceLogModal
+                open={isLogModalOpen}
+                onOpenChange={setIsLogModalOpen}
+                selectedDate={selectedDate}
+                classAttendanceData={classAttendanceData}
+                teacherAttendances={teacherAttendances}
+            />
         </div>
     );
 }

@@ -50,3 +50,23 @@ export const markStudentAttendance = async (studentClassId: number, date: string
     }
 };
 
+// 출석부 내보내기
+export const exportAttendanceSummary = async (date: string, schoolYear: number) => {
+    try {
+        const response = await axios.get(
+            `${process.env.NEXT_PUBLIC_API_URL}/attendances/summary-by-date`,
+            {
+                params: {
+                    date: date,
+                    schoolYear: schoolYear,
+                },
+            }
+        );
+        return response.data;
+    } catch (error: any) {
+        console.error("Attendance Export API Error Response:", error.response?.data);
+        console.error("Attendance Export API Error Status:", error.response?.status);
+        throw error;
+    }
+};
+
