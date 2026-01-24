@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Search, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Calendar, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { getStudentAttendances } from "../(api)/attendance";
+import Sidebar from "./Sidebar";
 
 interface Description{
     title: string;
@@ -21,23 +22,23 @@ interface SearchResult {
 
 const descriptions: Description[] = [
     {
-        title: "출석 체크",
+        title: "출석 체크 페이지",
         description: "이름을 검색 후 출석 체크를 완료하세요!",
     },
     {
-        title: "관리",
+        title: "관리 페이지",
         description: "새로운 학생과 선생님을 추가하고 출석 상태를 관리하세요!",
     },
     {
-        title: "매칭",
+        title: "매칭 페이지",
         description: "새로운 학생과 선생님을 반에 배정하세요!",
     },
     {
-        title: "통계",
+        title: "통계 페이지",
         description: "반별 출석률, 요일별 출석률과 같은 다양한 지표를 확인하세요!!",
     },
     {
-        title: "메시지",
+        title: "메시지 페이지",
         description: "학생과 학부모에게 메시지를 보내보세요!",
     },
 ]
@@ -52,6 +53,7 @@ const Header = () => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [calendarMonth, setCalendarMonth] = useState(new Date());
     const calendarRef = useRef<HTMLDivElement>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
     const { 
         students, 
@@ -258,7 +260,7 @@ const Header = () => {
         const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
 
         for (let i = 0; i < firstDay; i++) {
-            days.push(<div key={`empty-${i}`} className="w-10 h-10"></div>);
+            days.push(<div key={`empty-${i}`} className="w-8 h-8"></div>);
         }
 
         for (let day = 1; day <= daysInMonth; day++) {
@@ -268,7 +270,7 @@ const Header = () => {
                     key={day}
                     onClick={() => !future && handleDateSelect(day)}
                     disabled={future}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm transition-colors ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition-colors ${
                         future
                             ? "text-gray-300 cursor-not-allowed"
                             : isSelected(day)
@@ -290,15 +292,15 @@ const Header = () => {
         const isNextMonthFuture = nextMonth > today;
 
         return (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-[320px]">
-                <div className="flex items-center justify-between mb-4">
+            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-[250px]">
+                <div className="flex items-center justify-between mb-3">
                     <button
                         onClick={handlePrevMonth}
                         className="p-1 hover:bg-gray-100 rounded"
                     >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="font-bold text-lg">
+                    <span className="font-bold text-base">
                         {calendarMonth.getFullYear()}년 {calendarMonth.getMonth() + 1}월
                     </span>
                     <button
@@ -310,12 +312,12 @@ const Header = () => {
                                 : "hover:bg-gray-100"
                         }`}
                     >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
                 <div className="grid grid-cols-7 gap-1 mb-2">
                     {weekdays.map((day) => (
-                        <div key={day} className="w-10 h-10 flex items-center justify-center text-sm font-semibold text-gray-600">
+                        <div key={day} className="w-8 h-8 flex items-center justify-center text-xs font-semibold text-gray-600">
                             {day}
                         </div>
                     ))}
@@ -328,89 +330,81 @@ const Header = () => {
     };
 
     return (
-        <header className="flex flex-col relative bg-white z-50">
-            <div className="flex flex-row justify-between items-center w-full px-5 py-5">
-                <div className="flex flex-col flex-shrink-0">
-                    <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
-                    <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
-                </div>
-
-                <div className="flex-shrink-0 z-50">
-                    <div className="relative">
-                        <button
-                            onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors relative z-50"
-                        >
-                            <Calendar className="w-5 h-5 text-[#2C79FF]" />
-                            <span className="text-lg font-medium text-[#2C79FF]">
-                                {formatDate(selectedDate)}
-                            </span>
-                        </button>
-                        {isCalendarOpen && (
-                            <div ref={calendarRef} className="absolute top-12 right-0 z-[99999]">
-                                {renderCalendar()}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* {pathname === "/" && (
-                    <div className="relative flex flex-col flex-shrink-0">
-                        <div className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${
-                            isSearchOpen || searchQuery ? "w-[300px]" : "w-10"
-                        }`}>
-                            <button
-                                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                                className="absolute left-0 z-10 flex items-center justify-center w-10 h-10 text-[#2C79FF] hover:text-[#2C79FF] transition-colors"
-                                aria-label="검색"
-                            >
-                                <Search className="h-5 w-5" />
-                            </button>
-                            <input 
-                                type="text" 
-                                placeholder="학생명, 선생님 이름 입력" 
-                                className={`w-full h-[40px] pl-10 pr-2 bg-[#F7F8FF] border-none focus:outline-none transition-all duration-300 ${
-                                    isSearchOpen || searchQuery ? "opacity-100" : "opacity-0 pointer-events-none"
-                                }`}
-                                value={searchQuery}
-                                onChange={handleSearchChange}
-                                onFocus={() => {
-                                    setIsSearchFocused(true);
-                                    setIsSearchOpen(true);
-                                }}
-                                onBlur={() => setTimeout(() => {
-                                    setIsSearchFocused(false);
-                                    if (!searchQuery) {
-                                        setIsSearchOpen(false);
-                                    }
-                                }, 200)}
-                            />
+        <>
+            <header className="flex flex-col relative bg-white z-50">
+                <div className="flex flex-row items-center w-full px-5 py-5">
+                    {/* lg 이상: 기존 레이아웃 */}
+                    <div className="hidden lg:flex flex-row items-center gap-6 flex-1">
+                        <div className="flex flex-col items-center border-b border-[#d9d9d9] pb-2">
+                            <Image src="/images/logo.png" alt="logo" width={171} height={80} />
+                            <p className="text-[15px] font-medium text-[#2c79ff] mt-1 ml-5 whitespace-nowrap">서빙고 파워웨이브 3부 출석부</p>
                         </div>
-                        
-                        {isSearchFocused && searchResults.length > 0 && (
-                            <div className="absolute top-[42px] left-0 w-[300px] bg-gray-50 border border-gray-200 rounded-lg shadow-lg z-50 max-h-[400px] overflow-y-auto mt-1">
-                                {searchResults.map((result) => (
-                                    <div
-                                        key={`${result.type}-${result.id}`}
-                                        className="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors"
-                                        onClick={() => handleResultClick(result)}
-                                    >
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-lg text-black">{result.name}</span>
-                                            </div>
-                                            {result.description && (
-                                                <span className="text-sm text-gray-500">{result.description}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <div className="flex flex-col ml-15">
+                            <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
+                            <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
+                        </div>
                     </div>
-                )} */}
-            </div>
-        </header>
+
+                    {/* lg 미만: 새로운 3단 레이아웃 */}
+                    {/* 로고 - 왼쪽 끝 */}
+                    <div className="lg:hidden flex items-center">
+                        <Image src="/images/logo.png" alt="logo" width={100} height={47} />
+                    </div>
+
+                    {/* Title - 정중앙 */}
+                    <div className="lg:hidden flex-1 flex justify-center">
+                        <span className="text-xl font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
+                    </div>
+
+                    {/* 메뉴 버튼 - 우측 끝 */}
+                    <div className="lg:hidden flex items-center">
+                        {/* 햄버거 메뉴 */}
+                        <button
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            aria-label="메뉴 열기"
+                        >
+                            <Menu className="w-6 h-6 text-[#2C79FF]" />
+                        </button>
+                    </div>
+
+                    {/* lg 이상: 달력 - 오른쪽 */}
+                    <div className="hidden lg:flex flex-shrink-0 z-50">
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors relative z-50"
+                            >
+                                <Calendar className="w-4 h-4 text-[#2C79FF]" />
+                                <span className="text-base font-medium text-[#2C79FF]">
+                                    {formatDate(selectedDate)}
+                                </span>
+                            </button>
+                            {isCalendarOpen && (
+                                <div ref={calendarRef} className="absolute top-12 right-0 z-[99999]">
+                                    {renderCalendar()}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* 모바일 Sidebar 오버레이 - lg 이하 */}
+            {isMobileMenuOpen && (
+                <>
+                    {/* 배경 오버레이 */}
+                    <div
+                        className="fixed inset-0 bg-black/50 z-[100] lg:hidden animate-fadeIn"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                    {/* Sidebar - 오른쪽에서 슬라이드 */}
+                    <div className="fixed top-0 right-0 h-full w-full z-[101] lg:hidden animate-slideInRight">
+                        <Sidebar isMobile onClose={() => setIsMobileMenuOpen(false)} />
+                    </div>
+                </>
+            )}
+        </>
     )
 }
 

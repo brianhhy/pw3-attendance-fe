@@ -39,14 +39,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={gmarketSans.variable}>
       <body className="h-screen overflow-hidden">
-        <div className="flex h-full">
-          {/* Sidebar */}
-          <Sidebar />
-
-          {/* Right Area */}
-          <div className="flex flex-col flex-1">
-            {/* Header (sidebar 너비 제외 영역) */}
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="w-full">
             <Header />
+          </div>
+
+          {/* Content Area */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Sidebar */}
+            <Sidebar />
 
             {/* Main */}
             <main className="flex-1 overflow-y-auto">
