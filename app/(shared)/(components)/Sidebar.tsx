@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardCheck, Settings, BarChart, Mail, Users, Share, LucideIcon } from "lucide-react";
+import { ClipboardCheck, Settings, BarChart, Mail, Users, Share, X, LucideIcon } from "lucide-react";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { exportAttendanceSummary } from "../(api)/attendance";
 import Alert from "../(modal)/Alert";
@@ -23,7 +23,12 @@ const menuItems: MenuItem[] = [
     { href: "/message", label: "메시지", icon: Mail },
 ];
 
-const Sidebar = () => {
+interface SidebarProps {
+    isMobile?: boolean;
+    onClose?: () => void;
+}
+
+const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
     const pathname = usePathname();
     const { selectedDate } = useAttendanceStore();
     const [alertOpen, setAlertOpen] = useState(false);
@@ -143,13 +148,24 @@ const Sidebar = () => {
     };
 
     return (
-        <aside className="flex flex-col min-w-[200px] flex-shrink-0 h-screen gap-[12px]">
-            <div className="flex flex-col items-center justify-center gap-[12px]">
-                <Image src="/images/logo.png" alt="logo" width={171} height={80} />
-                <p className="text-2xl font-medium text-[#2c79ff] text-[15px]">서빙고 파워웨이브 3부 출석부</p>
-                <div className="border-b border-[#ECEDFF] w-full"></div>
-            </div>
-
+        <aside className={`flex flex-col flex-shrink-0 h-screen gap-[12px] bg-white ${
+            isMobile ? "w-full" : "hidden lg:flex min-w-[100px] pt-[12px]"
+        }`}>
+            {/* 모바일 헤더 - 로고, 문구, X 버튼 */}
+            {isMobile && (
+                <div className="flex items-center justify-between px-5 py-4">
+                    <div className="flex items-center gap-3">
+                        <Image src="/images/logo.png" alt="logo" width={150} height={40} />
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        aria-label="메뉴 닫기"
+                    >
+                        <X className="w-6 h-6 text-gray-600" />
+                    </button>
+                </div>
+            )}
             <div className="flex-1 flex-col gap-[8px]">
                 {menuItems.map((item) => {
                     const Icon = item.icon;

@@ -387,7 +387,7 @@ export default function StudentAttendance() {
   };
 
   return (
-    <div className="w-[700px] h-[710px] flex flex-col p-2">
+    <div className="w-full max-w-[700px] h-[710px] flex flex-col p-2">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
         <h2 className="text-2xl font-semibold whitespace-nowrap">학생 출석</h2>
         <div
@@ -413,7 +413,7 @@ export default function StudentAttendance() {
         </div>
       </div>
       <div className="flex-1 overflow-auto">
-        <div className="grid grid-cols-2 gap-2 pb-4">
+        <div className="grid grid-cols-1 min-[732px]:grid-cols-2 gap-2 pb-4">
           {isLoading ? (
             <div className="col-span-2 py-8 text-center text-gray-500 text-sm">
               로딩 중...
@@ -426,7 +426,7 @@ export default function StudentAttendance() {
             filteredClassData.map((classItem, index) => (
             <div 
               key={`${classItem.schoolType}-${classItem.grade}-${classItem.classNumber}`} 
-              className="w-[330px] h-[450px] bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col flex-shrink-0"
+              className="w-full min-[732px]:w-[330px] h-auto min-[732px]:h-[450px] bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col flex-shrink-0"
             >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-[#5E99FF]">
