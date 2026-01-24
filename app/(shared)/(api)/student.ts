@@ -93,3 +93,19 @@ export const getStudentClassesByYear = async (schoolYear: number) => {
     );
     return response.data;
 }
+
+export type StudentRegistrationByYearItem = {
+  id: number;
+  name: string;
+  birth?: string | null;
+  phone?: string | null;
+  registeredAt?: string | null;
+};
+
+// 월별 신규 등록 학생(연도별) 조회
+export const getStudentRegistrationsByYear = async (year: number) => {
+  const response = await axios.get(
+    `${process.env.NEXT_PUBLIC_API_URL}/students/registrations/by-year/${year}`
+  );
+  return response.data;
+};

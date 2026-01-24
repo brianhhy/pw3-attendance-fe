@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ClipboardCheck, Settings, BarChart, Mail, Users, Share, LucideIcon } from "lucide-react";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { exportAttendanceSummary } from "../(api)/attendance";
+import Alert from "../(modal)/Alert";
 
 interface MenuItem {
     href: string;
@@ -24,6 +26,9 @@ const menuItems: MenuItem[] = [
 const Sidebar = () => {
     const pathname = usePathname();
     const { selectedDate } = useAttendanceStore();
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertType, setAlertType] = useState<"success" | "error">("success");
+    const [alertMessage, setAlertMessage] = useState("");
 
     const handleExportAttendance = async () => {
         try {
@@ -119,10 +124,21 @@ const Sidebar = () => {
             
             // 클립보드에 복사
             await navigator.clipboard.writeText(textContent);
-            alert("출석부가 클립보드에 복사되었습니다.");
+            setAlertType("success");
+            setAlertMessage("출석부가 클립보드에 복사되었습니다.");
+            setAlertOpen(true);
         } catch (error: any) {
             console.error("출석부 내보내기 실패:", error);
-            alert("출석부 내보내기에 실패했습니다.");
+            setAlertType("error");
+            let errorMessage = "출석부 내보내기에 실패했습니다.";
+            if (error.response?.data) {
+                const errorData = error.response.data;
+                errorMessage = errorData.message || errorData.error || JSON.stringify(errorData) || errorMessage;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+            setAlertMessage(errorMessage);
+            setAlertOpen(true);
         }
     };
 
@@ -166,6 +182,13 @@ const Sidebar = () => {
                     <p>출석부 내보내기</p>
                 </button>
             </div>
+
+            <Alert
+                open={alertOpen}
+                onOpenChange={setAlertOpen}
+                type={alertType}
+                message={alertMessage}
+            />
         </aside>
     )
 }
