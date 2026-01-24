@@ -290,7 +290,7 @@ const Header = () => {
         const isNextMonthFuture = nextMonth > today;
 
         return (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-[320px] max-[1200px]:scale-75 max-[1200px]:origin-top-center">
+            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 w-[320px]">
                 <div className="flex items-center justify-between mb-4">
                     <button
                         onClick={handlePrevMonth}
@@ -329,13 +329,13 @@ const Header = () => {
 
     return (
         <header className="flex flex-col relative bg-white z-50">
-            <div className="flex flex-row justify-between items-center w-full px-5 py-5 max-[1024px]:flex-col max-[1024px]:items-center max-[1024px]:gap-4">
-                <div className="flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-left max-[1024px]:origin-center max-[1024px]:items-center max-[1024px]:text-center">
+            <div className="flex flex-row justify-between items-center w-full px-5 py-5">
+                <div className="flex flex-col flex-shrink-0">
                     <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
                     <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
                 </div>
 
-                <div className="flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-right max-[1024px]:relative max-[1024px]:left-auto max-[1024px]:translate-x-0 z-50">
+                <div className="flex-shrink-0 z-50">
                     <div className="relative">
                         <button
                             onClick={() => setIsCalendarOpen(!isCalendarOpen)}
@@ -355,9 +355,9 @@ const Header = () => {
                 </div>
 
                 {/* {pathname === "/" && (
-                    <div className="relative flex flex-col flex-shrink-0 max-[1200px]:scale-75 max-[1200px]:origin-top-right max-[1024px]:hidden">
+                    <div className="relative flex flex-col flex-shrink-0">
                         <div className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${
-                            isSearchOpen || searchQuery ? "w-[300px] max-[768px]:w-[200px] max-[480px]:w-[130px]" : "w-10"
+                            isSearchOpen || searchQuery ? "w-[300px]" : "w-10"
                         }`}>
                             <button
                                 onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -388,7 +388,7 @@ const Header = () => {
                         </div>
                         
                         {isSearchFocused && searchResults.length > 0 && (
-                            <div className="absolute top-[42px] left-0 w-[300px] max-[768px]:w-[200px] max-[480px]:w-[150px] bg-gray-50 border border-gray-200 rounded-lg shadow-lg z-50 max-h-[400px] overflow-y-auto mt-1">
+                            <div className="absolute top-[42px] left-0 w-[300px] bg-gray-50 border border-gray-200 rounded-lg shadow-lg z-50 max-h-[400px] overflow-y-auto mt-1">
                                 {searchResults.map((result) => (
                                     <div
                                         key={`${result.type}-${result.id}`}
