@@ -66,6 +66,7 @@ export default function GradeAttendanceRow() {
   const [statsByGrade, setStatsByGrade] = useState<Record<GradeKey, GradeStats>>(emptyStats());
   const [activeGradeKey, setActiveGradeKey] = useState<GradeKey | null>(null);
   const [classRooms, setClassRooms] = useState<ClassRoom[]>([]);
+  const [classRoomDataMap, setClassRoomDataMap] = useState<Map<number, ClassRoomSundaySummaryItem[]>>(new Map());
 
   // 반 목록과 각 반의 일요일 데이터를 fetch하여 학년별 통계 계산
   useEffect(() => {
@@ -84,6 +85,13 @@ export default function GradeAttendanceRow() {
         );
 
         const classRoomDataList = await Promise.all(classRoomDataPromises);
+
+        // Sunday 데이터를 Map으로 저장 (중복 API 호출 방지)
+        const dataMap = new Map<number, ClassRoomSundaySummaryItem[]>();
+        classRoomDataList.forEach((item) => {
+          dataMap.set(item.classRoom.id, item.sundayData);
+        });
+        setClassRoomDataMap(dataMap);
 
         // 3. 학년별로 그룹화하고 통계 계산
         const next = emptyStats();
@@ -196,7 +204,11 @@ export default function GradeAttendanceRow() {
         </div>
       </div>
 
-      <GradeAttendanceChart activeGrade={activeGrade} classRooms={filteredClassRooms} />
+      <GradeAttendanceChart 
+        activeGrade={activeGrade} 
+        classRooms={filteredClassRooms}
+        classRoomDataMap={classRoomDataMap}
+      />
     </div>
   );
 }
