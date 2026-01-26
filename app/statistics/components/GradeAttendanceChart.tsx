@@ -32,20 +32,21 @@ function toIsoDateLabel(d: [number, number, number]) {
 export default function GradeAttendanceChart(props: {
   activeGrade?: { schoolLabel: string; grade: number } | null;
   classRooms?: ClassRoom[];
+  classRoomDataMap?: Map<number, ClassRoomSundaySummaryItem[]>;
 }) {
-  const { activeGrade, classRooms = [] } = props;
+  const { activeGrade, classRooms = [], classRoomDataMap = new Map() } = props;
   const label = activeGrade ? `${activeGrade.schoolLabel} ${activeGrade.grade}학년` : null;
 
   const [isLoading, setIsLoading] = useState(false);
   const [points, setPoints] = useState<SundayPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [classRoomDataMap, setClassRoomDataMap] = useState<Map<number, SundayPoint[]>>(new Map());
+  const [processedDataMap, setProcessedDataMap] = useState<Map<number, SundayPoint[]>>(new Map());
 
   useEffect(() => {
     if (classRooms.length === 0) {
       setPoints([]);
-      setClassRoomDataMap(new Map());
+      setProcessedDataMap(new Map());
       setIsLoading(false);
       setError(null);
       return;
@@ -55,10 +56,8 @@ export default function GradeAttendanceChart(props: {
       setIsLoading(true);
       setError(null);
       try {
-        // 모든 반의 데이터를 병렬로 fetch
-        const allData = await Promise.all(
-          classRooms.map((c) => getClassRoomSundaySummary(c.id))
-        );
+        // 전달받은 데이터 사용 (API 호출 제거)
+        const allData = classRooms.map((c) => classRoomDataMap.get(c.id) || []);
 
         // 전체 날짜 목록 수집 (합집합)
         const allDatesSet = new Set<string>();
@@ -99,19 +98,19 @@ export default function GradeAttendanceChart(props: {
           newMap.set(classroom.id, points);
         });
 
-        setClassRoomDataMap(newMap);
+        setProcessedDataMap(newMap);
         setPoints(allDates.map((dateLabel) => ({ label: dateLabel, attended: 0, total: 0 })));
       } catch (e: any) {
         setError("반별 출석 요약을 불러오지 못했습니다.");
         setPoints([]);
-        setClassRoomDataMap(new Map());
+        setProcessedDataMap(new Map());
       } finally {
         setIsLoading(false);
       }
     };
 
     run();
-  }, [classRooms]);
+  }, [classRooms, classRoomDataMap]);
 
   const displayedPoints = useMemo(() => {
     return points.slice(-6);
@@ -130,7 +129,7 @@ export default function GradeAttendanceChart(props: {
 
   const chartData = useMemo(() => {
     const datasets = classRooms.map((classroom, idx) => {
-      const classPoints = classRoomDataMap.get(classroom.id) || [];
+      const classPoints = processedDataMap.get(classroom.id) || [];
       const displayedClassPoints = classPoints.slice(-6);
       const color = COLORS[idx % COLORS.length];
 
@@ -157,7 +156,7 @@ export default function GradeAttendanceChart(props: {
       labels: displayedPoints.map((p) => p.label),
       datasets,
     };
-  }, [displayedPoints, classRooms, classRoomDataMap]);
+  }, [displayedPoints, classRooms, processedDataMap]);
 
   const chartOptions = useMemo(() => {
     const fontFamily = "Pretendard, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji";
