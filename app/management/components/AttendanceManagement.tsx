@@ -246,7 +246,7 @@ export default function AttendanceManagement() {
   };
 
   return (
-    <div className="w-full max-w-[700px] bg-transparent p-3 ml-auto">
+    <div className="w-full h-full flex flex-col bg-transparent p-3 min-h-0">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">출석 관리</h1>
         <div
@@ -272,16 +272,16 @@ export default function AttendanceManagement() {
         </div>
       </div>
 
-      <div className="rounded-lg shadow-sm overflow-hidden">
-        <div className="overflow-x-auto max-h-[650px] overflow-y-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10">
+      <div className="overflow-hidden flex-1 flex flex-col min-h-0">
+        <div className="overflow-x-auto flex-1 overflow-y-auto min-h-0">
+          <table className="w-full min-w-[600px]">
+            <thead className="border-b border-gray-200 sticky top-0 z-10 bg-white">
               <tr>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">구분</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">이름</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">반/직책</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">현재 상태</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">상태 변경</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">구분</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">이름</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">반/직책</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">현재 상태</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">상태 변경</th>
               </tr>
             </thead>
             <tbody>
@@ -301,11 +301,11 @@ export default function AttendanceManagement() {
                 filteredItems.map((item, index) => (
                   <tr 
                     key={`${item.type}-${item.id || item.studentClassId || item.teacherId || index}`} 
-                    className={`border-b border-gray-100 hover:bg-gray-50 ${
-                      index % 2 === 1 ? "bg-[#F7F8FF]" : ""
+                    className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
+                      index % 2 === 1 ? "bg-gray-50/50" : ""
                     }`}
                   >
-                    <td className="py-3 px-4 text-sm">
+                    <td className="py-3 px-4 text-sm whitespace-nowrap">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
                         item.type === "student" 
                           ? "bg-blue-100 text-blue-700" 
@@ -314,17 +314,17 @@ export default function AttendanceManagement() {
                         {item.type === "student" ? "학생" : "선생님"}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm font-medium">{item.name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
+                    <td className="py-3 px-4 text-sm font-medium whitespace-nowrap">{item.name}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
                       {item.className || "-"}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <span className={`px-3 py-1 rounded text-xs font-semibold inline-block ${getStatusColor(item.status)}`}>
                         {getStatusName(item.status)}
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex gap-2 flex-wrap">
+                      <div className="flex gap-2 whitespace-nowrap">
                         <Button
                           size="sm"
                           variant={item.status === "ATTEND" ? "default" : "outline"}

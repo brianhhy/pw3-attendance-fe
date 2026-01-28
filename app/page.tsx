@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, UserCheck } from "lucide-react";
+import { User, UserStar } from "lucide-react";
 import StudentAttendance from "./components/StudentAttendance";
 import TeacherAttendance from "./components/TeacherAttendance";
 
@@ -40,7 +40,7 @@ export default function Home() {
                 : "text-[#2C79FF]"
             }`}
           >
-            <UserCheck className="w-5 h-5" />
+            <UserStar className="w-5 h-5" />
             선생님
           </button>
         </div>

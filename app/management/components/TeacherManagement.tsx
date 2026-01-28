@@ -81,7 +81,7 @@ export default function TeacherManagement() {
 
 
   return (
-    <div className="w-full max-w-[700px] bg-transparent p-3">
+    <div className="w-full min-w-[400px] bg-transparent p-3">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">선생님 관리</h1>
         <div
@@ -119,20 +119,35 @@ export default function TeacherManagement() {
         ))}
       </div>
 
-      <div className="max-h-[180px] overflow-y-auto">
+      <div className="max-h-[360px] lg:max-h-[180px] overflow-y-auto">
         {isLoading && !hasTimedOut ? (
-          <div className="py-8 text-center text-gray-500 text-sm">
-            리스트 로딩중
-          </div>
+          <>
+            {[...Array(4)].map((_, index) => (
+              <div 
+                key={index}
+                className={`grid grid-cols-5 gap-4 py-3 border-b border-gray-100 ${
+                  index % 2 === 1 ? "bg-gray-50/50" : ""
+                }`}
+              >
+                {[...Array(5)].map((_, colIndex) => (
+                  <div key={colIndex} className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </>
         ) : filteredTeachers.length === 0 ? (
           <div className="py-8 text-center text-gray-500 text-sm">
             {searchQuery ? "검색 결과가 없습니다" : "선생님이 없습니다"}
           </div>
         ) : (
-          filteredTeachers.map((teacher) => (
+          filteredTeachers.map((teacher, index) => (
             <div 
               key={teacher.id} 
-              className="group relative grid grid-cols-5 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+              className={`group relative grid grid-cols-5 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                index % 2 === 1 ? "bg-gray-50/50" : ""
+              }`}
               onClick={() => {
                 setIsModalOpen(true);
                 setSelectedTeacher(teacher);
