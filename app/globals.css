@@ -28,6 +28,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-gmarket-sans);
   --font-mono: var(--font-geist-mono);
+  --font-hakgyoansim: var(--font-hakgyoansim);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -58,6 +59,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-gmarket-sans), Arial, Helvetica, sans-serif;
+}
+
+.font-hakgyoansim {
+  font-family: var(--font-hakgyoansim), sans-serif;
 }
 
 @keyframes fade-in-slide-down {

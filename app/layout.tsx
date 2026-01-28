@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/app/(shared)/(components)/Header";
 import Sidebar from "@/app/(shared)/(components)/Sidebar";
+import FloatingButton from "@/app/(shared)/(components)/FloatingButton";
 
 const gmarketSans = localFont({
   src: [
@@ -26,6 +27,12 @@ const gmarketSans = localFont({
   display: "swap",
 });
 
+const hakgyoansim = localFont({
+  src: "../public/fonts/Hakgyoansim Dunggeunmiso TTF B.ttf",
+  variable: "--font-hakgyoansim",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "서빙고 파워웨이브 3부",
   description: "서빙고 파워웨이브 3부 출석부",
@@ -37,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={gmarketSans.variable}>
+    <html lang="en" className={`${gmarketSans.variable} ${hakgyoansim.variable}`}>
       <body className="h-screen overflow-hidden">
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -56,6 +63,9 @@ export default function RootLayout({
             </main>
           </div>
         </div>
+
+        {/* Floating Button */}
+        <FloatingButton />
       </body>
     </html>
   );
