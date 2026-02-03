@@ -21,10 +21,18 @@ export default function TeacherAttendance() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getTeachers();
-    getAttendances();
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([getTeachers(), getAttendances()]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, [getTeachers, getAttendances]);
 
   useEffect(() => {
@@ -226,7 +234,22 @@ export default function TeacherAttendance() {
         </div>
       </div>
       <div className="flex-1 overflow-auto">
-        {filteredTeachers.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col gap-3">
+            {[...Array(5)].map((_, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 animate-pulse"
+              >
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="h-7 bg-gray-200 rounded w-24"></div>
+                  <div className="h-4 bg-gray-200 rounded w-40"></div>
+                </div>
+                <div className="h-12 w-20 bg-gray-200 rounded-lg"></div>
+              </div>
+            ))}
+          </div>
+        ) : filteredTeachers.length === 0 ? (
           <div className="py-8 text-center text-gray-500 text-sm">
             {searchQuery ? "검색 결과가 없습니다" : "선생님이 없습니다"}
           </div>

@@ -92,8 +92,22 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center max-h-[calc(100vh-100px)]">
-        <div className="text-gray-500">로딩 중...</div>
+      <div className="max-h-[calc(100vh-300px)] max-w-[550px] flex flex-col">
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <div className="h-7 bg-gray-200 rounded w-48 animate-pulse"></div>
+          <div className="h-10 w-10 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {[1, 2, 3, 4, 5].map((index) => (
+            <div
+              key={index}
+              className="p-4 rounded-lg border border-gray-200 animate-pulse"
+            >
+              <div className="h-5 bg-gray-200 rounded w-24 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-32"></div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

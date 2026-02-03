@@ -29,7 +29,7 @@ export default function Home() {
                 : "text-[#2C79FF]"
             }`}
           >
-            <User className="w-5 h-5" />
+            <User className="w-5 h-5 hidden sm:block" />
             학생
           </button>
           <button
@@ -40,7 +40,7 @@ export default function Home() {
                 : "text-[#2C79FF]"
             }`}
           >
-            <UserStar className="w-5 h-5" />
+            <UserStar className="w-5 h-5 hidden sm:block" />
             선생님
           </button>
         </div>
