@@ -76,7 +76,7 @@ export default function MatchingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-[400px] border bg-white shadow-xl rounded-2xl p-0 overflow-hidden transition-all duration-300 ease-out border-blue-100 ${
+      <DialogContent className={`sm:max-w-[400px] border bg-transparent shadow-xl rounded-2xl p-0 overflow-hidden transition-all duration-300 ease-out border-blue-100 ${
         shouldAnimate 
           ? 'opacity-100 scale-100' 
           : 'opacity-0 scale-95'

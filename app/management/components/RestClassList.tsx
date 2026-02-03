@@ -135,7 +135,7 @@ export default function RestClassList({ selectedItem, activeTab, onClassSelect }
       }`}
     >
       <h2 className="text-xl font-bold mb-4">
-        {selectedItem.name}님의 가능한 반 목록
+        가능한 반 목록
       </h2>
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (

@@ -69,11 +69,11 @@ export default function StudentManagement() {
 
   const filters = [
     { icon: <span className="text-xl font-normal">Aa</span>, label: "이름", key: "name" },
+    { icon: <Tag className="h-4 w-4" />, label: "소속 반", key: "class" },
     { icon: <Calendar className="h-4 w-4" />, label: "생년월일", key: "birth" },
     { icon: <Phone className="h-4 w-4" />, label: "전화번호", key: "phone" },
     { icon: <Users className="h-4 w-4" />, label: "부모님 연락처", key: "parentPhone" },
     { icon: <Building2 className="h-4 w-4" />, label: "소속 학교", key: "school" },
-    { icon: <Tag className="h-4 w-4" />, label: "소속 반", key: "class" },
   ]
 
   const getStudentValue = (student: any, key: string): string => {
