@@ -100,16 +100,14 @@ export default function OverallAttendance() {
 
   if (isLoading) {
     return (
-      <div className="w-full h-full rounded-2xl border border-white/55 bg-gradient-to-br from-white/35 via-white/15 to-white/10 shadow-[0_10px_40px_rgba(31,38,135,0.18)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/25 p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">로딩 중...</div>
-        </div>
+      <div className="w-full h-full rounded-2xl bg-[rgba(236,237,255,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] p-6 flex items-center justify-center">
+        <div className="text-gray-500">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full rounded-2xl border border-white/55 bg-gradient-to-br from-white/35 via-white/15 to-white/10 shadow-[0_10px_40px_rgba(31,38,135,0.18)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/25 p-6">
+    <div className="w-full h-full rounded-2xl bg-[rgba(236,237,255,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] p-6">
       {/* 제목 */}
       <span className="block text-2xl font-semibold text-[#2C79FF] mb-2">전체 출석 현황</span>
 

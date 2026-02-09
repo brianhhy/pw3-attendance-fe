@@ -192,29 +192,24 @@ export default function MonthlyRegisteredStudents() {
   }, [students, year, month]);
 
   return (
-    <section className="w-full h-[450px] rounded-2xl border border-white/55 bg-gradient-to-br from-white/35 via-white/15 to-white/10 shadow-[0_10px_40px_rgba(31,38,135,0.18)] backdrop-blur-xl backdrop-saturate-150 ring-1 ring-white/25 p-6 flex flex-col">
-      <div className="flex items-center justify-between mb-4 gap-3">
-        <h2 className="text-2xl font-semibold text-[#2C79FF] whitespace-nowrap">월별 등록 학생</h2>
+    <section className="w-full h-full rounded-2xl bg-[rgba(236,237,255,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] p-6 flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-semibold text-[#2C79FF] whitespace-nowrap">신규 등록 학생</h2>
 
-        <div className="flex items-center gap-3">
-          <select
-            value={toYearMonthValue(monthDate)}
-            onChange={(e) => {
-              const next = fromYearMonthValue(e.target.value);
-              if (next) setMonthDate(next);
-            }}
-            className="px-4 py-2 rounded-full bg-white/25 text-gray-900 font-semibold whitespace-nowrap ring-1 ring-white/45 backdrop-blur-xl backdrop-saturate-150 outline-none"
-          >
-            {yearMonthOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <div className="px-4 py-2 rounded-full bg-[#2C79FF] text-white font-semibold whitespace-nowrap">
-            {filtered.length}명
-          </div>
-        </div>
+        <select
+          value={toYearMonthValue(monthDate)}
+          onChange={(e) => {
+            const next = fromYearMonthValue(e.target.value);
+            if (next) setMonthDate(next);
+          }}
+          className="px-4 py-2 rounded-full bg-white/25 text-gray-900 font-semibold whitespace-nowrap ring-1 ring-white/45 backdrop-blur-xl backdrop-saturate-150 outline-none"
+        >
+          {yearMonthOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="rounded-xl border border-white/45 bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-xl backdrop-saturate-150 overflow-hidden flex-1 flex flex-col">

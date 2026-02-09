@@ -54,9 +54,13 @@ export default function Home() {
         </div>
 
         {/* lg 이상: 두 컴포넌트 모두 표시 */}
-        <div className="hidden lg:flex gap-6">
-          <StudentAttendance />
-          <TeacherAttendance />
+        <div className="hidden lg:flex gap-6 w-full max-w-[1400px]">
+          <div className="flex-[1.2]">
+            <StudentAttendance />
+          </div>
+          <div className="flex-[0.8]">
+            <TeacherAttendance />
+          </div>
         </div>
       </div>
     </div>

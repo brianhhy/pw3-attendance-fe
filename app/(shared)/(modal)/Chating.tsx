@@ -123,7 +123,7 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
   if (!isOpen && !isClosing) return null;
 
   return (
-    <div className={`fixed bottom-24 right-6 z-40 w-96 h-[60vh] bg-white rounded-lg shadow-2xl flex flex-col ${
+    <div className={`fixed bottom-24 right-6 z-40 w-96 h-[70vh] bg-white rounded-lg shadow-2xl flex flex-col ${
       isClosing ? "animate-slide-down" : "animate-slide-up"
     }`}>
       {/* Header */}
@@ -227,6 +227,7 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
               <div className={`flex items-center gap-2 ${message.type === "user" ? "justify-end" : ""}`}>
                 {message.type === "bot" && <span className="text-xs font-medium text-gray-700">PW3 봇</span>}
                 <span className="text-xs text-gray-500">{message.time}</span>
+                {message.type === "user" && <span className="text-xs font-medium text-gray-700">나</span>}
               </div>
               <div className={`rounded-2xl p-3 shadow-sm ${
                 message.type === "user" 

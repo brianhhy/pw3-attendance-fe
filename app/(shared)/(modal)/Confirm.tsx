@@ -61,7 +61,7 @@ export default function Confirm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-[440px] border bg-white shadow-xl rounded-2xl p-0 overflow-hidden transition-all duration-300 ease-out ${
+      <DialogContent className={`sm:max-w-[440px] border !bg-white shadow-xl rounded-2xl p-0 overflow-hidden transition-all duration-300 ease-out ${
         isAssignMode ? "border-blue-100" : "border-red-100"
       } ${
         shouldAnimate 

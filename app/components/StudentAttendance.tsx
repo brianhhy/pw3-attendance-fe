@@ -415,54 +415,9 @@ export default function StudentAttendance() {
       <div className="flex-1 overflow-auto">
         <div className="grid grid-cols-1 min-[732px]:grid-cols-2 gap-2 pb-4">
           {isLoading ? (
-            <>
-              {[...Array(4)].map((_, index) => (
-                <div 
-                  key={index}
-                  className="w-full min-[732px]:w-[330px] h-auto min-[732px]:h-[450px] bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col flex-shrink-0"
-                >
-                  {/* Header Skeleton */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
-                    <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
-                  </div>
-                  
-                  {/* Table Skeleton */}
-                  <div className="overflow-y-auto flex-1">
-                    <table className="w-full">
-                      <thead className="sticky top-0 bg-white">
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4">
-                            <div className="h-4 bg-gray-200 rounded w-12 animate-pulse"></div>
-                          </th>
-                          <th className="text-left py-3 px-4">
-                            <div className="h-4 bg-gray-200 rounded w-12 animate-pulse"></div>
-                          </th>
-                          <th className="text-left py-3 px-4">
-                            <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[...Array(8)].map((_, idx) => (
-                          <tr key={idx} className="border-b border-gray-100">
-                            <td className="py-3 px-4">
-                              <div className="h-4 bg-gray-200 rounded w-6 animate-pulse"></div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
-                            </td>
-                            <td className="py-3 px-4">
-                              <div className="h-9 bg-gray-200 rounded-lg w-16 animate-pulse"></div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
-            </>
+            <div className="col-span-2 py-8 text-center text-gray-500 text-sm">
+              로딩 중...
+            </div>
           ) : filteredClassData.length === 0 ? (
             <div className="col-span-2 py-8 text-center text-gray-500 text-sm">
               {searchQuery ? "검색 결과가 없습니다" : "반이 없습니다"}

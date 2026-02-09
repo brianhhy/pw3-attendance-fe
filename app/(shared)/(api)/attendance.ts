@@ -70,3 +70,10 @@ export const exportAttendanceSummary = async (date: string, schoolYear: number) 
     }
 };
 
+// 학년별 일요일 출석 통계
+export const getGradeSundayStats = async () => {
+    const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/attendances/summary/grades/sundays`
+    );
+    return response.data;
+};
