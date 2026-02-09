@@ -196,7 +196,7 @@ export default function OverallAttendanceChart() {
 
   return (
     <div className="flex-[2] flex flex-col rounded-xl border border-white/45 bg-gradient-to-b from-white/25 to-white/10 backdrop-blur-xl backdrop-saturate-150 p-4">
-      <div className="flex-1 rounded-xl border border-white/45 bg-gradient-to-b from-white/35 to-white/15 backdrop-blur-xl backdrop-saturate-150 min-h-[240px] overflow-hidden">
+      <div className="flex-1 rounded-xl border border-white/45 bg-gradient-to-b from-white/35 to-white/15 backdrop-blur-xl backdrop-saturate-150 overflow-hidden">
         {isLoading ? (
           <div className="h-full flex items-center justify-center text-gray-400">로딩 중...</div>
         ) : error ? (

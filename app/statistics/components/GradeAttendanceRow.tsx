@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getClassRooms, getClassRoomSundaySummary, type ClassRoom, type ClassRoomSundaySummaryItem } from "../../(shared)/(api)/classroom";
+import { getGradeSundayStats } from "../../(shared)/(api)/attendance";
 import GradeAttendanceChart from "./GradeAttendanceChart";
 
 type GradeKey = "MIDDLE-1" | "MIDDLE-2" | "MIDDLE-3" | "HIGH-1" | "HIGH-2" | "HIGH-3";
@@ -9,6 +9,20 @@ type GradeKey = "MIDDLE-1" | "MIDDLE-2" | "MIDDLE-3" | "HIGH-1" | "HIGH-2" | "HI
 type GradeStats = {
   total: number;
   rate: number;
+};
+
+type SundayStat = {
+  sunday: [number, number, number];
+  attendedCount: number;
+  totalCount: number;
+  attendanceRate: number;
+};
+
+type GradeData = {
+  schoolType: "MIDDLE" | "HIGH";
+  grade: 1 | 2 | 3;
+  gradeName: string;
+  sundayStats: SundayStat[];
 };
 
 const GRADE_ITEMS: Array<{
@@ -35,25 +49,6 @@ function emptyStats(): Record<GradeKey, GradeStats> {
   };
 }
 
-// 반의 평균 출석률 계산 (최근 5개 일요일 기준)
-function calculateClassRoomAverageRate(sundayData: ClassRoomSundaySummaryItem[]): number {
-  if (!Array.isArray(sundayData) || sundayData.length === 0) return 0;
-  
-  // 최근 5개만 사용
-  const recent5 = sundayData.slice(-5);
-  
-  let totalAttended = 0;
-  let totalCount = 0;
-  
-  recent5.forEach((item) => {
-    totalAttended += Number(item.attendedCount) || 0;
-    totalCount += Number(item.totalCount) || 0;
-  });
-  
-  if (totalCount === 0) return 0;
-  return Math.round((totalAttended / totalCount) * 100);
-}
-
 function getGradeKey(schoolType: string, grade: number): GradeKey | null {
   const st = String(schoolType).toUpperCase();
   if (st === "MIDDLE" && (grade === 1 || grade === 2 || grade === 3)) return `MIDDLE-${grade}` as GradeKey;
@@ -65,72 +60,36 @@ export default function GradeAttendanceRow() {
   const [isLoading, setIsLoading] = useState(true);
   const [statsByGrade, setStatsByGrade] = useState<Record<GradeKey, GradeStats>>(emptyStats());
   const [activeGradeKey, setActiveGradeKey] = useState<GradeKey | null>(null);
-  const [classRooms, setClassRooms] = useState<ClassRoom[]>([]);
-  const [classRoomDataMap, setClassRoomDataMap] = useState<Map<number, ClassRoomSundaySummaryItem[]>>(new Map());
+  const [gradeDataList, setGradeDataList] = useState<GradeData[]>([]);
 
-  // 반 목록과 각 반의 일요일 데이터를 fetch하여 학년별 통계 계산
+  // 학년별 일요일 출석 통계 데이터를 fetch
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // 1. 전체 반 목록 조회
-        const allClassRooms = await getClassRooms();
-        setClassRooms(allClassRooms);
+        const data: GradeData[] = await getGradeSundayStats();
+        setGradeDataList(data);
 
-        // 2. 각 반의 일요일 데이터 병렬 fetch
-        const classRoomDataPromises = allClassRooms.map((classroom) =>
-          getClassRoomSundaySummary(classroom.id)
-            .then((data) => ({ classRoom: classroom, sundayData: data }))
-            .catch(() => ({ classRoom: classroom, sundayData: [] }))
-        );
-
-        const classRoomDataList = await Promise.all(classRoomDataPromises);
-
-        // Sunday 데이터를 Map으로 저장 (중복 API 호출 방지)
-        const dataMap = new Map<number, ClassRoomSundaySummaryItem[]>();
-        classRoomDataList.forEach((item) => {
-          dataMap.set(item.classRoom.id, item.sundayData);
-        });
-        setClassRoomDataMap(dataMap);
-
-        // 3. 학년별로 그룹화하고 통계 계산
+        // 학년별 통계 계산
         const next = emptyStats();
 
-        GRADE_ITEMS.forEach((gradeItem) => {
-          const schoolTypeUpper = gradeItem.schoolLabel === "중학교" ? "MIDDLE" : "HIGH";
-          
-          // 해당 학년에 속한 반들 필터링
-          const gradeClassRooms = classRoomDataList.filter(
-            (item) =>
-              String(item.classRoom.schoolType).toUpperCase() === schoolTypeUpper &&
-              item.classRoom.grade === gradeItem.grade
-          );
+        data.forEach((gradeData) => {
+          const gradeKey = getGradeKey(gradeData.schoolType, gradeData.grade);
+          if (!gradeKey) return;
 
-          if (gradeClassRooms.length === 0) {
-            next[gradeItem.key] = { total: 0, rate: 0 };
-            return;
-          }
+          // 최근 일요일 데이터에서 전체 학생 수 가져오기
+          const latestSunday = gradeData.sundayStats[gradeData.sundayStats.length - 1];
+          const totalStudents = latestSunday ? latestSunday.totalCount : 0;
 
-          // 각 반의 평균 출석률 계산
-          const classRates = gradeClassRooms.map((item) =>
-            calculateClassRoomAverageRate(item.sundayData)
-          );
-
-          // 학년 평균 출석률 = 모든 반의 평균 출석률의 평균
-          const gradeAverageRate = classRates.length > 0
-            ? Math.round(classRates.reduce((sum, rate) => sum + rate, 0) / classRates.length)
+          // 평균 출석률 계산 (최근 5개 일요일 기준)
+          const recent5 = gradeData.sundayStats.slice(-5);
+          const averageRate = recent5.length > 0
+            ? Math.round(recent5.reduce((sum, stat) => sum + stat.attendanceRate, 0) / recent5.length)
             : 0;
 
-          // 전체 학생 수 = 각 반의 최근 일요일 totalCount 합
-          const totalStudents = gradeClassRooms.reduce((sum, item) => {
-            if (!Array.isArray(item.sundayData) || item.sundayData.length === 0) return sum;
-            const latestSunday = item.sundayData[item.sundayData.length - 1];
-            return sum + (Number(latestSunday.totalCount) || 0);
-          }, 0);
-
-          next[gradeItem.key] = {
+          next[gradeKey] = {
             total: totalStudents,
-            rate: gradeAverageRate,
+            rate: averageRate,
           };
         });
 
@@ -138,7 +97,7 @@ export default function GradeAttendanceRow() {
       } catch (error) {
         console.error("학년별 통계 조회 실패:", error);
         setStatsByGrade(emptyStats());
-        setClassRooms([]);
+        setGradeDataList([]);
       } finally {
         setIsLoading(false);
       }
@@ -154,61 +113,65 @@ export default function GradeAttendanceRow() {
     return { schoolLabel: found.schoolLabel, grade: found.grade };
   }, [activeGradeKey]);
 
-  const filteredClassRooms = useMemo(() => {
-    if (!activeGrade) return [];
+  const filteredGradeData = useMemo(() => {
+    if (!activeGrade) return null;
     const schoolTypeUpper = activeGrade.schoolLabel === "중학교" ? "MIDDLE" : "HIGH";
-    return classRooms.filter(
-      (c) =>
-        String(c.schoolType).toUpperCase() === schoolTypeUpper &&
-        c.grade === activeGrade.grade
+    return gradeDataList.find(
+      (g) =>
+        String(g.schoolType).toUpperCase() === schoolTypeUpper &&
+        g.grade === activeGrade.grade
     );
-  }, [activeGrade, classRooms]);
+  }, [activeGrade, gradeDataList]);
 
   return (
-    <div className="w-full">
-      <h1 className="text-2xl font-bold text-[#2C79FF] mb-3">학년별 통계</h1>
-      <div className="w-full overflow-x-auto">
-        <div className="min-w-[980px] flex gap-4">
-        {GRADE_ITEMS.map((item) => {
-          const s = statsByGrade[item.key];
-          const isActive = activeGradeKey === item.key;
-          return (
-            <button
-              key={item.key}
-              type="button"
-              aria-pressed={isActive}
-              onClick={() => setActiveGradeKey((prev) => (prev === item.key ? null : item.key))}
-              className={[
-                "flex-1 min-w-[150px] rounded-2xl backdrop-blur-md border border-white/60 px-5 py-4 transition-all duration-200 text-left",
-                "cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2C79FF]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
-                isActive ? "bg-[rgba(112,164,255,0.55)]" : "bg-white/40 hover:bg-white/50",
-              ].join(" ")}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-xl font-bold text-gray-800 whitespace-nowrap">
+    <div className="w-full h-full max-h-[500px] rounded-2xl bg-[rgba(236,237,255,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] p-6 flex flex-col">
+      <h1 className="text-2xl font-bold text-[#2C79FF] mb-4">학년별 통계</h1>
+      
+      <div className="flex-1 flex gap-6">
+        {/* 왼쪽: 학년별 통계 2x3 그리드 */}
+        <div className="flex-1 grid grid-cols-2 gap-4 content-start">
+          {GRADE_ITEMS.map((item) => {
+            const s = statsByGrade[item.key];
+            const isActive = activeGradeKey === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => setActiveGradeKey((prev) => (prev === item.key ? null : item.key))}
+                className={[
+                  "rounded-xl backdrop-blur-md border border-white/60 p-4 transition-all duration-200 text-left",
+                  "cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2C79FF]/40",
+                  isActive ? "bg-[rgba(112,164,255,0.55)] ring-2 ring-[#2C79FF]" : "bg-white/40 hover:bg-white/50",
+                ].join(" ")}
+              >
+                <div className="text-lg font-bold text-gray-800 mb-3">
                   {item.schoolLabel} {item.grade}학년
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between text-lg font-medium">
-                <span className="text-gray-700">전체 학생</span>
-                <span className="text-gray-800">{isLoading ? "-" : `${s.total}명`}</span>
-              </div>
-              <div className="flex items-center justify-between text-lg font-medium mt-1">
-                <span className="text-gray-700">평균 출석률</span>
-                <span className="text-[#6366F1]">{isLoading ? "-" : `${s.rate}%`}</span>
-              </div>
-            </button>
-          );
-        })}
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <span className="text-gray-600">전체 학생</span>
+                    <span className="text-gray-800 font-bold">{isLoading ? "-" : `${s.total}명`}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm font-medium">
+                    <span className="text-gray-600">평균 출석률</span>
+                    <span className="text-[#2C79FF] font-bold">{isLoading ? "-" : `${s.rate}%`}</span>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 오른쪽: 차트 */}
+        <div className="flex-[1.5]">
+          <GradeAttendanceChart
+            activeGrade={activeGrade} 
+            gradeData={filteredGradeData}
+          />
         </div>
       </div>
-
-      <GradeAttendanceChart 
-        activeGrade={activeGrade} 
-        classRooms={filteredClassRooms}
-        classRoomDataMap={classRoomDataMap}
-      />
     </div>
   );
 }

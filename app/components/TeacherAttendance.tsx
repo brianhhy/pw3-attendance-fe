@@ -208,7 +208,7 @@ export default function TeacherAttendance() {
   });
 
   return (
-    <div className="h-[710px] w-[566px] flex flex-col p-2">
+    <div className="h-[710px] w-full max-w-[700px] flex flex-col p-2">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
         <h2 className="text-2xl font-semibold whitespace-nowrap">선생님 출석</h2>
         <div
