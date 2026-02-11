@@ -176,6 +176,15 @@ export default function MatchingDialog({ open, onOpenChange }: MatchingDialogPro
   const [refreshKey, setRefreshKey] = useState(0);
   const [excludedStudentIds, setExcludedStudentIds] = useState<number[]>([]);
   const [excludedTeacherIds, setExcludedTeacherIds] = useState<number[]>([]);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setShouldAnimate(true);
+    } else {
+      setShouldAnimate(false);
+    }
+  }, [open]);
 
   const handleConfirm = async () => {
     if (!selectedItem || !selectedClass) return;
@@ -234,7 +243,12 @@ export default function MatchingDialog({ open, onOpenChange }: MatchingDialogPro
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[80vh] h-[80vh] bg-white border-none flex flex-col">
+        <DialogContent 
+          showCloseButton={true}
+          className={`sm:w-[80vh] sm:h-[80vh] bg-white border-none flex flex-col ${
+            shouldAnimate ? "animate-slide-up" : ""
+          }`}
+        >
           <DialogHeader className="sticky top-0 bg-transparent z-10 pb-4 flex-shrink-0">
             <DialogTitle>반 배정하기</DialogTitle>
             <div className="flex gap-4 justify-center pt-4">

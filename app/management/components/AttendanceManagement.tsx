@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Search, Calendar } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 import { markStudentAttendance, markTeacherAttendance, getStudentAttendances, getTeacherAttendances } from "../../(shared)/(api)/attendance";
 import Alert from "../../(shared)/(modal)/Alert";
+import Search from "../../(shared)/(components)/Search";
 
 interface AttendanceItem {
   id: number;
@@ -249,27 +249,12 @@ export default function AttendanceManagement() {
     <div className="w-full h-full flex flex-col bg-transparent p-3 min-h-0">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">출석 관리</h1>
-        <div
-          className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${
-            isSearchOpen ? "w-64" : "w-10"
-          }`}
-        >
-          <button
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className="absolute left-0 z-10 flex items-center justify-center w-10 h-10 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="검색"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          <Input
-            placeholder="이름을 입력하세요"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`pl-10 bg-gray-50 border-none transition-all duration-300 ${
-              isSearchOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-          />
-        </div>
+        <Search
+          isOpen={isSearchOpen}
+          searchQuery={searchQuery}
+          onToggle={() => setIsSearchOpen(!isSearchOpen)}
+          onSearchChange={setSearchQuery}
+        />
       </div>
 
       <div className="overflow-hidden flex-1 flex flex-col min-h-0">

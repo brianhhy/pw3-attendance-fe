@@ -45,7 +45,9 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
 
   useEffect(() => {
     if (isOpen && !isClosing) {
-      // 채팅창이 열릴 때 메시지 순차적으로 표시
+      // 채팅창이 열릴 때 메시지 초기화 및 순차적으로 표시
+      setMessages([]);
+      setInputValue("");
       setShowFirstMessage(false);
       setShowSecondMessage(false);
       setShowButtons(false);
@@ -59,6 +61,10 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
         clearTimeout(timer2);
         clearTimeout(timer3);
       };
+    } else if (!isOpen) {
+      // 채팅창이 완전히 닫혔을 때 상태 초기화
+      setMessages([]);
+      setInputValue("");
     }
   }, [isOpen, isClosing]);
 
@@ -123,15 +129,17 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
   if (!isOpen && !isClosing) return null;
 
   return (
-    <div className={`fixed bottom-24 right-6 z-40 w-96 h-[70vh] bg-white rounded-lg shadow-2xl flex flex-col ${
-      isClosing ? "animate-slide-down" : "animate-slide-up"
-    }`}>
+    <div className={`fixed z-[99999] bg-white shadow-2xl flex flex-col
+      sm:bottom-24 sm:right-6 sm:w-96 sm:h-[80vh] sm:max-h-[80vh] sm:rounded-lg
+      max-sm:inset-0 max-sm:h-full max-sm:w-full max-sm:rounded-none
+      ${isClosing ? "animate-slide-down" : "animate-slide-up"}
+    `}>
       {/* Header */}
       <div className="p-4 bg-white border-b border-gray-200 flex items-center justify-between rounded-t-lg">
         <h3 className="font-semibold text-gray-800">PW3 봇</h3>
         <button 
           onClick={onClose}
-          className="text-gray-600 hover:text-gray-800"
+          className="w-8 h-8 rounded-full bg-[#F2F4F6] flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-300 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>

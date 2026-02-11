@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,7 @@ import {
 import { exportAttendanceSummary } from "../(api)/attendance";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { Copy, Check } from "lucide-react";
+import Search from "../(components)/Search";
 
 interface ExportAttendanceProps {
   open: boolean;
@@ -21,14 +23,21 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
   const [isLoading, setIsLoading] = useState(false);
   const [attendanceData, setAttendanceData] = useState<any>(null);
   const [copied, setCopied] = useState(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
+      setShouldAnimate(true);
       fetchAttendanceData();
     } else {
       // 모달이 닫힐 때 상태 초기화
+      setShouldAnimate(false);
       setAttendanceData(null);
       setCopied(false);
+      setSearchQuery("");
+      setIsSearchOpen(false);
     }
   }, [open, selectedDate]);
 
@@ -50,15 +59,51 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
     if (!attendanceData) return "";
 
     let textContent = `출석부 - ${selectedDate}\n\n`;
+    if (searchQuery) {
+      textContent += `검색어: ${searchQuery}\n\n`;
+    }
+
+    // 학년 순서 정렬 (중1, 중2, 중3, 고1, 고2, 고3)
+    const getGradeOrder = (className: string) => {
+      if (!className) return 999;
+      
+      // 중학교 확인
+      if (className.includes('중')) {
+        if (className.includes('1')) return 1;
+        if (className.includes('2')) return 2;
+        if (className.includes('3')) return 3;
+      }
+      
+      // 고등학교 확인
+      if (className.includes('고')) {
+        if (className.includes('1')) return 4;
+        if (className.includes('2')) return 5;
+        if (className.includes('3')) return 6;
+      }
+      
+      return 999;
+    };
 
     // classAttendances 배열 처리
     if (attendanceData && typeof attendanceData === 'object' && Array.isArray(attendanceData.classAttendances)) {
-      attendanceData.classAttendances.forEach((item: any) => {
+      const sortedClassAttendances = [...attendanceData.classAttendances].sort((a: any, b: any) => {
+        return getGradeOrder(a.classRoomName || "") - getGradeOrder(b.classRoomName || "");
+      });
+
+      sortedClassAttendances.forEach((item: any) => {
         // status가 null이 아닌 학생만 필터링
         if (item.students && Array.isArray(item.students)) {
           const filteredStudents = item.students.filter((student: any) => {
             const status = student.status;
-            return status !== null && status !== undefined && status !== "";
+            const hasStatus = status !== null && status !== undefined && status !== "";
+            
+            // 검색어가 있으면 이름 필터링
+            if (searchQuery) {
+              const studentName = student.studentName || student.name || "";
+              return hasStatus && studentName.toLowerCase().includes(searchQuery.toLowerCase());
+            }
+            
+            return hasStatus;
           });
 
           // 필터링된 학생이 있는 경우에만 반 정보 추가
@@ -87,7 +132,15 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
       if (attendanceData.teacherAttendances && Array.isArray(attendanceData.teacherAttendances)) {
         const filteredTeachers = attendanceData.teacherAttendances.filter((teacher: any) => {
           const status = teacher.status;
-          return status !== null && status !== undefined && status !== "";
+          const hasStatus = status !== null && status !== undefined && status !== "";
+          
+          // 검색어가 있으면 이름 필터링
+          if (searchQuery) {
+            const teacherName = teacher.teacherName || teacher.name || "";
+            return hasStatus && teacherName.toLowerCase().includes(searchQuery.toLowerCase());
+          }
+          
+          return hasStatus;
         });
 
         if (filteredTeachers.length > 0) {
@@ -155,13 +208,78 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
       );
     }
 
+    // 출석한 학생이 있는지 확인
+    const hasAttendedStudents = attendanceData.classAttendances.some((classItem: any) => {
+      const filteredStudents = classItem.students?.filter((student: any) => {
+        const status = student.status;
+        return status !== null && status !== undefined && status !== "";
+      }) || [];
+      return filteredStudents.length > 0;
+    });
+
+    const hasAttendedTeachers = attendanceData.teacherAttendances?.some((teacher: any) => {
+      const status = teacher.status;
+      return status !== null && status !== undefined && status !== "";
+    }) || false;
+
+    if (!hasAttendedStudents && !hasAttendedTeachers) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full py-8">
+          <div className="mb-6 opacity-50">
+            <Image 
+              src="/images/logo.png" 
+              alt="logo" 
+              width={171} 
+              height={80}
+            />
+          </div>
+          <p className="text-gray-500 text-lg">
+            오늘 출석한 인원이 없습니다.
+          </p>
+        </div>
+      );
+    }
+
+    // 학년 순서 정렬 (중1, 중2, 중3, 고1, 고2, 고3)
+    const getGradeOrder = (className: string) => {
+      if (!className) return 999;
+      
+      // 중학교 확인
+      if (className.includes('중')) {
+        if (className.includes('1')) return 1;
+        if (className.includes('2')) return 2;
+        if (className.includes('3')) return 3;
+      }
+      
+      // 고등학교 확인
+      if (className.includes('고')) {
+        if (className.includes('1')) return 4;
+        if (className.includes('2')) return 5;
+        if (className.includes('3')) return 6;
+      }
+      
+      return 999;
+    };
+
+    const sortedClassAttendances = [...attendanceData.classAttendances].sort((a: any, b: any) => {
+      return getGradeOrder(a.classRoomName || "") - getGradeOrder(b.classRoomName || "");
+    });
+
     return (
       <div className="space-y-6">
         {/* 반별 출석 정보 */}
-        {attendanceData.classAttendances.map((classItem: any, index: number) => {
+        {sortedClassAttendances.map((classItem: any, index: number) => {
           const filteredStudents = classItem.students?.filter((student: any) => {
             const status = student.status;
-            return status !== null && status !== undefined && status !== "";
+            const hasStatus = status !== null && status !== undefined && status !== "";
+            
+            // 검색어가 있으면 이름 필터링
+            if (searchQuery) {
+              const studentName = student.studentName || student.name || "";
+              return hasStatus && studentName.toLowerCase().includes(searchQuery.toLowerCase());
+            }
+            
+            return hasStatus;
           }) || [];
 
           if (filteredStudents.length === 0) return null;
@@ -205,7 +323,15 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
         {attendanceData.teacherAttendances && attendanceData.teacherAttendances.length > 0 && (() => {
           const filteredTeachers = attendanceData.teacherAttendances.filter((teacher: any) => {
             const status = teacher.status;
-            return status !== null && status !== undefined && status !== "";
+            const hasStatus = status !== null && status !== undefined && status !== "";
+            
+            // 검색어가 있으면 이름 필터링
+            if (searchQuery) {
+              const teacherName = teacher.teacherName || teacher.name || "";
+              return hasStatus && teacherName.toLowerCase().includes(searchQuery.toLowerCase());
+            }
+            
+            return hasStatus;
           });
 
           if (filteredTeachers.length === 0) return null;
@@ -242,33 +368,46 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] bg-white border-none flex flex-col">
+      <DialogContent 
+        showCloseButton={true}
+        className={`sm:max-w-2xl sm:h-[80vh] bg-white border-none flex flex-col ${
+          shouldAnimate ? "animate-slide-up" : ""
+        }`}
+      >
         <DialogHeader className="sticky top-0 bg-white z-10 pb-4 flex-shrink-0">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pr-12">
             <DialogTitle>출석부 - {selectedDate}</DialogTitle>
-            <button
-              onClick={handleCopyToClipboard}
-              disabled={isLoading || !attendanceData}
-              className="flex items-center gap-2 px-4 py-2 bg-[#2C79FF] text-white rounded-lg hover:bg-[#2C79FF]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4" />
-                  <span className="text-sm">복사됨</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4" />
-                  <span className="text-sm">클립보드에 복사</span>
-                </>
-              )}
-            </button>
+            <Search
+              isOpen={isSearchOpen}
+              searchQuery={searchQuery}
+              onToggle={() => setIsSearchOpen(!isSearchOpen)}
+              onSearchChange={setSearchQuery}
+            />
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-6">
           {renderAttendanceContent()}
         </div>
+
+        {/* 클립보드 복사 버튼 - 오른쪽 아래 고정 */}
+        <button
+          onClick={handleCopyToClipboard}
+          disabled={isLoading || !attendanceData}
+          className="absolute bottom-6 right-6 z-20 flex items-center gap-2 px-4 py-2 bg-[#2C79FF] text-white rounded-lg hover:bg-[#2C79FF]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
+        >
+          {copied ? (
+            <>
+              <Check className="w-4 h-4" />
+              <span className="text-sm">복사됨</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4" />
+              <span className="text-sm">클립보드에 복사</span>
+            </>
+          )}
+        </button>
       </DialogContent>
     </Dialog>
   );
