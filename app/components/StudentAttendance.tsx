@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import useAttendanceStore from "../(shared)/(store)/attendanceStore";
 import { markStudentAttendance, getStudentAttendances } from "../(shared)/(api)/attendance";
 import { getStudentClassesByYear } from "../(shared)/(api)/student";
 import Alert from "../(shared)/(modal)/Alert";
+import Search from "../(shared)/(components)/Search";
 
 interface ClassData {
   id?: number;
@@ -390,27 +389,12 @@ export default function StudentAttendance() {
     <div className="w-full max-w-[700px] h-[710px] flex flex-col p-2">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
         <h2 className="text-2xl font-semibold whitespace-nowrap">학생 출석</h2>
-        <div
-          className={`relative flex items-center overflow-hidden transition-all duration-300 ease-in-out flex-shrink-0 ${
-            isSearchOpen ? "w-64" : "w-10"
-          }`}
-        >
-          <button
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className="absolute left-0 z-10 flex items-center justify-center w-10 h-10 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="검색"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          <Input
-            placeholder="이름을 입력하세요"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={`pl-10 bg-gray-50 border-none transition-all duration-300 ${
-              isSearchOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-            }`}
-          />
-        </div>
+        <Search
+          isOpen={isSearchOpen}
+          searchQuery={searchQuery}
+          onToggle={() => setIsSearchOpen(!isSearchOpen)}
+          onSearchChange={setSearchQuery}
+        />
       </div>
       <div className="flex-1 overflow-auto">
         <div className="grid grid-cols-1 min-[732px]:grid-cols-2 gap-2 pb-4">

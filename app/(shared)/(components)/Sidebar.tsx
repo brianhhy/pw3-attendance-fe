@@ -34,7 +34,7 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
             {isMobile && (
                 <div className="flex items-center justify-between px-5 py-4">
                     <div className="flex items-center gap-3">
-                        <Image src="/images/logo.png" alt="logo" width={150} height={40} />
+                        <Image src="/images/logo.png" alt="logo" width={90} height={24} />
                     </div>
                     <button
                         onClick={onClose}

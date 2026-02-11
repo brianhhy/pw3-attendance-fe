@@ -348,7 +348,7 @@ const Header = () => {
                     {/* lg 미만: 새로운 3단 레이아웃 */}
                     {/* 로고 - 왼쪽 끝 */}
                     <div className="lg:hidden flex items-center">
-                        <Image src="/images/logo.png" alt="logo" width={100} height={47} />
+                        <Image src="/images/logo.png" alt="logo" width={60} height={28} />
                     </div>
 
                     {/* Title - 정중앙 */}
