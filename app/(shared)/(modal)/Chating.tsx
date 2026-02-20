@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { sendChatMessage } from "../(api)/ai";
 import ReactMarkdown from "react-markdown";
-import WaveLoadingText from "../(components)/WaveLoadingText";
+import { WaveLoadingText } from "../(animations)/ChattingAnimation";
 
 interface Message {
   id: string;
