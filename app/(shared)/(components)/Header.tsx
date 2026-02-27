@@ -6,6 +6,8 @@ import { Search, Calendar, ChevronLeft, ChevronRight, Menu, X } from "lucide-rea
 import { useState, useEffect, useMemo, useRef } from "react";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { getStudentAttendances } from "../(api)/attendance";
+import { getBirthdays } from "../(api)/birth";
+import MonthBirthday from "../(modal)/MonthBirthday";
 import Sidebar from "./Sidebar";
 
 interface Description{
@@ -53,7 +55,11 @@ const Header = () => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [calendarMonth, setCalendarMonth] = useState(new Date());
     const calendarRef = useRef<HTMLDivElement>(null);
+    const mobileCalendarRef = useRef<HTMLDivElement>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [birthdayList, setBirthdayList] = useState<{ name: string; label: string; day: number }[]>([]);
+    const [currentBdayIndex, setCurrentBdayIndex] = useState(0);
+    const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
     
     const { 
         students, 
@@ -81,8 +87,35 @@ const Header = () => {
     }, [selectedDate]);
 
     useEffect(() => {
+        const month = new Date().getMonth() + 1;
+        getBirthdays(month)
+            .then((data) => {
+                const list: { name: string; label: string; day: number }[] = [];
+                data.students.forEach((s) => {
+                    list.push({ name: s.name, label: s.className, day: s.birth[2] });
+                });
+                data.teachers.forEach((t) => {
+                    list.push({ name: t.name, label: "선생님", day: t.birth[2] });
+                });
+                list.sort((a, b) => a.day - b.day);
+                setBirthdayList(list);
+            })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        if (birthdayList.length <= 1) return;
+        const interval = setInterval(() => {
+            setCurrentBdayIndex((prev) => (prev + 1) % birthdayList.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [birthdayList.length]);
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+            const outsideDesktop = !calendarRef.current?.contains(event.target as Node);
+            const outsideMobile = !mobileCalendarRef.current?.contains(event.target as Node);
+            if (outsideDesktop && outsideMobile) {
                 setIsCalendarOpen(false);
             }
         };
@@ -332,33 +365,65 @@ const Header = () => {
     return (
         <>
             <header className="flex flex-col relative bg-white z-50">
-                <div className="flex flex-row items-center w-full px-5 py-5">
+                <div className="flex flex-row items-center w-full px-5 py-5 relative">
                     {/* lg 이상: 기존 레이아웃 */}
-                    <div className="hidden lg:flex flex-row items-center gap-6 flex-1">
+                    <div className="hidden lg:flex flex-row items-center gap-6">
                         <div className="flex flex-col items-center border-b border-[#d9d9d9] pb-2">
                             <Image src="/images/logo.png" alt="logo" width={171} height={80} />
                             <p className="text-[15px] font-medium text-[#2c79ff] mt-1 ml-5 whitespace-nowrap">서빙고 파워웨이브 3부 출석부</p>
                         </div>
                         <div className="flex flex-col ml-15">
-                            <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
-                            <span className="text-[20px] font-medium">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
+                            <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
+                            <span className="text-[20px] font-medium">{descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
                         </div>
                     </div>
 
-                    {/* lg 미만: 새로운 3단 레이아웃 */}
-                    {/* 로고 - 왼쪽 끝 */}
-                    <div className="lg:hidden flex items-center">
-                        <Image src="/images/logo.png" alt="logo" width={60} height={28} />
+                    {/* ===== lg 미만: 모바일 레이아웃 ===== */}
+                    {/* 왼쪽: 로고 + title */}
+                    <div className="lg:hidden flex items-center gap-2 shrink-0 min-w-0">
+                        <Image src="/images/logo.png" alt="logo" width={60} height={28} className="shrink-0" />
+                        <span className="max-[450px]:text-sm text-base font-bold text-[#2C79FF] truncate">
+                            {descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}
+                        </span>
                     </div>
 
-                    {/* Title - 정중앙 */}
-                    <div className="lg:hidden flex-1 flex justify-center">
-                        <span className="text-xl font-bold text-[#2C79FF]">{descriptions[pathname === "/management" ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
+                    {/* 중앙: 생일자 (flex-1으로 정중앙 배치) */}
+                    <div className="lg:hidden flex-1 flex justify-center items-center">
+                        {birthdayList.length > 0 && (
+                            <button
+                                onClick={() => setIsBirthdayModalOpen(true)}
+                                className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-pink-50 transition-colors"
+                            >
+                                <span className="text-sm">🎂</span>
+                                <div className="overflow-hidden h-5 relative w-16">
+                                    <span
+                                        key={currentBdayIndex}
+                                        className="absolute inset-0 flex items-center animate-birthday-ticker"
+                                    >
+                                        <span className="text-xs font-semibold text-[#2C79FF] whitespace-nowrap">
+                                            {birthdayList[currentBdayIndex].name}
+                                        </span>
+                                    </span>
+                                </div>
+                            </button>
+                        )}
                     </div>
 
-                    {/* 메뉴 버튼 - 우측 끝 */}
-                    <div className="lg:hidden flex items-center">
-                        {/* 햄버거 메뉴 */}
+                    {/* 오른쪽: 달력 아이콘 + 메뉴 */}
+                    <div className="lg:hidden flex items-center gap-0.5 shrink-0">
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsCalendarOpen(!isCalendarOpen)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <Calendar className="w-5 h-5 text-[#2C79FF]" />
+                            </button>
+                            {isCalendarOpen && (
+                                <div ref={mobileCalendarRef} className="absolute top-10 right-0 z-[99999]">
+                                    {renderCalendar()}
+                                </div>
+                            )}
+                        </div>
                         <button
                             onClick={() => setIsMobileMenuOpen(true)}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -366,6 +431,36 @@ const Header = () => {
                         >
                             <Menu className="w-6 h-6 text-[#2C79FF]" />
                         </button>
+                    </div>
+
+                    {/* 생일자 ticker - title~calendar 사이 정중앙 (lg 이상) */}
+                    <div className="hidden lg:flex flex-1 justify-center items-center">
+                        {birthdayList.length > 0 && (
+                            <button
+                                onClick={() => setIsBirthdayModalOpen(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-pink-50 transition-colors group"
+                            >
+                                <span className="text-sm">🎂</span>
+                                <span className="text-xs font-semibold text-pink-400 whitespace-nowrap group-hover:text-pink-500">이번달 생일자</span>
+                                <div className="w-px h-3.5 bg-gray-200" />
+                                <div className="overflow-hidden h-5 relative w-52">
+                                    <span
+                                        key={currentBdayIndex}
+                                        className="absolute inset-0 flex items-center gap-1.5 animate-birthday-ticker"
+                                    >
+                                        <span className="text-xs font-bold text-gray-700 whitespace-nowrap">
+                                            {birthdayList[currentBdayIndex].day}일
+                                        </span>
+                                        <span className="text-xs font-semibold text-[#2C79FF] whitespace-nowrap">
+                                            {birthdayList[currentBdayIndex].name}
+                                        </span>
+                                        <span className="text-xs text-gray-400 whitespace-nowrap">
+                                            ({birthdayList[currentBdayIndex].label})
+                                        </span>
+                                    </span>
+                                </div>
+                            </button>
+                        )}
                     </div>
 
                     {/* lg 이상: 달력 - 오른쪽 */}
@@ -388,7 +483,11 @@ const Header = () => {
                         </div>
                     </div>
                 </div>
+
+
             </header>
+
+            <MonthBirthday open={isBirthdayModalOpen} onOpenChange={setIsBirthdayModalOpen} />
 
             {/* 모바일 Sidebar 오버레이 - lg 이하 */}
             {isMobileMenuOpen && (

@@ -93,7 +93,7 @@ export default function StudentManagement() {
   }
 
   return (
-    <div className="w-full max-w-[700px] min-w-[400px] bg-transparent p-3">
+    <div className="w-full bg-transparent p-3">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">학생 관리</h1>
         <Search
@@ -116,7 +116,7 @@ export default function StudentManagement() {
         ))}
       </div>
 
-      <div className="max-h-[360px] lg:max-h-[180px] overflow-y-auto">
+      <div className="max-h-[180px] lg:max-h-[360px] overflow-y-auto">
         {isLoading && !hasTimedOut ? (
           <>
             {[...Array(4)].map((_, index) => (
