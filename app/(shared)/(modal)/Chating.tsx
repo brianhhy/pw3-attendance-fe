@@ -208,17 +208,17 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
             </div>
             
             {/* First Message */}
-            <div className="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm">
+            <div className="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
               <p className="text-sm text-gray-800">안녕하세요! 무엇을 도와드릴까요? 😊</p>
             </div>
             
             {/* Second Message */}
-            <div className="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm">
+            <div className="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: "1.3s", animationFillMode: "forwards" }}>
               <p className="text-sm text-gray-800">문의하실 내용을 간단히 입력하시거나, 아래 버튼을 선택해 주세요.</p>
             </div>
             
             {/* Suggestion Buttons */}
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2 opacity-0 animate-fade-in-up" style={{ animationDelay: "2.3s", animationFillMode: "forwards" }}>
                 <button 
                   onClick={() => handleButtonClick("이번 달 한 번도 안 나온 학생 알려줘")}
                   className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"

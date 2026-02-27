@@ -247,3 +247,18 @@ body {
   animation: typingCursorBlink 0.9s step-end infinite;
   box-shadow: 0 0 6px rgba(44, 121, 255, 0.5);
 }
+
+@keyframes birthdayTickerIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-birthday-ticker {
+  animation: birthdayTickerIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}

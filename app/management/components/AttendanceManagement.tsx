@@ -246,7 +246,7 @@ export default function AttendanceManagement() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-transparent p-3 min-h-0">
+    <div className="w-full bg-transparent p-3">
       <div className="flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">출석 관리</h1>
         <Search
@@ -257,8 +257,8 @@ export default function AttendanceManagement() {
         />
       </div>
 
-      <div className="overflow-hidden flex-1 flex flex-col min-h-0">
-        <div className="overflow-x-auto flex-1 overflow-y-auto min-h-0">
+      <div className="overflow-hidden flex flex-col">
+        <div className="overflow-x-auto overflow-y-auto max-h-[280px] lg:max-h-[480px]">
           <table className="w-full min-w-[600px]">
             <thead className="border-b border-gray-200 sticky top-0 z-10 bg-white">
               <tr>
