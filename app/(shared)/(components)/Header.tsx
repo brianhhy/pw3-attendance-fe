@@ -59,6 +59,7 @@ const Header = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [birthdayList, setBirthdayList] = useState<{ name: string; label: string; day: number }[]>([]);
     const [currentBdayIndex, setCurrentBdayIndex] = useState(0);
+    const [birthdayViewMonth, setBirthdayViewMonth] = useState(() => new Date().getMonth() + 1);
     const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
     
     const { 
@@ -87,8 +88,7 @@ const Header = () => {
     }, [selectedDate]);
 
     useEffect(() => {
-        const month = new Date().getMonth() + 1;
-        getBirthdays(month)
+        getBirthdays(birthdayViewMonth)
             .then((data) => {
                 const list: { name: string; label: string; day: number }[] = [];
                 data.students.forEach((s) => {
@@ -99,9 +99,10 @@ const Header = () => {
                 });
                 list.sort((a, b) => a.day - b.day);
                 setBirthdayList(list);
+                setCurrentBdayIndex(0);
             })
             .catch(() => {});
-    }, []);
+    }, [birthdayViewMonth]);
 
     useEffect(() => {
         if (birthdayList.length <= 1) return;
@@ -389,12 +390,13 @@ const Header = () => {
 
                     {/* 중앙: 생일자 (flex-1으로 정중앙 배치) */}
                     <div className="lg:hidden flex-1 flex justify-center items-center">
-                        {birthdayList.length > 0 && (
-                            <button
-                                onClick={() => setIsBirthdayModalOpen(true)}
-                                className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-pink-50 transition-colors"
-                            >
-                                <span className="text-sm">🎂</span>
+                        <button
+                            onClick={() => setIsBirthdayModalOpen(true)}
+                            className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-pink-50 transition-colors"
+                        >
+                            <span className="text-sm">🎂</span>
+                            <span className="text-xs font-semibold text-pink-400 whitespace-nowrap">{birthdayViewMonth}월</span>
+                            {birthdayList.length > 0 ? (
                                 <div className="overflow-hidden h-5 relative w-16">
                                     <span
                                         key={currentBdayIndex}
@@ -405,8 +407,10 @@ const Header = () => {
                                         </span>
                                     </span>
                                 </div>
-                            </button>
-                        )}
+                            ) : (
+                                <span className="text-xs text-gray-400">생일자</span>
+                            )}
+                        </button>
                     </div>
 
                     {/* 오른쪽: 달력 아이콘 + 메뉴 */}
@@ -435,14 +439,14 @@ const Header = () => {
 
                     {/* 생일자 ticker - title~calendar 사이 정중앙 (lg 이상) */}
                     <div className="hidden lg:flex flex-1 justify-center items-center">
-                        {birthdayList.length > 0 && (
-                            <button
-                                onClick={() => setIsBirthdayModalOpen(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-pink-50 transition-colors group"
-                            >
-                                <span className="text-sm">🎂</span>
-                                <span className="text-xs font-semibold text-pink-400 whitespace-nowrap group-hover:text-pink-500">이번달 생일자</span>
-                                <div className="w-px h-3.5 bg-gray-200" />
+                        <button
+                            onClick={() => setIsBirthdayModalOpen(true)}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-pink-50 transition-colors group"
+                        >
+                            <span className="text-sm">🎂</span>
+                            <span className="text-xs font-semibold text-pink-400 whitespace-nowrap group-hover:text-pink-500">{birthdayViewMonth}월 생일자</span>
+                            <div className="w-px h-3.5 bg-gray-200" />
+                            {birthdayList.length > 0 ? (
                                 <div className="overflow-hidden h-5 relative w-52">
                                     <span
                                         key={currentBdayIndex}
@@ -459,8 +463,10 @@ const Header = () => {
                                         </span>
                                     </span>
                                 </div>
-                            </button>
-                        )}
+                            ) : (
+                                <span className="text-xs text-gray-400">없음</span>
+                            )}
+                        </button>
                     </div>
 
                     {/* lg 이상: 달력 - 오른쪽 */}
@@ -487,7 +493,7 @@ const Header = () => {
 
             </header>
 
-            <MonthBirthday open={isBirthdayModalOpen} onOpenChange={setIsBirthdayModalOpen} />
+            <MonthBirthday open={isBirthdayModalOpen} onOpenChange={setIsBirthdayModalOpen} initialMonth={birthdayViewMonth} />
 
             {/* 모바일 Sidebar 오버레이 - lg 이하 */}
             {isMobileMenuOpen && (

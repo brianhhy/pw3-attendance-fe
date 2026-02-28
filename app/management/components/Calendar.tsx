@@ -146,11 +146,9 @@ export default function Calendar({ onSelect }: CalendarProps) {
                 onMouseLeave={() => setTooltipDay(null)}
               >
                 <span>{day}</span>
-                {hasBirthday && (
-                  <span className={`text-[9px] mt-0.5 font-semibold ${isSelected ? "text-white/90" : "text-pink-400"}`}>
-                    🎂{totalBirthdays}
-                  </span>
-                )}
+                <span className={`block text-[9px] mt-0.5 min-h-[14px] font-semibold leading-tight flex items-center justify-center ${isSelected ? "text-white/90" : "text-pink-400"}`}>
+                  {hasBirthday ? `🎂${totalBirthdays}` : "\u00A0"}
+                </span>
               </button>
 
               {/* 생일 툴팁 */}
