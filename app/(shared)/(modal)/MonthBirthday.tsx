@@ -7,6 +7,7 @@ import { getBirthdays, BirthdayStudent, BirthdayTeacher } from "../(api)/birth";
 interface MonthBirthdayProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialMonth?: number; // 1~12
 }
 
 interface DayGroup {
@@ -15,15 +16,23 @@ interface DayGroup {
   teachers: BirthdayTeacher[];
 }
 
-export default function MonthBirthday({ open, onOpenChange }: MonthBirthdayProps) {
+export default function MonthBirthday({ open, onOpenChange, initialMonth }: MonthBirthdayProps) {
   const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const currentMonth = new Date().getMonth() + 1;
+  const [selectedMonth, setSelectedMonth] = useState(() => initialMonth ?? new Date().getMonth() + 1);
+
+  useEffect(() => {
+    if (open && initialMonth != null) {
+      setSelectedMonth(initialMonth);
+    } else if (open) {
+      setSelectedMonth(new Date().getMonth() + 1);
+    }
+  }, [open, initialMonth]);
 
   useEffect(() => {
     if (!open) return;
     setIsLoading(true);
-    getBirthdays(currentMonth)
+    getBirthdays(selectedMonth)
       .then((data) => {
         const map = new Map<number, DayGroup>();
 
@@ -43,22 +52,37 @@ export default function MonthBirthday({ open, onOpenChange }: MonthBirthdayProps
       })
       .catch(() => setDayGroups([]))
       .finally(() => setIsLoading(false));
-  }, [open, currentMonth]);
+  }, [open, selectedMonth]);
 
   const totalCount = dayGroups.reduce(
     (acc, g) => acc + g.students.length + g.teachers.length,
     0
   );
 
+  const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] bg-white border-none rounded-2xl p-0 shadow-xl">
+      <DialogContent className="sm:max-w-[480px] max-h-[80vh] bg-white border-none rounded-2xl p-0 shadow-xl flex flex-col">
         {/* 헤더 */}
-        <div className="bg-gradient-to-r from-pink-50 to-blue-50 px-6 pt-5 pb-5 rounded-t-2xl">
-          <DialogTitle className="flex items-center gap-2 text-xl font-bold text-gray-800 pr-6">
-            <span className="text-2xl">🎂</span>
-            {currentMonth}월 생일자
-          </DialogTitle>
+        <div className="bg-gradient-to-r from-pink-50 to-blue-50 px-6 pt-5 pb-5 rounded-t-2xl flex-shrink-0">
+          <div className="flex items-center justify-between gap-2 pr-6">
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold text-gray-800 shrink-0">
+              <span className="text-2xl">🎂</span>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm focus:border-[#2C79FF] focus:outline-none focus:ring-1 focus:ring-[#2C79FF]"
+              >
+                {MONTHS.map((m) => (
+                  <option key={m} value={m}>
+                    {m}월
+                  </option>
+                ))}
+              </select>
+              <span>생일자</span>
+            </DialogTitle>
+          </div>
           {!isLoading && (
             <p className="text-xs text-gray-400 mt-1">
               총 <span className="font-semibold text-[#2C79FF]">{totalCount}</span>명
@@ -67,7 +91,7 @@ export default function MonthBirthday({ open, onOpenChange }: MonthBirthdayProps
         </div>
 
         {/* 본문 */}
-        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto rounded-b-2xl">
+        <div className="px-6 py-4 flex-1 overflow-y-auto rounded-b-2xl min-h-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="flex flex-col items-center gap-3">
@@ -78,7 +102,7 @@ export default function MonthBirthday({ open, onOpenChange }: MonthBirthdayProps
           ) : dayGroups.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 gap-2">
               <span className="text-3xl">🎈</span>
-              <p className="text-sm text-gray-400">이번 달 생일자가 없습니다</p>
+              <p className="text-sm text-gray-400">{selectedMonth}월 생일자가 없습니다</p>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -86,7 +110,7 @@ export default function MonthBirthday({ open, onOpenChange }: MonthBirthdayProps
                 <div key={group.day}>
                   {/* 날짜 구분선 */}
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-bold text-gray-500">{currentMonth}월 {group.day}일</span>
+                    <span className="text-sm font-bold text-gray-500">{selectedMonth}월 {group.day}일</span>
                     <div className="flex-1 h-px bg-gray-100" />
                   </div>
 
