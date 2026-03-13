@@ -9,7 +9,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<"student" | "teacher">("student");
 
   return (
-    <div className="flex flex-col h-full bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF] p-6">
+    <div className="flex flex-col h-full p-6">
       {/* 탭 버튼 - lg 이하에서만 표시 */}
       <div className="lg:hidden flex justify-center">
         <div className="relative inline-flex bg-white rounded-full p-1 shadow-md border-2 border-[#2C79FF]">
@@ -55,10 +55,10 @@ export default function Home() {
 
         {/* lg 이상: 두 컴포넌트 모두 표시 */}
         <div className="hidden lg:flex gap-6 w-full max-w-[1400px]">
-          <div className="flex-[1.2]">
+          <div className="flex-1 min-w-0">
             <StudentAttendance />
           </div>
-          <div className="flex-[0.8]">
+          <div className="flex-[0.8] min-w-[280px]">
             <TeacherAttendance />
           </div>
         </div>

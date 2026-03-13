@@ -26,11 +26,20 @@ interface StudentItem {
     };
 }
 
+interface TeacherClassInfo {
+    schoolType: string;
+    grade: number;
+    classNumber: number;
+}
+
 interface TeacherItem {
     id: number;
     name: string;
     number: string;
     status: string;
+    classesByYear?: {
+        [year: string]: TeacherClassInfo[];
+    };
 }
 
 interface StudentAttendance {

@@ -144,6 +144,11 @@ export default function AttendanceManagement() {
     getAttendances();
   }, [selectedDate, getAttendances]);
 
+  const attendCount = useMemo(() =>
+    attendanceItems.filter((item) => item.status === "ATTEND").length,
+    [attendanceItems]
+  );
+
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) {
       return attendanceItems;
@@ -248,7 +253,10 @@ export default function AttendanceManagement() {
   return (
     <div className="w-full bg-transparent p-3">
       <div className="flex items-center justify-between mb-6 gap-4">
-        <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">출석 관리</h1>
+        <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">
+          출석 관리
+          <span className="ml-2 text-base font-semibold text-[#00CB18]">{attendCount}명</span>
+        </h1>
         <Search
           isOpen={isSearchOpen}
           searchQuery={searchQuery}
