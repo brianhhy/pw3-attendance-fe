@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useMemo } from "react";
 import useAttendanceStore from "../(shared)/(store)/attendanceStore";
-import { markStudentAttendance, getStudentAttendances } from "../(shared)/(api)/attendance";
-import { getStudentClassesByYear } from "../(shared)/(api)/student";
+import { markStudentAttendance, getStudentAttendances, type AttendanceClassItem, type AttendanceStudentItem } from "../(shared)/(api)/attendance";
+import { getStudentClassesByYear, type StudentClassItem, type StudentClassStudentItem } from "../(shared)/(api)/student";
+import axios from "axios";
 import Alert from "../(shared)/(modal)/Alert";
 import Search from "../(shared)/(components)/Search";
 
@@ -35,6 +36,33 @@ const getSchoolTypeName = (schoolType: string): string => {
   }
 };
 
+type AttendanceStatus = "attended" | "late" | "absent";
+
+const mapStatus = (status: string): AttendanceStatus | undefined => {
+  const upper = status.toUpperCase();
+  if (upper === "ATTEND") return "attended";
+  if (upper === "LATE") return "late";
+  if (upper === "ABSENT") return "absent";
+  return undefined;
+};
+
+const buildAttendanceMap = (attendanceResponse: AttendanceClassItem[]): { [classRoomId: number]: { [studentClassId: number]: string } } => {
+  const map: { [classRoomId: number]: { [studentClassId: number]: string } } = {};
+  attendanceResponse.forEach((classItem) => {
+    const classRoomId = classItem.classRoomId ?? classItem.class_room_id;
+    if (classRoomId != null && classItem.students) {
+      map[classRoomId] = {};
+      classItem.students.forEach((student: AttendanceStudentItem) => {
+        const studentClassId = student.studentClassId ?? student.student_class_id;
+        if (studentClassId != null && student.status) {
+          map[classRoomId][studentClassId] = student.status;
+        }
+      });
+    }
+  });
+  return map;
+};
+
 export default function StudentAttendance() {
   const { selectedDate, getAttendances, classAttendanceData } = useAttendanceStore();
   const [classData, setClassData] = useState<ClassData[]>([]);
@@ -53,50 +81,23 @@ export default function StudentAttendance() {
         const schoolYear = 2026;
         const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
         
-        const attendanceMap: { [key: number]: { [key: number]: string } } = {};
-        if (Array.isArray(attendanceResponse)) {
-          attendanceResponse.forEach((classItem: any) => {
-            const classRoomId = classItem.classRoomId || classItem.class_room_id;
-            if (classRoomId && classItem.students) {
-              attendanceMap[classRoomId] = {};
-              classItem.students.forEach((student: any) => {
-                const studentClassId = student.studentClassId || student.student_class_id;
-                const status = student.status;
-                if (studentClassId && status) {
-                  attendanceMap[classRoomId][studentClassId] = status;
-                }
-              });
-            }
-          });
-        }
-        
-        const transformedData: ClassData[] = classResponse.map((classItem: any) => {
+        const attendanceMap = buildAttendanceMap(attendanceResponse);
+
+        const transformedData: ClassData[] = classResponse.map((classItem: StudentClassItem) => {
           const classRoomId = classItem.classRoomId;
-          const classAttendance = attendanceMap[classRoomId] || {};
-          
-          const studentsWithStatus = classItem.students?.map((student: any) => {
+          const classAttendance = attendanceMap[classRoomId] ?? {};
+
+          const studentsWithStatus = classItem.students?.map((student: StudentClassStudentItem) => {
             const studentClassId = student.id;
             const status = classAttendance[studentClassId];
-            
-            let mappedStatus: "attended" | "late" | "absent" | undefined;
-            if (status) {
-              const statusUpper = String(status).toUpperCase();
-              if (statusUpper === "ATTEND") {
-                mappedStatus = "attended";
-              } else if (statusUpper === "LATE") {
-                mappedStatus = "late";
-              } else if (statusUpper === "ABSENT") {
-                mappedStatus = "absent";
-              }
-            }
-            
+
             return {
               id: student.studentId,
               name: student.studentName,
               studentClassId: student.id,
-              status: mappedStatus,
+              status: status ? mapStatus(status) : undefined,
             };
-          }) || [];
+          }) ?? [];
 
           return {
             id: classItem.classRoomId,
@@ -191,130 +192,69 @@ export default function StudentAttendance() {
       const schoolYear = 2026;
       const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
       
-      const attendanceMap: { [key: number]: { [key: number]: string } } = {};
-      if (Array.isArray(attendanceResponse)) {
-        attendanceResponse.forEach((classItem: any) => {
-          const classRoomId = classItem.classRoomId || classItem.class_room_id;
-          if (classRoomId && classItem.students) {
-            attendanceMap[classRoomId] = {};
-            classItem.students.forEach((student: any) => {
-              const studentClassId = student.studentClassId || student.student_class_id;
-              const status = student.status;
-              if (studentClassId && status) {
-                attendanceMap[classRoomId][studentClassId] = status;
-              }
-            });
-          }
-        });
-      }
-      
-      setClassData(prevData => 
+      const attendanceMap = buildAttendanceMap(attendanceResponse);
+
+      setClassData(prevData =>
         prevData.map(classItem => {
           const classRoomId = classItem.id;
-          const classAttendance = attendanceMap[classRoomId || 0] || {};
-          
+          const classAttendance = attendanceMap[classRoomId ?? 0] ?? {};
+
           return {
             ...classItem,
             students: classItem.students.map(student => {
               const currentStudentClassId = student.studentClassId;
               const isUpdatingStudent = student.id === studentId && currentStudentClassId === studentClassId;
-              const status = currentStudentClassId ? classAttendance[currentStudentClassId] : null;
-              
-              let mappedStatus: "attended" | "late" | "absent" | undefined = student.status;
-              
-              if (status) {
-                const statusUpper = String(status).toUpperCase();
-                if (statusUpper === "ATTEND") {
-                  mappedStatus = "attended";
-                } else if (statusUpper === "LATE") {
-                  mappedStatus = "late";
-                } else if (statusUpper === "ABSENT") {
-                  mappedStatus = "absent";
-                }
-              }
-              
+              const status = currentStudentClassId != null ? classAttendance[currentStudentClassId] : null;
+
+              let mappedStatus: AttendanceStatus | undefined = status ? mapStatus(status) : student.status;
+
               if (isUpdatingStudent && !status && student.status) {
                 mappedStatus = student.status;
               }
-              
-              return {
-                ...student,
-                status: mappedStatus,
-              };
+
+              return { ...student, status: mappedStatus };
             })
           };
         })
       );
-      
+
       await getAttendances();
-      
+
       setAlertType("success");
       setAlertMessage("출석 체크가 완료되었습니다.");
       setAlertOpen(true);
-    } catch (error: any) {
+    } catch (error) {
       console.error("출석 체크 실패:", error);
-      
+
       const schoolYear = 2026;
       const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
-      
-      const attendanceMap: { [key: number]: { [key: number]: string } } = {};
-      if (Array.isArray(attendanceResponse)) {
-        attendanceResponse.forEach((classItem: any) => {
-          const classRoomId = classItem.classRoomId || classItem.class_room_id;
-          if (classRoomId && classItem.students) {
-            attendanceMap[classRoomId] = {};
-            classItem.students.forEach((student: any) => {
-              const studentClassId = student.studentClassId || student.student_class_id;
-              const status = student.status;
-              if (studentClassId && status) {
-                attendanceMap[classRoomId][studentClassId] = status;
-              }
-            });
-          }
-        });
-      }
-      
-      setClassData(prevData => 
+      const attendanceMap = buildAttendanceMap(attendanceResponse);
+
+      setClassData(prevData =>
         prevData.map(classItem => {
           const classRoomId = classItem.id;
-          const classAttendance = attendanceMap[classRoomId || 0] || {};
-          
+          const classAttendance = attendanceMap[classRoomId ?? 0] ?? {};
+
           return {
             ...classItem,
             students: classItem.students.map(student => {
-              const studentClassId = student.studentClassId;
-              const status = studentClassId ? classAttendance[studentClassId] : null;
-              
-              let mappedStatus: "attended" | "late" | "absent" | undefined;
-              if (status) {
-                const statusUpper = String(status).toUpperCase();
-                if (statusUpper === "ATTEND") {
-                  mappedStatus = "attended";
-                } else if (statusUpper === "LATE") {
-                  mappedStatus = "late";
-                } else if (statusUpper === "ABSENT") {
-                  mappedStatus = "absent";
-                }
-              }
-              
-              return {
-                ...student,
-                status: mappedStatus,
-              };
+              const scId = student.studentClassId;
+              const status = scId != null ? classAttendance[scId] : null;
+              return { ...student, status: status ? mapStatus(status) : undefined };
             })
           };
         })
       );
-      
+
       let errorMessage = "출석 체크 중 오류가 발생했습니다.";
-      if (error.response?.status === 400) {
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
         const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";
         errorMessage = `잘못된 요청입니다: ${serverMessage}`;
-      } else if (error.response?.status === 500) {
+      } else if (axios.isAxiosError(error) && error.response?.status === 500) {
         errorMessage = "서버 오류가 발생했습니다. 날짜가 올바른지 확인해주세요.";
-      } else if (error.response?.data?.message) {
+      } else if (axios.isAxiosError(error) && error.response?.data?.message) {
         errorMessage = error.response.data.message;
-      } else if (error.message) {
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
       
@@ -332,50 +272,19 @@ export default function StudentAttendance() {
       const schoolYear = 2026;
       const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
       
-      const attendanceMap: { [key: number]: { [key: number]: string } } = {};
-      if (Array.isArray(attendanceResponse)) {
-        attendanceResponse.forEach((classItem: any) => {
-          const classRoomId = classItem.classRoomId || classItem.class_room_id;
-          if (classRoomId && classItem.students) {
-            attendanceMap[classRoomId] = {};
-            classItem.students.forEach((student: any) => {
-              const studentClassId = student.studentClassId || student.student_class_id;
-              const status = student.status;
-              if (studentClassId && status) {
-                attendanceMap[classRoomId][studentClassId] = status;
-              }
-            });
-          }
-        });
-      }
-      
-      setClassData(prevData => 
+      const attendanceMap = buildAttendanceMap(attendanceResponse);
+
+      setClassData(prevData =>
         prevData.map(classItem => {
           const classRoomId = classItem.id;
-          const classAttendance = attendanceMap[classRoomId || 0] || {};
-          
+          const classAttendance = attendanceMap[classRoomId ?? 0] ?? {};
+
           return {
             ...classItem,
             students: classItem.students.map(student => {
-              const studentClassId = student.studentClassId;
-              const status = studentClassId ? classAttendance[studentClassId] : null;
-              
-              let mappedStatus: "attended" | "late" | "absent" | undefined;
-              if (status) {
-                const statusUpper = String(status).toUpperCase();
-                if (statusUpper === "ATTEND") {
-                  mappedStatus = "attended";
-                } else if (statusUpper === "LATE") {
-                  mappedStatus = "late";
-                } else if (statusUpper === "ABSENT") {
-                  mappedStatus = "absent";
-                }
-              }
-              
-              return {
-                ...student,
-                status: mappedStatus,
-              };
+              const scId = student.studentClassId;
+              const status = scId != null ? classAttendance[scId] : null;
+              return { ...student, status: status ? mapStatus(status) : undefined };
             })
           };
         })
@@ -407,7 +316,7 @@ export default function StudentAttendance() {
               {searchQuery ? "검색 결과가 없습니다" : "반이 없습니다"}
             </div>
           ) : (
-            filteredClassData.map((classItem, index) => (
+            filteredClassData.map((classItem) => (
             <div 
               key={`${classItem.schoolType}-${classItem.grade}-${classItem.classNumber}`} 
               className="w-full max-w-[400px] @[600px]:max-w-none mx-auto h-auto @[600px]:h-[450px] bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col"

@@ -1,7 +1,19 @@
 import axios from "axios";
 
+export interface AttendanceStudentItem {
+  studentClassId?: number;
+  student_class_id?: number;
+  status: string;
+}
+
+export interface AttendanceClassItem {
+  classRoomId?: number;
+  class_room_id?: number;
+  students: AttendanceStudentItem[];
+}
+
 // 학생 출석 정보 (반별 출석 정보)
-export const getStudentAttendances = async (schoolYear: number, date: string) => {
+export const getStudentAttendances = async (schoolYear: number, date: string): Promise<AttendanceClassItem[]> => {
     const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/attendances/classes/year/${schoolYear}/date/${date}`
     );
@@ -68,6 +80,24 @@ export const getAttendanceReport = async (date: string) => {
     }
 };
 
+// 부모님 출석 체크
+export const markParentAttendance = async (studentId: number, date: string, parentType: "MOTHER" | "FATHER", status: "ATTEND" | "ABSENT") => {
+    const parent = parentType === "MOTHER" ? "mother" : "father";
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/parent-attendance/${studentId}/${date}/${parent}`;
+    const response = await axios.put(url, { status }, {
+        headers: { 'Content-Type': 'application/json' }
+    });
+    return response.data;
+};
+
+// 부모님 출석 조회
+export const getParentAttendances = async (date: string): Promise<{ studentId: number; studentName: string; date: number[]; motherStatus: string | null; fatherStatus: string | null }[]> => {
+    const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/parent-attendance/date/${date}`
+    );
+    return response.data;
+};
+
 // 학년별 일요일 출석 통계
 export const getGradeSundayStats = async () => {
     const response = await axios.get(
@@ -75,3 +105,4 @@ export const getGradeSundayStats = async () => {
     );
     return response.data;
 };
+

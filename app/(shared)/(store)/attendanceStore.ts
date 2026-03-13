@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { getStudentAttendances, getTeacherAttendances } from "../(api)/attendance";
+import { getStudentAttendances, getTeacherAttendances, getParentAttendances } from "../(api)/attendance";
+import type { AttendanceClassItem } from "../(api)/attendance";
 import { getStudentsList } from "../(api)/student";
 import { getTeacherList } from "../(api)/teacher";
 
@@ -50,16 +51,6 @@ interface StudentAttendance {
     time?: string;
 }
 
-interface ClassAttendanceData {
-    classRoomId: number;
-    className: string;
-    teacherName: string;
-    students: {
-        studentClassId: number;
-        studentName: string;
-        status: "ATTEND" | "LATE" | "ABSENT" | null;
-    }[];
-}
 
 interface TeacherAttendance {
     id: number;
@@ -78,15 +69,24 @@ interface RecentSearchItem {
     time?: string;
 }
 
+interface ParentAttendanceItem {
+    studentId: number;
+    studentName: string;
+    date: number[];
+    motherStatus: string | null;
+    fatherStatus: string | null;
+}
+
 interface AttendanceStore {
     students: StudentItem[];
     teachers: TeacherItem[];
     getStudents: () => Promise<void>;
     getTeachers: () => Promise<void>;
-    
+
     studentAttendances: StudentAttendance[];
     teacherAttendances: TeacherAttendance[];
-    classAttendanceData: ClassAttendanceData[];
+    classAttendanceData: AttendanceClassItem[];
+    parentAttendances: ParentAttendanceItem[];
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     getAttendances: (date?: string) => Promise<void>;
@@ -110,6 +110,7 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     studentAttendances: [],
     teacherAttendances: [],
     classAttendanceData: [],
+    parentAttendances: [],
     selectedDate: getTodayDateString(),
     
     selectedItem: null,
@@ -146,9 +147,10 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
         const schoolYear = new Date().getFullYear();
 
         try {
-            const [classAttendanceData, teacherData] = await Promise.all([
+            const [classAttendanceData, teacherData, parentData] = await Promise.all([
                 getStudentAttendances(schoolYear, targetDate),
                 getTeacherAttendances(targetDate),
+                getParentAttendances(targetDate),
             ]);
 
             console.log("[attendanceStore] 선생님 출석 정보 응답:", teacherData);
@@ -156,12 +158,14 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
             set({
                 classAttendanceData: classAttendanceData || [],
                 teacherAttendances: teacherData || [],
+                parentAttendances: parentData || [],
                 selectedDate: targetDate,
             });
         } catch (error) {
             set({
                 classAttendanceData: [],
                 teacherAttendances: [],
+                parentAttendances: [],
             });
         }
     },

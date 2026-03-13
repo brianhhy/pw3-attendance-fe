@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { ClipboardCheck, Settings, BarChart, Mail, X, LucideIcon, ChevronDown, UserRound, CalendarCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ClipboardCheck, Settings, BarChart, Mail, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users } from "lucide-react";
 
 interface MenuItem {
     href: string;
@@ -13,7 +13,7 @@ interface MenuItem {
     subItems?: { href: string; label: string; icon: LucideIcon }[];
 }
 
-const menuItems: MenuItem[] = [
+const baseMenuItems: MenuItem[] = [
     { href: "/", label: "출석 체크", icon: ClipboardCheck },
     {
         href: "/management",
@@ -38,6 +38,29 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
     const [expandedMenu, setExpandedMenu] = useState<string | null>(
         pathname.startsWith("/management") ? "/management" : null
     );
+    const [showParentsMenu, setShowParentsMenu] = useState(false);
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem("pw3_event");
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            const events = Array.isArray(parsed) ? parsed : [parsed];
+            const today = new Date().toISOString().slice(0, 10);
+            const hasToday = events.some(
+                (e: { date: string; type: string }) =>
+                    e.date === today && e.type === "parents_observation"
+            );
+            setShowParentsMenu(hasToday);
+        } catch {
+            // ignore invalid data
+        }
+    }, []);
+
+    const menuItems = showParentsMenu
+        ? [baseMenuItems[0], { href: "/parent-attendance", label: "부모님 출석체크", icon: Users }, ...baseMenuItems.slice(1)]
+        : baseMenuItems;
 
     const toggleMenu = (href: string) => {
         setExpandedMenu((prev) => (prev === href ? null : href));

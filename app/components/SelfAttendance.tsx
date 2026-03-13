@@ -156,7 +156,7 @@ export default function SelfAttendance() {
                     );
                     
                     if (student) {
-                        studentClassId = student.studentClassId; // 받아온 데이터의 studentClassId 값
+                        studentClassId = student.studentClassId ?? null; // 받아온 데이터의 studentClassId 값
                         break;
                     }
                 }
