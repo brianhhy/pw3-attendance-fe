@@ -195,9 +195,19 @@ export default function TeacherAttendance() {
     return null;
   };
 
-  const getTeacherDescription = (teacher: { number: string }) => {
-    if (!teacher.number) return "담임";
-    return `중학교 1학년 ${teacher.number}반 담임`;
+  const getSchoolTypeName = (schoolType: string) => {
+    if (schoolType === "MIDDLE") return "중학교";
+    if (schoolType === "HIGH") return "고등학교";
+    if (schoolType === "ELEMENTARY") return "초등학교";
+    return schoolType;
+  };
+
+  const getTeacherDescription = (teacher: { classesByYear?: { [year: string]: { schoolType: string; grade: number; classNumber: number }[] } }) => {
+    const classes = teacher.classesByYear?.["2026"];
+    if (!classes || classes.length === 0) return "담임";
+    return classes
+      .map((c) => `${getSchoolTypeName(c.schoolType)} ${c.grade}학년 ${c.classNumber}반 담임`)
+      .join(", ");
   };
 
   const filteredTeachers = teachers.filter((teacher) => {
@@ -207,7 +217,7 @@ export default function TeacherAttendance() {
   });
 
   return (
-    <div className="h-[710px] w-full max-w-[700px] flex flex-col p-2">
+    <div className="h-[710px] w-full flex flex-col p-2">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
         <h2 className="text-2xl font-semibold whitespace-nowrap">선생님 출석</h2>
         <Search
@@ -246,13 +256,13 @@ export default function TeacherAttendance() {
               return (
                 <div
                   key={teacher.id}
-                  className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200"
+                  className="flex items-center justify-between p-3 xl:p-4 bg-white rounded-lg shadow-sm border border-gray-200"
                 >
-                  <div className="flex flex-col">
-                    <span className="text-2xl font-bold text-black">
+                  <div className="flex flex-col min-w-0 mr-2">
+                    <span className="text-lg xl:text-2xl font-bold text-black truncate">
                       {teacher.name}
                     </span>
-                    <span className="text-sm text-gray-500 mt-1">
+                    <span className="text-xs xl:text-sm text-gray-500 mt-1 truncate">
                       {getTeacherDescription(teacher)}
                     </span>
                   </div>
@@ -260,7 +270,7 @@ export default function TeacherAttendance() {
                   <button
                     onClick={() => handleAttendanceClick(teacher.id)}
                     disabled={isMarked}
-                    className={`px-6 py-3 rounded-lg font-bold text-lg transition-opacity ${
+                    className={`flex-shrink-0 px-3 xl:px-6 py-2 xl:py-3 rounded-lg font-bold text-base xl:text-lg transition-opacity ${
                       isMarked
                         ? attendanceStatus === "ATTEND"
                           ? "bg-[#9EFC9B] text-[#00CB18] cursor-not-allowed"

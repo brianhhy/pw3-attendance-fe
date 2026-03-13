@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, X, Send, Users } from "lucide-react";
+import { MessageCircle, X, Send, Users, CalendarDays } from "lucide-react";
 import MatchingModal from "../(modal)/MatchingModal";
 import Chating from "../(modal)/Chating";
 import ExportAttendance from "../(modal)/ExportAttendance";
+import EventSetting from "../(modal)/EventSetting";
 
 export default function FloatingButton() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMatchingOpen, setIsMatchingOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isEventSettingOpen, setIsEventSettingOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
   const handleMenuToggle = () => {
@@ -43,6 +45,11 @@ export default function FloatingButton() {
   const handleExportOpen = () => {
     setIsMenuOpen(false);
     setIsExportOpen(true);
+  };
+
+  const handleEventSettingOpen = () => {
+    setIsMenuOpen(false);
+    setIsEventSettingOpen(true);
   };
 
   return (
@@ -84,6 +91,13 @@ export default function FloatingButton() {
             <Users className="w-5 h-5 text-[#2C79FF]" />
             <span className="text-[10px] font-medium text-gray-700 leading-tight text-center">반 배정<br/>하기</span>
           </button>
+          <button
+            onClick={handleEventSettingOpen}
+            className="w-16 h-16 bg-white hover:bg-gray-50 rounded-xl shadow-lg border border-gray-200 transition-all flex flex-col items-center justify-center gap-1"
+          >
+            <CalendarDays className="w-5 h-5 text-[#2C79FF]" />
+            <span className="text-[10px] font-medium text-gray-700 leading-tight text-center">이벤트<br/>설정</span>
+          </button>
         </div>
       )}
 
@@ -104,6 +118,12 @@ export default function FloatingButton() {
       <ExportAttendance
         open={isExportOpen}
         onOpenChange={setIsExportOpen}
+      />
+
+      {/* Event Setting Dialog */}
+      <EventSetting
+        open={isEventSettingOpen}
+        onOpenChange={setIsEventSettingOpen}
       />
     </>
   );

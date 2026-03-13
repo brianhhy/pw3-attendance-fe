@@ -34,8 +34,8 @@ const hakgyoansim = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "서빙고 파워웨이브 3부",
-  description: "서빙고 파워웨이브 3부 출석부",
+  title: "서빙고 파워웨이브 3부 | 출석 체크 페이지",
+  description: "이름을 검색 후 출석 체크를 완료하세요!",
 };
 
 export default function RootLayout({
@@ -58,7 +58,7 @@ export default function RootLayout({
             <Sidebar />
 
             {/* Main */}
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
               {children}
             </main>
           </div>

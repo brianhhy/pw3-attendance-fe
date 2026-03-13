@@ -86,8 +86,24 @@ export const deleteStudent = async (studentId: number) => {
     return response.data;
 }
 
+export interface StudentClassStudentItem {
+  id: number;
+  studentId: number;
+  studentName: string;
+}
+
+export interface StudentClassItem {
+  classRoomId: number;
+  schoolType: string;
+  grade: number;
+  classNumber: number;
+  className?: string;
+  teacherName?: string;
+  students?: StudentClassStudentItem[];
+}
+
 // 반별 학생 정보 조회 (학년도별)
-export const getStudentClassesByYear = async (schoolYear: number) => {
+export const getStudentClassesByYear = async (schoolYear: number): Promise<StudentClassItem[]> => {
     const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/student-classes/school-year/${schoolYear}`
     );

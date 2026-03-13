@@ -373,7 +373,7 @@ const Header = () => {
                             <Image src="/images/logo.png" alt="logo" width={171} height={80} />
                             <p className="text-[15px] font-medium text-[#2c79ff] mt-1 ml-5 whitespace-nowrap">서빙고 파워웨이브 3부 출석부</p>
                         </div>
-                        <div className="flex flex-col ml-15">
+                        <div className="flex flex-col ml-10">
                             <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
                             <span className="text-[20px] font-medium">{descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
                         </div>
