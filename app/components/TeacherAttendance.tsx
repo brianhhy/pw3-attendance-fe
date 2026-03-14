@@ -78,6 +78,7 @@ export default function TeacherAttendance() {
     };
 
     if (selectedDate && teachers.length > 0) {
+      setAttendanceStatuses({});
       fetchAndMatchTeacherStatuses();
     }
   }, [selectedDate, teachers]);
