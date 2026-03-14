@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { getGradeSundayStats } from "../../(shared)/(api)/attendance";
+import { useMemo, useState } from "react";
+import useStatisticStore, { type GradeData } from "../../(shared)/(store)/statisticStore";
 import GradeAttendanceChart from "./GradeAttendanceChart";
 
 type GradeKey = "MIDDLE-1" | "MIDDLE-2" | "MIDDLE-3" | "HIGH-1" | "HIGH-2" | "HIGH-3";
@@ -9,20 +9,6 @@ type GradeKey = "MIDDLE-1" | "MIDDLE-2" | "MIDDLE-3" | "HIGH-1" | "HIGH-2" | "HI
 type GradeStats = {
   total: number;
   rate: number;
-};
-
-type SundayStat = {
-  sunday: [number, number, number];
-  attendedCount: number;
-  totalCount: number;
-  attendanceRate: number;
-};
-
-type GradeData = {
-  schoolType: "MIDDLE" | "HIGH";
-  grade: 1 | 2 | 3;
-  gradeName: string;
-  sundayStats: SundayStat[];
 };
 
 const GRADE_ITEMS: Array<{
@@ -57,54 +43,27 @@ function getGradeKey(schoolType: string, grade: number): GradeKey | null {
 }
 
 export default function GradeAttendanceRow() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [statsByGrade, setStatsByGrade] = useState<Record<GradeKey, GradeStats>>(emptyStats());
+  const { gradeSundayStats: gradeDataList, isLoading } = useStatisticStore();
   const [activeGradeKey, setActiveGradeKey] = useState<GradeKey | null>(null);
-  const [gradeDataList, setGradeDataList] = useState<GradeData[]>([]);
 
-  // 학년별 일요일 출석 통계 데이터를 fetch
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const data: GradeData[] = await getGradeSundayStats();
-        setGradeDataList(data);
+  const statsByGrade = useMemo<Record<GradeKey, GradeStats>>(() => {
+    const next = emptyStats();
+    gradeDataList.forEach((gradeData) => {
+      const gradeKey = getGradeKey(gradeData.schoolType, gradeData.grade);
+      if (!gradeKey) return;
 
-        // 학년별 통계 계산
-        const next = emptyStats();
+      const latestSunday = gradeData.sundayStats[gradeData.sundayStats.length - 1];
+      const totalStudents = latestSunday ? latestSunday.totalCount : 0;
 
-        data.forEach((gradeData) => {
-          const gradeKey = getGradeKey(gradeData.schoolType, gradeData.grade);
-          if (!gradeKey) return;
+      const recent5 = gradeData.sundayStats.slice(-5);
+      const averageRate = recent5.length > 0
+        ? Math.round(recent5.reduce((sum, stat) => sum + stat.attendanceRate, 0) / recent5.length)
+        : 0;
 
-          // 최근 일요일 데이터에서 전체 학생 수 가져오기
-          const latestSunday = gradeData.sundayStats[gradeData.sundayStats.length - 1];
-          const totalStudents = latestSunday ? latestSunday.totalCount : 0;
-
-          // 평균 출석률 계산 (최근 5개 일요일 기준)
-          const recent5 = gradeData.sundayStats.slice(-5);
-          const averageRate = recent5.length > 0
-            ? Math.round(recent5.reduce((sum, stat) => sum + stat.attendanceRate, 0) / recent5.length)
-            : 0;
-
-          next[gradeKey] = {
-            total: totalStudents,
-            rate: averageRate,
-          };
-        });
-
-        setStatsByGrade(next);
-      } catch (error) {
-        console.error("학년별 통계 조회 실패:", error);
-        setStatsByGrade(emptyStats());
-        setGradeDataList([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+      next[gradeKey] = { total: totalStudents, rate: averageRate };
+    });
+    return next;
+  }, [gradeDataList]);
 
   const activeGrade = useMemo(() => {
     if (!activeGradeKey) return null;

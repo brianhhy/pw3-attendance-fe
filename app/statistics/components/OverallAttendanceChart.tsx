@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { getSundayAttendanceSummary } from "@/app/(shared)/(api)/statistics";
+import useStatisticStore from "../../(shared)/(store)/statisticStore";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -30,36 +30,18 @@ function toIsoDateLabel(d: [number, number, number]) {
 }
 
 export default function OverallAttendanceChart() {
+  const { sundaySummary, isLoading } = useStatisticStore();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [points, setPoints] = useState<SundayPoint[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const run = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await getSundayAttendanceSummary();
-        const next = (Array.isArray(data) ? data : [])
-          .map((item) => ({
-            label: toIsoDateLabel(item.attendanceDate),
-            attended: Number(item.attendedCount) || 0,
-            total: Number(item.totalCount) || 0,
-          }))
-          // 날짜 오름차순 정렬(문자열 ISO 형식이라 정렬 가능)
-          .sort((a, b) => a.label.localeCompare(b.label));
-        setPoints(next);
-      } catch (e: any) {
-        setError("일요일별 출석 요약을 불러오지 못했습니다.");
-        setPoints([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    run();
-  }, []);
+  const points = useMemo<SundayPoint[]>(() =>
+    sundaySummary
+      .map((item) => ({
+        label: toIsoDateLabel(item.attendanceDate),
+        attended: Number(item.attendedCount) || 0,
+        total: Number(item.totalCount) || 0,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+    [sundaySummary]
+  );
 
   const displayedPoints = useMemo(() => {
     // 너무 휑/촘촘해지지 않도록 최근 6개만 표시
@@ -199,8 +181,6 @@ export default function OverallAttendanceChart() {
       <div className="flex-1 rounded-xl border border-white/45 bg-gradient-to-b from-white/35 to-white/15 backdrop-blur-xl backdrop-saturate-150 overflow-hidden">
         {isLoading ? (
           <div className="h-full flex items-center justify-center text-gray-400">로딩 중...</div>
-        ) : error ? (
-          <div className="h-full flex items-center justify-center text-gray-400">{error}</div>
         ) : points.length === 0 ? (
           <div className="h-full flex items-center justify-center text-gray-400">데이터가 없습니다.</div>
         ) : (

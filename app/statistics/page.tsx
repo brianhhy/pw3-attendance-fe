@@ -1,10 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import OverallAttendance from "./components/OverallAttendance";
 import MonthlyRegisteredStudents from "./components/MonthlyRegisteredStudents";
+import ParentObservationAttendance from "./components/ParentObservationAttendance";
 import GradeAttendanceRow from "./components/GradeAttendanceRow";
+import useStatisticStore from "../(shared)/(store)/statisticStore";
 
 export default function StatisticsPage() {
+  const { fetchAll } = useStatisticStore();
+  const [showParentObservation, setShowParentObservation] = useState(false);
+
+  useEffect(() => {
+    fetchAll();
+    try {
+      const raw = localStorage.getItem("pw3_event");
+      if (!raw) return;
+      const events = Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [JSON.parse(raw)];
+      const today = new Date().toISOString().slice(0, 10);
+      setShowParentObservation(
+        events.some((e: { date: string; type: string }) => e.date === today && e.type === "parents_observation")
+      );
+    } catch {
+      // ignore
+    }
+  }, [fetchAll]);
+
   return (
     <div className="w-full min-h-screen p-6 bg-gradient-to-b from-[#FFFFFF] to-[#ECEDFF]">
       <div className="max-w-7xl mx-auto">
@@ -16,7 +37,7 @@ export default function StatisticsPage() {
                 <OverallAttendance />
               </div>
               <div className="flex-[1.5] min-w-0">
-                <MonthlyRegisteredStudents />
+                {showParentObservation ? <ParentObservationAttendance /> : <MonthlyRegisteredStudents />}
               </div>
             </div>
             <GradeAttendanceRow />

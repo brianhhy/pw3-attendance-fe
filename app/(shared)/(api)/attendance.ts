@@ -98,6 +98,20 @@ export const getParentAttendances = async (date: string): Promise<{ studentId: n
     return response.data;
 };
 
+// 부모님 출석 통계 (참관수업)
+export interface ParentAttendanceStats {
+    totalStudents: number;
+    studentsWithParent: number;
+    totalParentsAttended: number;
+}
+
+export const getParentAttendanceStats = async (date: string): Promise<ParentAttendanceStats> => {
+    const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/parent-attendance/date/${date}/stats`
+    );
+    return response.data;
+};
+
 // 학년별 일요일 출석 통계
 export const getGradeSundayStats = async () => {
     const response = await axios.get(
