@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PW3 출석 관리 시스템 (pw3-attendance-fe)
 
-## Getting Started
+서빙고 파워웨이브 3부를 위한 출석 관리 웹 애플리케이션입니다. 학생, 교사, 학부모의 출석을 효율적으로 관리하고 통계를 제공합니다.
 
-First, run the development server:
+---
+
+## 주요 기능
+
+- **출석 체크**: 날짜별 학생 및 교사 출석 현황 조회 및 마킹
+- **인원 관리**: 학생 및 교사 정보 등록, 수정, 삭제
+- **출석 관리**: 날짜별 출석 기록 조회 및 내보내기
+- **통계**: 전체 출석률, 학년별 출석률, 월별 등록 현황 시각화
+- **메시지 발송**: SMS / 카카오톡을 통한 학생·학부모 대상 메시지 전송
+- **참관 수업 출석**: 이벤트 활성화 시 학부모 참관 수업 출석 체크
+
+---
+
+## 기술 스택
+
+| 분류 | 기술 |
+|------|------|
+| Framework | Next.js 16.1.0 (App Router) |
+| Language | TypeScript 5 |
+| UI Library | React 19, Radix UI, shadcn/ui |
+| Styling | Tailwind CSS 4 |
+| State Management | Zustand 5 |
+| HTTP Client | Axios |
+| Charts | Chart.js 4, React-ChartJS-2 |
+| Icons | Lucide React |
+
+---
+
+## 시작하기
+
+### 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 다음 변수를 설정합니다.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 설치 및 실행
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# 의존성 설치
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# 개발 서버 실행
+npm run dev
+```
 
-## Learn More
+브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속합니다.
 
-To learn more about Next.js, take a look at the following resources:
+### 빌드
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run build
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 린트
 
-## Deploy on Vercel
+```bash
+npm run lint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 프로젝트 구조
+
+```
+pw3-attendance-fe/
+├── app/
+│   ├── (shared)/                  # 공통 모듈
+│   │   ├── (api)/                 # API 호출 함수
+│   │   ├── (components)/          # 공통 컴포넌트 (Header, Sidebar, Search 등)
+│   │   ├── (store)/               # Zustand 전역 상태 관리
+│   │   ├── (modal)/               # 공통 모달 컴포넌트
+│   │   └── utils/                 # 유틸리티 함수
+│   ├── components/                # 페이지용 컴포넌트 (출석 폼 등)
+│   ├── management/                # 인원/출석 관리 페이지
+│   ├── message/                   # 메시지 발송 페이지
+│   ├── statistics/                # 통계 페이지
+│   ├── parent-attendance/         # 학부모 참관 출석 페이지
+│   ├── layout.tsx                 # 루트 레이아웃 (Header + Sidebar)
+│   └── page.tsx                   # 홈 (출석 체크)
+├── components/ui/                 # shadcn/ui 컴포넌트
+├── lib/utils.ts                   # 공통 유틸
+└── public/
+    ├── fonts/                     # 커스텀 폰트 (GMarket Sans, 학교안심)
+    └── images/                    # 로고 등 정적 이미지
+```
+
+---
+
+## 페이지 구성
+
+| 경로 | 페이지 | 설명 |
+|------|--------|------|
+| `/` | 출석 체크 | 학생/교사 출석 현황 조회 및 마킹 |
+| `/management/people` | 인원 관리 | 학생·교사 정보 등록 및 수정 |
+| `/management/attendance` | 출석 관리 | 날짜별 출석 기록 조회·내보내기 |
+| `/statistics` | 통계 | 출석률 차트 및 분석 |
+| `/message` | 메시지 | SMS/카카오 메시지 발송 |
+| `/parent-attendance` | 참관 출석 | 학부모 참관 수업 출석 (이벤트 활성 시) |
+
+---
+
+## 출석 상태
+
+| 상태 | 설명 |
+|------|------|
+| `ATTEND` | 출석 |
+| `LATE` | 지각 |
+| `ABSENT` | 결석 |
+
+---
+
+## 참관 수업 이벤트
+
+학부모 참관 수업 출석 페이지는 이벤트가 활성화된 날짜에만 사이드바에 표시됩니다.
+이벤트 설정은 헤더의 이벤트 설정 버튼에서 관리하며, `pw3_event` 키로 로컬스토리지에 저장됩니다.
