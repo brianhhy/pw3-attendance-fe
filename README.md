@@ -30,43 +30,6 @@
 
 ---
 
-## 시작하기
-
-### 환경 변수 설정
-
-프로젝트 루트에 `.env.local` 파일을 생성하고 다음 변수를 설정합니다.
-
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
-```
-
-### 설치 및 실행
-
-```bash
-# 의존성 설치
-npm install
-
-# 개발 서버 실행
-npm run dev
-```
-
-브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속합니다.
-
-### 빌드
-
-```bash
-npm run build
-npm start
-```
-
-### 린트
-
-```bash
-npm run lint
-```
-
----
-
 ## 프로젝트 구조
 
 ```
