@@ -23,6 +23,7 @@ interface ClassData {
   }>;
 }
 
+// 학교 유형 코드를 한국어 이름으로 변환한다.
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
     case "MIDDLE":
@@ -38,6 +39,7 @@ const getSchoolTypeName = (schoolType: string): string => {
 
 type AttendanceStatus = "attended" | "late" | "absent";
 
+// 서버 출석 상태 문자열을 내부 AttendanceStatus 타입으로 변환한다.
 const mapStatus = (status: string): AttendanceStatus | undefined => {
   const upper = status.toUpperCase();
   if (upper === "ATTEND") return "attended";
@@ -46,6 +48,7 @@ const mapStatus = (status: string): AttendanceStatus | undefined => {
   return undefined;
 };
 
+// 출석 응답 데이터를 classRoomId → studentClassId → status 구조의 맵으로 변환한다.
 const buildAttendanceMap = (attendanceResponse: AttendanceClassItem[]): { [classRoomId: number]: { [studentClassId: number]: string } } => {
   const map: { [classRoomId: number]: { [studentClassId: number]: string } } = {};
   attendanceResponse.forEach((classItem) => {
@@ -169,6 +172,7 @@ export default function StudentAttendance() {
       .filter((classItem): classItem is ClassData => classItem !== null);
   }, [classData, searchQuery]);
 
+  // 출석 버튼 클릭 시 9시 이전이면 출석, 이후면 지각으로 처리하고 출석 데이터를 갱신한다.
   const handleAttendanceClick = async (studentId: number, studentClassId: number) => {
     const currentHour = new Date().getHours();
     const attendanceStatus = currentHour < 9 ? "ATTEND" : "LATE";
@@ -264,6 +268,7 @@ export default function StudentAttendance() {
     }
   };
 
+  // 결석 버튼 클릭 시 해당 학생을 결석 처리하고 출석 데이터를 갱신한다.
   const handleAbsenceClick = async (studentId: number, studentClassId: number) => {
     try {
       await markStudentAttendance(studentClassId, selectedDate, "ABSENT");

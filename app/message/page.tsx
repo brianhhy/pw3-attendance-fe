@@ -61,23 +61,27 @@ export default function MessagePage() {
       });
   }, [students, target]);
 
+  // 메시지 대상(학생/학부모)을 선택하고 수신자 선택 목록을 초기화한 뒤 다음 단계로 이동한다.
   const handleTargetSelect = (selectedTarget: MessageTarget) => {
     setTarget(selectedTarget);
     setSelectedRecipients([]); // 대상 변경 시 선택 초기화
     setTimeout(() => setStep(2), 300);
   };
 
+  // 전송 수단(문자/카카오톡)을 선택하고 다음 단계로 이동한다.
   const handleMethodSelect = (selectedMethod: MessageMethod) => {
     setMethod(selectedMethod);
     setTimeout(() => setStep(3), 300);
   };
 
+  // 수신자 ID를 선택/해제 토글한다.
   const toggleRecipient = (id: number) => {
     setSelectedRecipients((prev) =>
       prev.includes(id) ? prev.filter((recipientId) => recipientId !== id) : [...prev, id]
     );
   };
 
+  // 전체 수신자를 일괄 선택하거나 전체 해제한다.
   const toggleAllRecipients = () => {
     if (selectedRecipients.length === recipients.length) {
       setSelectedRecipients([]);
@@ -86,10 +90,8 @@ export default function MessagePage() {
     }
   };
 
-  const handleSend = () => {
-    // TODO: 메시지 전송 API 호출
-    console.log("전송:", { target, method, selectedRecipients, message });
-  };
+  // 메시지를 전송한다. (TODO: 전송 API 연동 필요)
+  const handleSend = () => {};
 
   return (
     <div className="w-full min-h-screen p-6 bg-gradient-to-b from-[#FFFFFF] to-[#ECEDFF]">
