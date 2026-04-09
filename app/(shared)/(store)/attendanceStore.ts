@@ -90,11 +90,12 @@ interface AttendanceStore {
     selectedDate: string;
     setSelectedDate: (date: string) => void;
     getAttendances: (date?: string) => Promise<void>;
-    
+
     selectedItem: RecentSearchItem | null;
     setSelectedItem: (item: RecentSearchItem | null) => void;
 }
 
+// 오늘 날짜를 YYYY-MM-DD 형식의 문자열로 반환한다.
 const getTodayDateString = (): string => {
     const today = new Date();
     const year = today.getFullYear();
@@ -106,28 +107,31 @@ const getTodayDateString = (): string => {
 const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     students: [],
     teachers: [],
-    
+
     studentAttendances: [],
     teacherAttendances: [],
     classAttendanceData: [],
     parentAttendances: [],
     selectedDate: getTodayDateString(),
-    
+
     selectedItem: null,
+
+    // 검색에서 선택된 항목을 store에 저장한다.
     setSelectedItem: (item: RecentSearchItem | null) => {
         set({ selectedItem: item });
     },
-    
+
+    // 전체 학생 목록을 API에서 불러와 store에 저장한다.
     getStudents: async () => {
         try {
             const response = await getStudentsList();
-            console.log("[attendanceStore] 학생 정보 응답:", response);
             set({ students: response || [] });
         } catch (error) {
             set({ students: [] });
         }
     },
-    
+
+    // 전체 선생님 목록을 API에서 불러와 store에 저장한다.
     getTeachers: async () => {
         try {
             const response = await getTeacherList();
@@ -136,12 +140,14 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
             set({ teachers: [] });
         }
     },
-    
+
+    // 선택된 날짜를 변경하고 해당 날짜의 출석 데이터를 갱신한다.
     setSelectedDate: (date: string) => {
         set({ selectedDate: date });
         get().getAttendances(date);
     },
-    
+
+    // 지정된 날짜의 학생·선생님·학부모 출석 데이터를 한 번에 조회하여 store에 저장한다.
     getAttendances: async (date?: string) => {
         const targetDate = date || get().selectedDate || getTodayDateString();
         const schoolYear = new Date().getFullYear();
@@ -152,8 +158,6 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
                 getTeacherAttendances(targetDate),
                 getParentAttendances(targetDate),
             ]);
-
-            console.log("[attendanceStore] 선생님 출석 정보 응답:", teacherData);
 
             set({
                 classAttendanceData: classAttendanceData || [],
@@ -172,4 +176,3 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
 }));
 
 export default useAttendanceStore;
-

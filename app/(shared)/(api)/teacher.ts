@@ -9,29 +9,25 @@ interface NewTeacherFormData {
   memo: string;
 }
 
-// 선생님 리스트
+// 전체 선생님 목록을 조회한다.
 export const getTeacherList = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher`);
     return response.data;
 }
 
-// 선생님 추가
+// 새 선생님을 추가한다. teacherType은 대문자로 변환하여 전송하며, 서버 에러 메시지를 포함한 에러를 throw한다.
 export const addNewTeacher = async (formData: NewTeacherFormData) => {
   try {
     const payload: any = {};
-    
-    // 필수 필드
+
     payload.name = formData.name;
     payload.sex = formData.sex;
-    
-    // 선택 필드
+
     if (formData.birth) payload.birth = formData.birth;
     if (formData.phone) payload.phone = formData.phone;
     if (formData.memo) payload.memo = formData.memo;
-    
-    // teacherType 처리 - teacherType 필드로 전송하고 대문자로 변환
+
     if (formData.teacherType && formData.teacherType.trim() !== "") {
-      // 값 매핑: teacher -> TEACHER, helper -> HELPER, pastor -> PASTOR
       const typeMap: { [key: string]: string } = {
         "teacher": "TEACHER",
         "helper": "HELPER",
@@ -41,9 +37,6 @@ export const addNewTeacher = async (formData: NewTeacherFormData) => {
       payload.teacherType = upperType;
     }
 
-    console.log("Sending teacher payload:", JSON.stringify(payload, null, 2));
-    console.log("Request URL:", `${process.env.NEXT_PUBLIC_API_URL}/teacher`);
-
     const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/teacher`, payload, {
       headers: {
         "Content-Type": "application/json",
@@ -52,18 +45,10 @@ export const addNewTeacher = async (formData: NewTeacherFormData) => {
     return response.data;
   } catch (error: any) {
     const errorData = error.response?.data;
-    console.error("=== Teacher API Error ===");
-    console.error("Status:", error.response?.status);
-    console.error("Error Data:", errorData);
-    console.error("Error Message:", errorData?.message || errorData?.error || error.message);
-    console.error("Full Error Response:", JSON.stringify(error.response, null, 2));
-    console.error("========================");
-    
-    // 에러 메시지를 더 자세히 전달
     const enhancedError = new Error(
-      errorData?.message || 
-      errorData?.error || 
-      error.message || 
+      errorData?.message ||
+      errorData?.error ||
+      error.message ||
       "선생님 추가에 실패했습니다."
     );
     (enhancedError as any).response = error.response;
@@ -71,23 +56,19 @@ export const addNewTeacher = async (formData: NewTeacherFormData) => {
   }
 };
 
-// 선생님 수정
+// 특정 선생님의 정보를 수정한다. teacherType은 대문자로 변환하여 전송하며, 서버 에러 메시지를 포함한 에러를 throw한다.
 export const updateTeacher = async (teacherId: number, formData: NewTeacherFormData) => {
   try {
     const payload: any = {};
-    
-    // 필수 필드
+
     payload.name = formData.name;
     payload.sex = formData.sex;
-    
-    // 선택 필드
+
     if (formData.birth) payload.birth = formData.birth;
     if (formData.phone) payload.phone = formData.phone;
     if (formData.memo) payload.memo = formData.memo;
-    
-    // teacherType 처리 - teacherType 필드로 전송하고 대문자로 변환
+
     if (formData.teacherType && formData.teacherType.trim() !== "") {
-      // 값 매핑: teacher -> TEACHER, helper -> HELPER, pastor -> PASTOR
       const typeMap: { [key: string]: string } = {
         "teacher": "TEACHER",
         "helper": "HELPER",
@@ -105,15 +86,10 @@ export const updateTeacher = async (teacherId: number, formData: NewTeacherFormD
     return response.data;
   } catch (error: any) {
     const errorData = error.response?.data;
-    console.error("=== Teacher Update API Error ===");
-    console.error("Status:", error.response?.status);
-    console.error("Error Data:", errorData);
-    console.error("Error Message:", errorData?.message || errorData?.error || error.message);
-    
     const enhancedError = new Error(
-      errorData?.message || 
-      errorData?.error || 
-      error.message || 
+      errorData?.message ||
+      errorData?.error ||
+      error.message ||
       "선생님 수정에 실패했습니다."
     );
     (enhancedError as any).response = error.response;
@@ -121,7 +97,7 @@ export const updateTeacher = async (teacherId: number, formData: NewTeacherFormD
   }
 };
 
-// 선생님 삭제
+// 특정 선생님을 삭제한다.
 export const deleteTeacher = async (teacherId: number) => {
     const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/teacher/${teacherId}`);
     return response.data;

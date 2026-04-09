@@ -22,6 +22,7 @@ type SundayPoint = {
   total: number;
 };
 
+// 날짜 배열 [year, month, day]을 "YYYY-MM-DD" 형식의 문자열로 변환한다.
 function toIsoDateLabel(d: [number, number, number]) {
   const [y, m, day] = d;
   const mm = String(m).padStart(2, "0");
@@ -29,6 +30,7 @@ function toIsoDateLabel(d: [number, number, number]) {
   return `${y}-${mm}-${dd}`;
 }
 
+// 주일별 전체 출석 현황을 라인 차트로 표시한다. 최근 6개 주일 데이터를 기준으로 렌더링한다.
 export default function OverallAttendanceChart() {
   const { sundaySummary, isLoading } = useStatisticStore();
 
@@ -107,9 +109,7 @@ export default function OverallAttendanceChart() {
         animateRotate: true,
         duration: 1500,
         easing: "easeInOutQuart" as const,
-        onComplete: () => {
-          console.log("Chart animation completed");
-        },
+        onComplete: () => {},
       },
       transitions: {
         active: {

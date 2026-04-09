@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 import { markStudentAttendance, markTeacherAttendance, getStudentAttendances, getTeacherAttendances } from "../../(shared)/(api)/attendance";
@@ -19,6 +18,7 @@ interface AttendanceItem {
   date: string;
 }
 
+// 학교 유형 코드를 축약 한국어로 변환한다. (예: "MIDDLE" → "중")
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
     case "MIDDLE":
@@ -32,6 +32,7 @@ const getSchoolTypeName = (schoolType: string): string => {
   }
 };
 
+// 출석 상태 코드를 한국어로 변환한다. (예: "ATTEND" → "출석")
 const getStatusName = (status: string | null): string => {
   if (!status) return "-";
   switch (status.toUpperCase()) {
@@ -48,6 +49,7 @@ const getStatusName = (status: string | null): string => {
   }
 };
 
+// 출석 상태에 따른 Tailwind 색상 클래스를 반환한다.
 const getStatusColor = (status: string | null): string => {
   if (!status) return "bg-gray-100 text-gray-600";
   switch (status.toUpperCase()) {
@@ -89,14 +91,13 @@ export default function AttendanceManagement() {
 
         if (Array.isArray(studentAttendances)) {
           studentAttendances.forEach((classItem: any) => {
-            const classRoomId = classItem.classRoomId || classItem.class_room_id;
             const className = classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`;
-            
+
             if (classItem.students && Array.isArray(classItem.students)) {
               classItem.students.forEach((student: any) => {
                 const studentClassId = student.studentClassId || student.student_class_id;
                 const status = student.status;
-                
+
                 if (status && status.toUpperCase() !== "UNCHECKED") {
                   items.push({
                     id: student.studentId || student.student_id || student.id || studentClassId,
@@ -160,6 +161,7 @@ export default function AttendanceManagement() {
     );
   }, [attendanceItems, searchQuery]);
 
+  // 출석 상태를 변경하고 최신 출석 데이터를 다시 불러와 화면에 반영한다.
   const handleStatusChange = async (
     item: AttendanceItem,
     newStatus: "ATTEND" | "LATE" | "ABSENT" | "OTHER"
@@ -181,14 +183,13 @@ export default function AttendanceManagement() {
 
       if (Array.isArray(studentAttendances)) {
         studentAttendances.forEach((classItem: any) => {
-          const classRoomId = classItem.classRoomId || classItem.class_room_id;
           const className = classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`;
-          
+
           if (classItem.students && Array.isArray(classItem.students)) {
             classItem.students.forEach((student: any) => {
               const studentClassId = student.studentClassId || student.student_class_id;
               const status = student.status;
-              
+
               if (status && status.toUpperCase() !== "UNCHECKED") {
                 items.push({
                   id: student.studentId || student.student_id || student.id || studentClassId,

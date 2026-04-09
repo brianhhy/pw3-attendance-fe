@@ -7,13 +7,13 @@ import Alert from "../(shared)/(modal)/Alert";
 import Search from "../(shared)/(components)/Search";
 
 export default function TeacherAttendance() {
-  const { 
-    teachers, 
-    getTeachers, 
+  const {
+    teachers,
+    getTeachers,
     selectedDate,
-    getAttendances 
+    getAttendances
   } = useAttendanceStore();
-  
+
   const [attendanceStatuses, setAttendanceStatuses] = useState<{ [key: number]: { status?: string } }>({});
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +22,7 @@ export default function TeacherAttendance() {
   const [alertMessage, setAlertMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  // 컴포넌트 마운트 시 선생님 목록과 출석 데이터를 초기 로드한다.
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -34,24 +35,21 @@ export default function TeacherAttendance() {
     fetchData();
   }, [getTeachers, getAttendances]);
 
+  // 선택된 날짜 또는 선생님 목록이 변경될 때 출석 상태를 다시 조회하여 매핑한다.
   useEffect(() => {
     const fetchAndMatchTeacherStatuses = async () => {
       try {
         const attendanceResponse = await getTeacherAttendances(selectedDate);
-        
-        console.log("출석 상태 API 응답:", attendanceResponse);
-        
+
         const statuses: { [key: number]: { status?: string } } = {};
-        
+
         if (Array.isArray(attendanceResponse)) {
           attendanceResponse.forEach((item: any) => {
             const teacherId = item.teacherId || item.teacher_id || item.id;
             const status = item.status || item.attendanceStatus || item.attendance_status;
-            
+
             if (teacherId) {
-              statuses[teacherId] = {
-                status: status,
-              };
+              statuses[teacherId] = { status };
             }
           });
         } else if (attendanceResponse && typeof attendanceResponse === 'object') {
@@ -59,20 +57,15 @@ export default function TeacherAttendance() {
             const item = attendanceResponse[key];
             const teacherId = item?.teacherId || item?.teacher_id || item?.id || Number(key);
             const status = item?.status || item?.attendanceStatus || item?.attendance_status;
-            
+
             if (teacherId) {
-              statuses[teacherId] = {
-                status: status,
-              };
+              statuses[teacherId] = { status };
             }
           });
         }
-        
-        console.log("변환된 출석 상태:", statuses);
-        
+
         setAttendanceStatuses(statuses);
       } catch (error) {
-        console.error("선생님 출석 정보 조회 실패:", error);
         setAttendanceStatuses({});
       }
     };
@@ -83,36 +76,33 @@ export default function TeacherAttendance() {
     }
   }, [selectedDate, teachers]);
 
+  // 출석 버튼 클릭 시 9시 이전이면 출석, 이후면 지각으로 처리하고 서버에 반영한다.
   const handleAttendanceClick = async (teacherId: number) => {
-      const currentHour = new Date().getHours();
-      const currentMinute = new Date().getMinutes();
-      const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
+    const currentHour = new Date().getHours();
+    const currentMinute = new Date().getMinutes();
+    const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
 
     setAttendanceStatuses(prev => ({
       ...prev,
-      [teacherId]: {
-        status: attendanceStatus,
-      },
+      [teacherId]: { status: attendanceStatus },
     }));
 
     try {
       await markTeacherAttendance(teacherId, attendanceStatus, selectedDate);
-      
+
       await new Promise(resolve => setTimeout(resolve, 100));
       const attendanceResponse = await getTeacherAttendances(selectedDate);
       const statuses: { [key: number]: { status?: string } } = {};
-      
+
       if (Array.isArray(attendanceResponse)) {
         attendanceResponse.forEach((item: any) => {
           const id = item.teacherId || item.teacher_id || item.id;
           if (id) {
-            statuses[id] = {
-              status: item.status,
-            };
+            statuses[id] = { status: item.status };
           }
         });
       }
-      
+
       setAttendanceStatuses(prev => {
         const updated = { ...prev };
         Object.keys(statuses).forEach(id => {
@@ -126,29 +116,27 @@ export default function TeacherAttendance() {
         }
         return updated;
       });
-      
+
       await getAttendances();
-      
+
       setAlertType("success");
       setAlertMessage("출석 체크가 완료되었습니다.");
       setAlertOpen(true);
     } catch (error: any) {
       const attendanceResponse = await getTeacherAttendances(selectedDate);
       const statuses: { [key: number]: { status?: string } } = {};
-      
+
       if (Array.isArray(attendanceResponse)) {
         attendanceResponse.forEach((item: any) => {
           const id = item.teacherId || item.teacher_id || item.id;
           if (id) {
-            statuses[id] = {
-              status: item.status,
-            };
+            statuses[id] = { status: item.status };
           }
         });
       }
-      
+
       setAttendanceStatuses(statuses);
-      
+
       let errorMessage = "출석 체크 중 오류가 발생했습니다.";
       if (error.response?.status === 400) {
         const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";
@@ -160,42 +148,34 @@ export default function TeacherAttendance() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       setAlertType("error");
       setAlertMessage(errorMessage);
       setAlertOpen(true);
     }
   };
 
+  // 선생님의 출석 또는 지각 여부를 반환한다.
   const isAttendanceMarked = (teacherId: number) => {
     const status = attendanceStatuses[teacherId];
-    if (!status || !status.status) {
-      return false;
-    }
-    
-    const statusStr = String(status.status);
-    const statusUpper = statusStr.toUpperCase();
+    if (!status || !status.status) return false;
+
+    const statusUpper = String(status.status).toUpperCase();
     return statusUpper === "ATTEND" || statusUpper === "ATTENDED" || statusUpper === "LATE";
   };
 
+  // 선생님의 출석 상태를 "ATTEND" | "LATE" | null로 반환한다.
   const getAttendanceStatus = (teacherId: number): "ATTEND" | "LATE" | null => {
     const status = attendanceStatuses[teacherId];
-    if (!status || !status.status) {
-      return null;
-    }
-    
-    const statusStr = String(status.status);
-    const statusUpper = statusStr.toUpperCase();
-    
-    if (statusUpper === "ATTEND" || statusUpper === "ATTENDED") {
-      return "ATTEND";
-    } else if (statusUpper === "LATE") {
-      return "LATE";
-    }
-    
+    if (!status || !status.status) return null;
+
+    const statusUpper = String(status.status).toUpperCase();
+    if (statusUpper === "ATTEND" || statusUpper === "ATTENDED") return "ATTEND";
+    if (statusUpper === "LATE") return "LATE";
     return null;
   };
 
+  // 학교 유형 코드를 한국어 이름으로 변환한다.
   const getSchoolTypeName = (schoolType: string) => {
     if (schoolType === "MIDDLE") return "중학교";
     if (schoolType === "HIGH") return "고등학교";
@@ -203,6 +183,7 @@ export default function TeacherAttendance() {
     return schoolType;
   };
 
+  // 선생님이 담당하는 반 정보를 "OO학교 O학년 O반 담임" 형식의 문자열로 반환한다.
   const getTeacherDescription = (teacher: { classesByYear?: { [year: string]: { schoolType: string; grade: number; classNumber: number }[] } }) => {
     const classes = teacher.classesByYear?.["2026"];
     if (!classes || classes.length === 0) return "담임";
@@ -253,7 +234,7 @@ export default function TeacherAttendance() {
             {filteredTeachers.map((teacher) => {
               const isMarked = isAttendanceMarked(teacher.id);
               const attendanceStatus = getAttendanceStatus(teacher.id);
-              
+
               return (
                 <div
                   key={teacher.id}
@@ -289,7 +270,7 @@ export default function TeacherAttendance() {
           </div>
         )}
       </div>
-      
+
       <Alert
         open={alertOpen}
         onOpenChange={setAlertOpen}
@@ -299,4 +280,3 @@ export default function TeacherAttendance() {
     </div>
   );
 }
-

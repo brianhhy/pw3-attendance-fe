@@ -10,17 +10,17 @@ interface NewStudentFormData {
   memo: string;
 }
 
-// 학생 리스트
+// 전체 학생 목록을 조회한다.
 export const getStudentsList = async () => {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/students`);
     return response.data;
 }
 
-// 학생 추가
+// 새 학생을 추가한다. 입력된 폼 데이터에서 값이 있는 필드만 payload에 포함하여 전송한다.
 export const addNewStudent = async (formData: NewStudentFormData) => {
   try {
     const payload: any = {};
-    
+
     if (formData.name) payload.name = formData.name;
     if (formData.birth) payload.birth = formData.birth;
     if (formData.sex) payload.sex = formData.sex;
@@ -29,8 +29,6 @@ export const addNewStudent = async (formData: NewStudentFormData) => {
     if (formData.school) payload.school = formData.school;
     if (formData.memo) payload.memo = formData.memo;
 
-    console.log("Sending student payload:", payload);
-
     const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/students`, payload, {
       headers: {
         "Content-Type": "application/json",
@@ -38,27 +36,23 @@ export const addNewStudent = async (formData: NewStudentFormData) => {
     });
     return response.data;
   } catch (error: any) {
-    console.error("Student API Error Response:", error.response?.data);
-    console.error("Student API Error Status:", error.response?.status);
     throw error;
   }
 };
 
-// 특정 학년도의 반 + 학생들 리스트
+// 특정 학년도와 날짜 기준으로 반 및 학생 목록을 조회한다.
 export const getStudentClassesBySchoolYear = async (schoolYear?: number, date?: string) => {
-    // schoolYear가 제공되지 않으면 올해 년도 사용
-    const year = schoolYear || new Date().getFullYear();
     const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/classes/year/${schoolYear}/date/${date}`
     );
     return response.data;
 }
 
-// 학생 수정
+// 특정 학생의 정보를 수정한다. 값이 있는 필드만 payload에 포함하여 전송한다.
 export const updateStudent = async (studentId: number, formData: NewStudentFormData) => {
   try {
     const payload: any = {};
-    
+
     if (formData.name) payload.name = formData.name;
     if (formData.birth) payload.birth = formData.birth;
     if (formData.sex) payload.sex = formData.sex;
@@ -74,13 +68,11 @@ export const updateStudent = async (studentId: number, formData: NewStudentFormD
     });
     return response.data;
   } catch (error: any) {
-    console.error("Student Update API Error Response:", error.response?.data);
-    console.error("Student Update API Error Status:", error.response?.status);
     throw error;
   }
 };
 
-// 학생 삭제
+// 특정 학생을 삭제한다.
 export const deleteStudent = async (studentId: number) => {
     const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/students/${studentId}`);
     return response.data;
@@ -102,7 +94,7 @@ export interface StudentClassItem {
   students?: StudentClassStudentItem[];
 }
 
-// 반별 학생 정보 조회 (학년도별)
+// 학년도별 반 목록과 각 반의 학생 정보를 조회한다.
 export const getStudentClassesByYear = async (schoolYear: number): Promise<StudentClassItem[]> => {
     const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/student-classes/school-year/${schoolYear}`
@@ -118,7 +110,7 @@ export type StudentRegistrationByYearItem = {
   registeredAt?: string | null;
 };
 
-// 월별 신규 등록 학생(연도별) 조회
+// 특정 연도의 월별 신규 등록 학생 목록을 조회한다.
 export const getStudentRegistrationsByYear = async (year: number) => {
   const response = await axios.get(
     `${process.env.NEXT_PUBLIC_API_URL}/students/registrations/by-year/${year}`
