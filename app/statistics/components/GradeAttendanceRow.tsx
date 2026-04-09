@@ -1,8 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import useStatisticStore, { type GradeData } from "../../(shared)/(store)/statisticStore";
-import GradeAttendanceChart from "./GradeAttendanceChart";
+
+const GradeAttendanceChart = dynamic(() => import("./GradeAttendanceChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full rounded-xl bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center">
+      <span className="text-gray-500 text-sm">차트 로딩 중...</span>
+    </div>
+  ),
+});
 
 type GradeKey = "MIDDLE-1" | "MIDDLE-2" | "MIDDLE-3" | "HIGH-1" | "HIGH-2" | "HIGH-3";
 

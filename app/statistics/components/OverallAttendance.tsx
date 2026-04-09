@@ -1,9 +1,20 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 import useStatisticStore from "../../(shared)/(store)/statisticStore";
-import OverallAttendanceChart from "./OverallAttendanceChart";
 import { useEffect } from "react";
+
+const OverallAttendanceChart = dynamic(() => import("./OverallAttendanceChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-[2] flex flex-col rounded-xl border border-white/45 bg-gradient-to-b from-white/25 to-white/10 backdrop-blur-xl backdrop-saturate-150 p-4">
+      <div className="flex-1 rounded-xl border border-white/45 bg-gradient-to-b from-white/35 to-white/15 backdrop-blur-xl backdrop-saturate-150 flex items-center justify-center text-gray-400">
+        로딩 중...
+      </div>
+    </div>
+  ),
+});
 
 export default function OverallAttendance() {
   const { students, getStudents } = useAttendanceStore();
