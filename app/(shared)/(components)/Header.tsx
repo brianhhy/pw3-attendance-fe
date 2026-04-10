@@ -1,14 +1,16 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Search, Calendar, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { getStudentAttendances } from "../(api)/attendance";
 import { getBirthdays } from "../(api)/birth";
-import MonthBirthday from "../(modal)/MonthBirthday";
 import Sidebar from "./Sidebar";
+
+const MonthBirthday = dynamic(() => import("../(modal)/MonthBirthday"), { ssr: false });
 
 interface Description{
     title: string;
@@ -370,7 +372,7 @@ const Header = () => {
                     {/* lg 이상: 기존 레이아웃 */}
                     <div className="hidden lg:flex flex-row items-center gap-6">
                         <div className="flex flex-col items-center border-b border-[#d9d9d9] pb-2">
-                            <Image src="/images/logo.png" alt="logo" width={171} height={80} />
+                            <Image src="/images/logo.png" alt="logo" width={171} height={80} priority />
                             <p className="text-[15px] font-medium text-[#2c79ff] mt-1 ml-5 whitespace-nowrap">서빙고 파워웨이브 3부 출석부</p>
                         </div>
                         <div className="flex flex-col ml-10">
@@ -382,7 +384,7 @@ const Header = () => {
                     {/* ===== lg 미만: 모바일 레이아웃 ===== */}
                     {/* 왼쪽: 로고 + title */}
                     <div className="lg:hidden flex items-center gap-2 shrink-0 min-w-0">
-                        <Image src="/images/logo.png" alt="logo" width={60} height={28} className="shrink-0" />
+                        <Image src="/images/logo.png" alt="logo" width={60} height={28} className="shrink-0" priority />
                         <span className="max-[450px]:text-sm text-base font-bold text-[#2C79FF] truncate">
                             {descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}
                         </span>
