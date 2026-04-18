@@ -6,6 +6,7 @@ import MonthlyRegisteredStudents from "./components/MonthlyRegisteredStudents";
 import ParentObservationAttendance from "./components/ParentObservationAttendance";
 import GradeAttendanceRow from "./components/GradeAttendanceRow";
 import useStatisticStore from "../(shared)/(store)/statisticStore";
+import { getTodayKST } from "../(shared)/utils/dateUtil";
 
 export default function StatisticsPage() {
   const { fetchAll } = useStatisticStore();
@@ -17,7 +18,7 @@ export default function StatisticsPage() {
       const raw = localStorage.getItem("pw3_event");
       if (!raw) return;
       const events = Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [JSON.parse(raw)];
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getTodayKST();
       setShowParentObservation(
         events.some((e: { date: string; type: string }) => e.date === today && e.type === "parents_observation")
       );

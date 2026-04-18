@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 import { getStudentRegistrationsByYear } from "../../(shared)/(api)/student";
+import { toDateStringKST } from "../../(shared)/utils/dateUtil";
 
 type MonthlyStudent = {
   id: number;
@@ -75,10 +76,10 @@ function normalizeRegisteredAt(raw: any): string | null {
   if (Array.isArray(v) && v.length === 3) {
     const [y, m, d] = v;
     const dt = new Date(Number(y), Number(m) - 1, Number(d));
-    return Number.isNaN(dt.getTime()) ? null : dt.toISOString();
+    return Number.isNaN(dt.getTime()) ? null : toDateStringKST(dt);
   }
   const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  return Number.isNaN(d.getTime()) ? null : toDateStringKST(d);
 }
 
 function normalizeStudent(raw: any, monthHint?: number | null): MonthlyStudent | null {

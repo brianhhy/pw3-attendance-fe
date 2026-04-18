@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { ClipboardCheck, Settings, BarChart, Mail, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users } from "lucide-react";
+import { getTodayKST } from "../utils/dateUtil";
 
 interface MenuItem {
     href: string;
@@ -47,7 +48,7 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
             if (!raw) return;
             const parsed = JSON.parse(raw);
             const events = Array.isArray(parsed) ? parsed : [parsed];
-            const today = new Date().toISOString().slice(0, 10);
+            const today = getTodayKST();
             const hasToday = events.some(
                 (e: { date: string; type: string }) =>
                     e.date === today && e.type === "parents_observation"
