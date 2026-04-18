@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getStudentClassesByYear, type StudentClassItem, type StudentClassStudentItem } from "../(shared)/(api)/student";
 import { markParentAttendance, getParentAttendances } from "../(shared)/(api)/attendance";
 import Alert from "../(shared)/(modal)/Alert";
+import { getTodayKST } from "../(shared)/utils/dateUtil";
 
 type ParentType = "MOTHER" | "FATHER";
 type ParentStatus = "ATTEND" | "ABSENT" | null;
@@ -17,7 +18,7 @@ interface StudentRow {
 }
 
 export default function ParentsAttendance() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getTodayKST();
     const [students, setStudents] = useState<StudentRow[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [alertOpen, setAlertOpen] = useState(false);

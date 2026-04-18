@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { getParentAttendanceStats, type ParentAttendanceStats } from "../../(shared)/(api)/attendance";
+import { getTodayKST } from "../../(shared)/utils/dateUtil";
 
 export default function ParentObservationAttendance() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getTodayKST();
     const [stats, setStats] = useState<ParentAttendanceStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
