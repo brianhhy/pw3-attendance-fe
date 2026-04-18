@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { MessageCircle, X, Send, Users, CalendarDays } from "lucide-react";
-import MatchingModal from "../(modal)/MatchingModal";
-import Chating from "../(modal)/Chating";
-import ExportAttendance from "../(modal)/ExportAttendance";
-import EventSetting from "../(modal)/EventSetting";
+
+const MatchingModal = dynamic(() => import("../(modal)/MatchingModal"), { ssr: false });
+const Chating = dynamic(() => import("../(modal)/Chating"), { ssr: false });
+const ExportAttendance = dynamic(() => import("../(modal)/ExportAttendance"), { ssr: false });
+const EventSetting = dynamic(() => import("../(modal)/EventSetting"), { ssr: false });
 
 export default function FloatingButton() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
