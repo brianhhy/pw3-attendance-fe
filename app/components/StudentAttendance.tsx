@@ -1,29 +1,15 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import useAttendanceStore from "../(shared)/(store)/attendanceStore";
-import { markStudentAttendance, getStudentAttendances, type AttendanceClassItem, type AttendanceStudentItem } from "../(shared)/(api)/attendance";
-import { getStudentClassesByYear, type StudentClassItem, type StudentClassStudentItem } from "../(shared)/(api)/student";
-import axios from "axios";
+import {
+  useStudentAttendanceQuery,
+  useMarkStudentAttendance,
+  getStudentAttendanceErrorMessage,
+} from "../(shared)/(hooks)/useStudentAttendance";
 import Alert from "../(shared)/(modal)/Alert";
 import Search from "../(shared)/(components)/Search";
 
-interface ClassData {
-  id?: number;
-  schoolType: string;
-  grade: number;
-  classNumber: number;
-  className: string;
-  teacherName: string;
-  students: Array<{
-    id: number;
-    name: string;
-    studentClassId?: number;
-    status?: "attended" | "late" | "absent";
-  }>;
-}
-
-// 학교 유형 코드를 한국어 이름으로 변환한다.
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
     case "MIDDLE":
@@ -37,266 +23,55 @@ const getSchoolTypeName = (schoolType: string): string => {
   }
 };
 
-type AttendanceStatus = "attended" | "late" | "absent";
-
-// 서버 출석 상태 문자열을 내부 AttendanceStatus 타입으로 변환한다.
-const mapStatus = (status: string): AttendanceStatus | undefined => {
-  const upper = status.toUpperCase();
-  if (upper === "ATTEND") return "attended";
-  if (upper === "LATE") return "late";
-  if (upper === "ABSENT") return "absent";
-  return undefined;
-};
-
-// 출석 응답 데이터를 classRoomId → studentClassId → status 구조의 맵으로 변환한다.
-const buildAttendanceMap = (attendanceResponse: AttendanceClassItem[]): { [classRoomId: number]: { [studentClassId: number]: string } } => {
-  const map: { [classRoomId: number]: { [studentClassId: number]: string } } = {};
-  attendanceResponse.forEach((classItem) => {
-    const classRoomId = classItem.classRoomId ?? classItem.class_room_id;
-    if (classRoomId != null && classItem.students) {
-      map[classRoomId] = {};
-      classItem.students.forEach((student: AttendanceStudentItem) => {
-        const studentClassId = student.studentClassId ?? student.student_class_id;
-        if (studentClassId != null && student.status) {
-          map[classRoomId][studentClassId] = student.status;
-        }
-      });
-    }
-  });
-  return map;
-};
-
 export default function StudentAttendance() {
-  const { selectedDate, getAttendances, classAttendanceData } = useAttendanceStore();
-  const [classData, setClassData] = useState<ClassData[]>([]);
+  const { selectedDate } = useAttendanceStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
 
-  useEffect(() => {
-    const fetchClassData = async () => {
-      try {
-        setIsLoading(true);
-        const classResponse = await getStudentClassesByYear(2026);
-        const schoolYear = 2026;
-        const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
-        
-        const attendanceMap = buildAttendanceMap(attendanceResponse);
-
-        const transformedData: ClassData[] = classResponse.map((classItem: StudentClassItem) => {
-          const classRoomId = classItem.classRoomId;
-          const classAttendance = attendanceMap[classRoomId] ?? {};
-
-          const studentsWithStatus = classItem.students?.map((student: StudentClassStudentItem) => {
-            const studentClassId = student.id;
-            const status = classAttendance[studentClassId];
-
-            return {
-              id: student.studentId,
-              name: student.studentName,
-              studentClassId: student.id,
-              status: status ? mapStatus(status) : undefined,
-            };
-          }) ?? [];
-
-          return {
-            id: classItem.classRoomId,
-            schoolType: classItem.schoolType,
-            grade: classItem.grade,
-            classNumber: classItem.classNumber,
-            className: classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`,
-            teacherName: classItem.teacherName || "담임 미지정",
-            students: studentsWithStatus,
-          };
-        });
-
-        const sortedClasses = transformedData.sort((a, b) => {
-          const getSchoolTypePriority = (schoolType: string): number => {
-            if (schoolType === "MIDDLE") return 1;
-            if (schoolType === "ELEMENTARY") return 2;
-            if (schoolType === "HIGH") return 3;
-            return 4;
-          };
-          
-          const priorityA = getSchoolTypePriority(a.schoolType);
-          const priorityB = getSchoolTypePriority(b.schoolType);
-          
-          if (priorityA !== priorityB) {
-            return priorityA - priorityB;
-          }
-          
-          if (a.grade !== b.grade) {
-            return a.grade - b.grade;
-          }
-          
-          return a.classNumber - b.classNumber;
-        });
-
-        setClassData(sortedClasses);
-      } catch (error) {
-        console.error("반별 학생 정보 조회 실패:", error);
-        setClassData([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchClassData();
-    getAttendances();
-  }, [selectedDate]);
+  const { data: classData = [], isLoading } =
+    useStudentAttendanceQuery(selectedDate);
+  const { mutate: markAttendance } = useMarkStudentAttendance(selectedDate);
 
   const filteredClassData = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return classData;
-    }
-
+    if (!searchQuery.trim()) return classData;
     const query = searchQuery.toLowerCase();
     return classData
       .map((classItem) => {
         const filteredStudents = classItem.students.filter((student) =>
           student.name.toLowerCase().includes(query)
         );
-
-        if (filteredStudents.length === 0) {
-          return null;
-        }
-
-        return {
-          ...classItem,
-          students: filteredStudents,
-        };
+        if (filteredStudents.length === 0) return null;
+        return { ...classItem, students: filteredStudents };
       })
-      .filter((classItem): classItem is ClassData => classItem !== null);
+      .filter((classItem) => classItem !== null);
   }, [classData, searchQuery]);
 
-  // 출석 버튼 클릭 시 9시 이전이면 출석, 이후면 지각으로 처리하고 출석 데이터를 갱신한다.
-  const handleAttendanceClick = async (studentId: number, studentClassId: number) => {
+  const handleAttendanceClick = (studentId: number, studentClassId: number) => {
     const currentHour = new Date().getHours();
-    const attendanceStatus = currentHour < 9 ? "ATTEND" : "LATE";
-    
-    const mappedStatus: "attended" | "late" = attendanceStatus === "ATTEND" ? "attended" : "late";
-    setClassData(prevData => 
-      prevData.map(classItem => ({
-        ...classItem,
-        students: classItem.students.map(student => 
-          student.id === studentId && student.studentClassId === studentClassId
-            ? { ...student, status: mappedStatus }
-            : student
-        )
-      }))
-    );
-    
-    try {
-      await markStudentAttendance(studentClassId, selectedDate, attendanceStatus);
-      
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const schoolYear = 2026;
-      const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
-      
-      const attendanceMap = buildAttendanceMap(attendanceResponse);
+    const status = currentHour < 9 ? "ATTEND" : "LATE";
 
-      setClassData(prevData =>
-        prevData.map(classItem => {
-          const classRoomId = classItem.id;
-          const classAttendance = attendanceMap[classRoomId ?? 0] ?? {};
-
-          return {
-            ...classItem,
-            students: classItem.students.map(student => {
-              const currentStudentClassId = student.studentClassId;
-              const isUpdatingStudent = student.id === studentId && currentStudentClassId === studentClassId;
-              const status = currentStudentClassId != null ? classAttendance[currentStudentClassId] : null;
-
-              let mappedStatus: AttendanceStatus | undefined = status ? mapStatus(status) : student.status;
-
-              if (isUpdatingStudent && !status && student.status) {
-                mappedStatus = student.status;
-              }
-
-              return { ...student, status: mappedStatus };
-            })
-          };
-        })
-      );
-
-      await getAttendances();
-
-      setAlertType("success");
-      setAlertMessage("출석 체크가 완료되었습니다.");
-      setAlertOpen(true);
-    } catch (error) {
-      console.error("출석 체크 실패:", error);
-
-      const schoolYear = 2026;
-      const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
-      const attendanceMap = buildAttendanceMap(attendanceResponse);
-
-      setClassData(prevData =>
-        prevData.map(classItem => {
-          const classRoomId = classItem.id;
-          const classAttendance = attendanceMap[classRoomId ?? 0] ?? {};
-
-          return {
-            ...classItem,
-            students: classItem.students.map(student => {
-              const scId = student.studentClassId;
-              const status = scId != null ? classAttendance[scId] : null;
-              return { ...student, status: status ? mapStatus(status) : undefined };
-            })
-          };
-        })
-      );
-
-      let errorMessage = "출석 체크 중 오류가 발생했습니다.";
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";
-        errorMessage = `잘못된 요청입니다: ${serverMessage}`;
-      } else if (axios.isAxiosError(error) && error.response?.status === 500) {
-        errorMessage = "서버 오류가 발생했습니다. 날짜가 올바른지 확인해주세요.";
-      } else if (axios.isAxiosError(error) && error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
+    markAttendance(
+      { studentId, studentClassId, status },
+      {
+        onSuccess: () => {
+          setAlertType("success");
+          setAlertMessage("출석 체크가 완료되었습니다.");
+          setAlertOpen(true);
+        },
+        onError: (error) => {
+          setAlertType("error");
+          setAlertMessage(getStudentAttendanceErrorMessage(error));
+          setAlertOpen(true);
+        },
       }
-      
-      setAlertType("error");
-      setAlertMessage(errorMessage);
-      setAlertOpen(true);
-    }
+    );
   };
 
-  // 결석 버튼 클릭 시 해당 학생을 결석 처리하고 출석 데이터를 갱신한다.
-  const handleAbsenceClick = async (studentId: number, studentClassId: number) => {
-    try {
-      await markStudentAttendance(studentClassId, selectedDate, "ABSENT");
-      await getAttendances();
-      
-      const schoolYear = 2026;
-      const attendanceResponse = await getStudentAttendances(schoolYear, selectedDate);
-      
-      const attendanceMap = buildAttendanceMap(attendanceResponse);
-
-      setClassData(prevData =>
-        prevData.map(classItem => {
-          const classRoomId = classItem.id;
-          const classAttendance = attendanceMap[classRoomId ?? 0] ?? {};
-
-          return {
-            ...classItem,
-            students: classItem.students.map(student => {
-              const scId = student.studentClassId;
-              const status = scId != null ? classAttendance[scId] : null;
-              return { ...student, status: status ? mapStatus(status) : undefined };
-            })
-          };
-        })
-      );
-    } catch (error) {
-      console.error("결석 체크 실패:", error);
-    }
+  const handleAbsenceClick = (studentId: number, studentClassId: number) => {
+    markAttendance({ studentId, studentClassId, status: "ABSENT" });
   };
 
   return (
@@ -322,56 +97,79 @@ export default function StudentAttendance() {
             </div>
           ) : (
             filteredClassData.map((classItem) => (
-            <div 
-              key={`${classItem.schoolType}-${classItem.grade}-${classItem.classNumber}`} 
-              className="w-full max-w-[400px] @[600px]:max-w-none mx-auto h-auto @[600px]:h-[450px] bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col"
-            >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-[#5E99FF]">
-                {getSchoolTypeName(classItem.schoolType)} {classItem.grade}학년 {classItem.classNumber}반
-              </h3>
-              <span className="text-sm text-[#5E99FF]">담임: {classItem.teacherName}</span>
-            </div>
-            <div className="overflow-y-auto flex-1">
-              <table className="w-full">
-                <thead className="sticky top-0 bg-white">
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">번호</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">이름</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">출석 상태</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {classItem.students.map((student, idx) => (
-                    <tr key={student.id} className="border-b border-gray-100">
-                      <td className="py-3 px-4 text-sm">{idx + 1}</td>
-                      <td className="py-3 px-4 text-sm">{student.name}</td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => handleAttendanceClick(student.id, student.studentClassId || classItem.id || 0)}
-                          disabled={student.status === "attended" || student.status === "late"}
-                          className={`px-4 py-2 rounded-lg font-semibold text-sm transition-opacity ${
-                            student.status === "attended"
-                              ? "bg-[#9EFC9B] text-[#00CB18] cursor-not-allowed"
-                              : student.status === "late"
-                              ? "bg-[#FCD39B] text-[#F39200] cursor-not-allowed"
-                              : "bg-[#d9d9d9] text-[#697077] hover:opacity-90"
-                          }`}
-                        >
-                          {student.status === "attended" ? "출석" : student.status === "late" ? "지각" : "출석"}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+              <div
+                key={`${classItem.schoolType}-${classItem.grade}-${classItem.classNumber}`}
+                className="w-full max-w-[400px] @[600px]:max-w-none mx-auto h-auto @[600px]:h-[450px] bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-[#5E99FF]">
+                    {getSchoolTypeName(classItem.schoolType)}{" "}
+                    {classItem.grade}학년 {classItem.classNumber}반
+                  </h3>
+                  <span className="text-sm text-[#5E99FF]">
+                    담임: {classItem.teacherName}
+                  </span>
+                </div>
+                <div className="overflow-y-auto flex-1">
+                  <table className="w-full">
+                    <thead className="sticky top-0 bg-white">
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+                          번호
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+                          이름
+                        </th>
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+                          출석 상태
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {classItem.students.map((student, idx) => (
+                        <tr key={student.id} className="border-b border-gray-100">
+                          <td className="py-3 px-4 text-sm">{idx + 1}</td>
+                          <td className="py-3 px-4 text-sm">{student.name}</td>
+                          <td className="py-3 px-4">
+                            <button
+                              onClick={() =>
+                                handleAttendanceClick(
+                                  student.id,
+                                  student.studentClassId ||
+                                    classItem.id ||
+                                    0
+                                )
+                              }
+                              disabled={
+                                student.status === "attended" ||
+                                student.status === "late"
+                              }
+                              className={`px-4 py-2 rounded-lg font-semibold text-sm transition-opacity ${
+                                student.status === "attended"
+                                  ? "bg-[#9EFC9B] text-[#00CB18] cursor-not-allowed"
+                                  : student.status === "late"
+                                  ? "bg-[#FCD39B] text-[#F39200] cursor-not-allowed"
+                                  : "bg-[#d9d9d9] text-[#697077] hover:opacity-90"
+                              }`}
+                            >
+                              {student.status === "attended"
+                                ? "출석"
+                                : student.status === "late"
+                                ? "지각"
+                                : "출석"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             ))
           )}
         </div>
       </div>
-      
+
       <Alert
         open={alertOpen}
         onOpenChange={setAlertOpen}
@@ -381,4 +179,3 @@ export default function StudentAttendance() {
     </div>
   );
 }
-
