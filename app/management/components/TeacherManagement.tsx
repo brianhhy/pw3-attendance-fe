@@ -2,10 +2,11 @@
 
 import { Calendar, Phone, Building2, Tag, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
-import useTeacherStore from "../../(shared)/(store)/teacherStore"
+import { useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { getTeacherList } from "../../(shared)/(api)/teacher"
+import { queryKeys } from "../../(shared)/(api)/queryKeys"
 import NewPeople from "../modal/NewPeople"
-import Alert from "../../(shared)/(modal)/Alert"
 import Search from "../../(shared)/(components)/Search"
 
 const formatDate = (dateString: string | null): string => {
@@ -15,47 +16,20 @@ const formatDate = (dateString: string | null): string => {
 };
 
 export default function TeacherManagement() {
-  const { teachers, getTeachers } = useTeacherStore();
+  const queryClient = useQueryClient();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasTimedOut, setHasTimedOut] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertType, setAlertType] = useState<"success" | "error">("success");
-  const [alertMessage, setAlertMessage] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState<any>(null);
 
-  useEffect(() => {
-    setIsLoading(true);
-    setHasTimedOut(false);
-    
-    const timeoutId = setTimeout(() => {
-      setHasTimedOut(true);
-      setIsLoading(false);
-    }, 5000);
+  const { data: teachers = [], isPending } = useQuery({
+    queryKey: queryKeys.teachers(),
+    queryFn: getTeacherList,
+  });
 
-    const fetchTeachers = async () => {
-      try {
-        await getTeachers();
-      } catch (error) {
-      } finally {
-        setIsLoading(false);
-        clearTimeout(timeoutId);
-      }
-    };
-
-    fetchTeachers();
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [getTeachers]);
-
-  const filteredTeachers = teachers.filter((teacher) => {
+  const filteredTeachers = teachers.filter((teacher: any) => {
     if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return teacher.name.toLowerCase().includes(query);
+    return teacher.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const filters = [
@@ -78,7 +52,6 @@ export default function TeacherManagement() {
     }
     return teacher[key] || "-";
   }
-
 
   return (
     <div className="w-full bg-transparent p-3">
@@ -105,10 +78,10 @@ export default function TeacherManagement() {
       </div>
 
       <div className="max-h-[180px] lg:max-h-[360px] overflow-y-auto">
-        {isLoading && !hasTimedOut ? (
+        {isPending ? (
           <>
             {[...Array(4)].map((_, index) => (
-              <div 
+              <div
                 key={index}
                 className={`grid grid-cols-5 gap-4 py-3 border-b border-gray-100 ${
                   index % 2 === 1 ? "bg-gray-50/50" : ""
@@ -127,9 +100,9 @@ export default function TeacherManagement() {
             {searchQuery ? "검색 결과가 없습니다" : "선생님이 없습니다"}
           </div>
         ) : (
-          filteredTeachers.map((teacher, index) => (
-            <div 
-              key={teacher.id} 
+          filteredTeachers.map((teacher: any, index: number) => (
+            <div
+              key={teacher.id}
               className={`group relative grid grid-cols-5 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
                 index % 2 === 1 ? "bg-gray-50/50" : ""
               }`}
@@ -149,8 +122,8 @@ export default function TeacherManagement() {
       </div>
 
       <div className="mt-2 flex justify-start">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
           onClick={() => {
             setSelectedTeacher(null);
@@ -161,24 +134,17 @@ export default function TeacherManagement() {
         </Button>
       </div>
 
-      <NewPeople 
-        open={isModalOpen} 
-        onOpenChange={async (open) => {
+      <NewPeople
+        open={isModalOpen}
+        onOpenChange={(open) => {
           setIsModalOpen(open);
           if (!open) {
             setSelectedTeacher(null);
-            await getTeachers();
+            queryClient.invalidateQueries({ queryKey: queryKeys.teachers() });
           }
-        }} 
+        }}
         type="teacher"
         initialData={selectedTeacher}
-      />
-
-      <Alert
-        open={alertOpen}
-        onOpenChange={setAlertOpen}
-        type={alertType}
-        message={alertMessage}
       />
     </div>
   )

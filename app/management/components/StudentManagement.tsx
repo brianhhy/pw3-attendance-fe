@@ -2,8 +2,10 @@
 
 import { Calendar, Phone, Users, Building2, Tag, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
-import useStudentStore from "../../(shared)/(store)/studentStore"
+import { useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { getStudentsList } from "../../(shared)/(api)/student"
+import { queryKeys } from "../../(shared)/(api)/queryKeys"
 import NewPeople from "../modal/NewPeople"
 import Search from "../../(shared)/(components)/Search"
 
@@ -27,44 +29,20 @@ const formatDate = (dateString: string | null): string => {
 };
 
 export default function StudentManagement() {
-  const { students, getStudents } = useStudentStore();
+  const queryClient = useQueryClient();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasTimedOut, setHasTimedOut] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
-  useEffect(() => {
-    setIsLoading(true);
-    setHasTimedOut(false);
-    
-    const timeoutId = setTimeout(() => {
-      setHasTimedOut(true);
-      setIsLoading(false);
-    }, 5000);
+  const { data: students = [], isPending } = useQuery({
+    queryKey: queryKeys.students(),
+    queryFn: getStudentsList,
+  });
 
-    const fetchStudents = async () => {
-      try {
-        await getStudents();
-      } catch (error) {
-      } finally {
-        setIsLoading(false);
-        clearTimeout(timeoutId);
-      }
-    };
-
-    fetchStudents();
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [getStudents]);
-
-  const filteredStudents = students.filter((student) => {
+  const filteredStudents = students.filter((student: any) => {
     if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return student.name.toLowerCase().includes(query);
+    return student.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const filters = [
@@ -117,10 +95,10 @@ export default function StudentManagement() {
       </div>
 
       <div className="max-h-[180px] lg:max-h-[360px] overflow-y-auto">
-        {isLoading && !hasTimedOut ? (
+        {isPending ? (
           <>
             {[...Array(4)].map((_, index) => (
-              <div 
+              <div
                 key={index}
                 className={`grid grid-cols-6 gap-4 py-3 border-b border-gray-100 ${
                   index % 2 === 1 ? "bg-gray-50/50" : ""
@@ -139,9 +117,9 @@ export default function StudentManagement() {
             {searchQuery ? "검색 결과가 없습니다" : "학생이 없습니다"}
           </div>
         ) : (
-          filteredStudents.map((student, index) => (
-            <div 
-              key={student.id} 
+          filteredStudents.map((student: any, index: number) => (
+            <div
+              key={student.id}
               className={`group relative grid grid-cols-6 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
                 index % 2 === 1 ? "bg-gray-50/50" : ""
               }`}
@@ -161,8 +139,8 @@ export default function StudentManagement() {
       </div>
 
       <div className="mt-2 flex justify-start">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
           onClick={() => {
             setSelectedStudent(null);
@@ -173,15 +151,15 @@ export default function StudentManagement() {
         </Button>
       </div>
 
-      <NewPeople 
-        open={isModalOpen} 
-        onOpenChange={async (open) => {
+      <NewPeople
+        open={isModalOpen}
+        onOpenChange={(open) => {
           setIsModalOpen(open);
           if (!open) {
             setSelectedStudent(null);
-            await getStudents();
+            queryClient.invalidateQueries({ queryKey: queryKeys.students() });
           }
-        }} 
+        }}
         type="student"
         initialData={selectedStudent}
       />
