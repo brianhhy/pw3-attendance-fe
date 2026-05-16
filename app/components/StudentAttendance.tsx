@@ -7,6 +7,7 @@ import {
   useMarkStudentAttendance,
   getStudentAttendanceErrorMessage,
 } from "../(shared)/(hooks)/useStudentAttendance";
+import { useAttendanceWebSocket } from "../(shared)/(hooks)/useAttendanceWebSocket";
 import Alert from "../(shared)/(modal)/Alert";
 import Search from "../(shared)/(components)/Search";
 
@@ -34,6 +35,7 @@ export default function StudentAttendance() {
   const { data: classData = [], isLoading } =
     useStudentAttendanceQuery(selectedDate);
   const { mutate: markAttendance } = useMarkStudentAttendance(selectedDate);
+  useAttendanceWebSocket(selectedDate);
 
   const filteredClassData = useMemo(() => {
     if (!searchQuery.trim()) return classData;
