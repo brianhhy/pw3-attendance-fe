@@ -6,6 +6,7 @@ import SockJS from "sockjs-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../(api)/queryKeys";
 import type { ClassData } from "./useStudentAttendance";
+import type { TeacherAttendanceStatuses } from "./useTeacherAttendance";
 
 interface AttendanceMessage {
   type: "STUDENT" | "TEACHER";
@@ -33,6 +34,15 @@ export function useAttendanceWebSocket(date: string) {
         console.log("[WS] 연결 성공");
         client.subscribe("/topic/attendance", (message) => {
           const data: AttendanceMessage = JSON.parse(message.body);
+
+          if (data.type === "TEACHER") {
+            queryClient.setQueryData<TeacherAttendanceStatuses>(
+              queryKeys.teacherAttendance(date),
+              (old) => ({ ...old, [data.id]: { status: data.status } })
+            );
+            return;
+          }
+
           const mappedStatus = mapStatus(data.status);
           if (!mappedStatus) return;
 
