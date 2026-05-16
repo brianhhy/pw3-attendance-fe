@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { addNewStudent, updateStudent, deleteStudent } from "@/app/(shared)/(api)/student"
 import { addNewTeacher, updateTeacher, deleteTeacher } from "@/app/(shared)/(api)/teacher"
+import { queryKeys } from "@/app/(shared)/(api)/queryKeys"
 import Alert from "@/app/(shared)/(modal)/Alert"
 import Confirm from "@/app/(shared)/(modal)/Confirm"
 import { formatPhoneNumber } from "@/app/(shared)/utils/modalUtil"
@@ -45,7 +47,16 @@ const formatTeacherType = (teacherType: string | null): string => {
   return typeMap[teacherType.toUpperCase()] || teacherType.toLowerCase();
 };
 
+function getPeopleErrorMessage(error: any, fallback: string): string {
+  if (error?.response?.data) {
+    const d = error.response.data;
+    return d.message || d.error || JSON.stringify(d) || fallback;
+  }
+  return error?.message || fallback;
+}
+
 export default function NewPeople({ open, onOpenChange, type, initialData }: NewPeopleProps) {
+  const queryClient = useQueryClient()
   const [formData, setFormData] = useState({
     name: "",
     birth: "",
@@ -61,72 +72,60 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
   const [alertMessage, setAlertMessage] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [shouldAnimate, setShouldAnimate] = useState(false)
-  
+
+  const isStudent = type === "student"
   const isEditMode = !!initialData
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
+  const submitMutation = useMutation({
+    mutationFn: async () => {
       if (isStudent) {
-        if (isEditMode && initialData?.id) {
-          await updateStudent(initialData.id, {
-            name: formData.name,
-            birth: formData.birth,
-            sex: formData.sex,
-            phone: formData.phone,
-            parentPhone: formData.parentPhone,
-            school: formData.school,
-            memo: formData.memo,
-          })
-        } else {
-          await addNewStudent({
-            name: formData.name,
-            birth: formData.birth,
-            sex: formData.sex,
-            phone: formData.phone,
-            parentPhone: formData.parentPhone,
-            school: formData.school,
-            memo: formData.memo,
-          })
-        }
+        const payload = { name: formData.name, birth: formData.birth, sex: formData.sex, phone: formData.phone, parentPhone: formData.parentPhone, school: formData.school, memo: formData.memo };
+        if (isEditMode && initialData?.id) await updateStudent(initialData.id, payload);
+        else await addNewStudent(payload);
       } else {
-        if (isEditMode && initialData?.id) {
-          await updateTeacher(initialData.id, {
-            name: formData.name,
-            birth: formData.birth,
-            sex: formData.sex,
-            phone: formData.phone,
-            teacherType: formData.teacherType,
-            memo: formData.memo,
-          })
-        } else {
-          await addNewTeacher({
-            name: formData.name,
-            birth: formData.birth,
-            sex: formData.sex,
-            phone: formData.phone,
-            teacherType: formData.teacherType,
-            memo: formData.memo,
-          })
-        }
+        const payload = { name: formData.name, birth: formData.birth, sex: formData.sex, phone: formData.phone, teacherType: formData.teacherType, memo: formData.memo };
+        if (isEditMode && initialData?.id) await updateTeacher(initialData.id, payload);
+        else await addNewTeacher(payload);
       }
-      setAlertType("success")
-      setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 ${isEditMode ? "수정" : "추가"}되었습니다.`)
-      setAlertOpen(true)
-      onOpenChange(false)
-    } catch (error: any) {
-      console.error(`${isEditMode ? "수정" : "추가"} 실패:`, error)
-      let errorMessage = `${isEditMode ? "수정" : "추가"}에 실패했습니다.`
-      if (error.response?.data) {
-        const errorData = error.response.data
-        errorMessage = errorData.message || errorData.error || JSON.stringify(errorData) || errorMessage
-      } else if (error.message) {
-        errorMessage = error.message
-      }
-      setAlertType("error")
-      setAlertMessage(errorMessage)
-      setAlertOpen(true)
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.studentsList() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teachersList() });
+      setAlertType("success");
+      setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 ${isEditMode ? "수정" : "추가"}되었습니다.`);
+      setAlertOpen(true);
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      setAlertType("error");
+      setAlertMessage(getPeopleErrorMessage(error, `${isEditMode ? "수정" : "추가"}에 실패했습니다.`));
+      setAlertOpen(true);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (isStudent) await deleteStudent(initialData.id);
+      else await deleteTeacher(initialData.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.studentsList() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teachersList() });
+      setAlertType("success");
+      setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 삭제되었습니다.`);
+      setAlertOpen(true);
+      onOpenChange(false);
+    },
+    onError: (error: any) => {
+      setAlertType("error");
+      setAlertMessage(getPeopleErrorMessage(error, "삭제에 실패했습니다."));
+      setAlertOpen(true);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitMutation.mutate();
   }
 
   const handleChange = (field: string, value: string) => {
@@ -142,35 +141,10 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
     setConfirmOpen(true);
   }
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (!isEditMode || !initialData?.id) return;
-    
-    try {
-      if (isStudent) {
-        await deleteStudent(initialData.id);
-      } else {
-        await deleteTeacher(initialData.id);
-      }
-      setAlertType("success");
-      setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 삭제되었습니다.`);
-      setAlertOpen(true);
-      onOpenChange(false);
-    } catch (error: any) {
-      console.error("삭제 실패:", error);
-      let errorMessage = "삭제에 실패했습니다.";
-      if (error.response?.data) {
-        const errorData = error.response.data;
-        errorMessage = errorData.message || errorData.error || JSON.stringify(errorData) || errorMessage;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      setAlertType("error");
-      setAlertMessage(errorMessage);
-      setAlertOpen(true);
-    }
+    deleteMutation.mutate();
   }
-
-  const isStudent = type === "student"
 
   useEffect(() => {
     if (open) {

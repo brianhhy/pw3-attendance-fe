@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getStudentsList } from "@/app/(shared)/(api)/student";
 import { getTeacherList } from "@/app/(shared)/(api)/teacher";
+import { queryKeys } from "@/app/(shared)/(api)/queryKeys";
 
 interface StudentItem {
   id: number;
@@ -37,35 +39,23 @@ interface FindClassListProps {
 }
 
 export default function FindClassList({ activeTab, onSelect, selectedItemId, excludedStudentIds = [], excludedTeacherIds = [] }: FindClassListProps) {
-  const [students, setStudents] = useState<StudentItem[]>([]);
-  const [teachers, setTeachers] = useState<TeacherItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        if (activeTab === "student") {
-          const data = await getStudentsList();
-          const filteredStudents = data.filter((student: StudentItem) => {
-            return !student.classesByYear || Object.keys(student.classesByYear).length === 0;
-          });
-          setStudents(filteredStudents);
-        } else {
-          const data = await getTeacherList();
-          setTeachers(data);
-        }
-      } catch (error) {
-        console.error("데이터 조회 실패:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const { data: students = [], isLoading: isStudentsLoading } = useQuery({
+    queryKey: queryKeys.studentsList(),
+    queryFn: getStudentsList,
+    enabled: activeTab === "student",
+    select: (data: StudentItem[]) => data.filter((s) => !s.classesByYear || Object.keys(s.classesByYear).length === 0),
+  });
 
-    fetchData();
-  }, [activeTab]);
+  const { data: teachers = [] as TeacherItem[], isLoading: isTeachersLoading } = useQuery<TeacherItem[]>({
+    queryKey: queryKeys.teachersList(),
+    queryFn: getTeacherList,
+    enabled: activeTab === "teacher",
+  });
+
+  const isLoading = isStudentsLoading || isTeachersLoading;
 
   const filteredStudents = students.filter((student) => {
     // 배정 완료된 학생 제외 (프론트 선반영)

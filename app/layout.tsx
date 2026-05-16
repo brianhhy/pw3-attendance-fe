@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/app/(shared)/(components)/Header";
 import Sidebar from "@/app/(shared)/(components)/Sidebar";
 import FloatingButton from "@/app/(shared)/(components)/FloatingButton";
+import { Providers } from "./providers";
 
 const gmarketSans = localFont({
   src: [
@@ -46,26 +47,28 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${gmarketSans.variable} ${hakgyoansim.variable}`}>
       <body className="h-screen overflow-hidden">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="w-full">
-            <Header />
+        <Providers>
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="w-full">
+              <Header />
+            </div>
+
+            {/* Content Area */}
+            <div className="flex flex-1 overflow-hidden">
+              {/* Sidebar */}
+              <Sidebar />
+
+              {/* Main */}
+              <main className="flex-1 overflow-y-auto bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
+                {children}
+              </main>
+            </div>
           </div>
 
-          {/* Content Area */}
-          <div className="flex flex-1 overflow-hidden">
-            {/* Sidebar */}
-            <Sidebar />
-
-            {/* Main */}
-            <main className="flex-1 overflow-y-auto bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
-              {children}
-            </main>
-          </div>
-        </div>
-
-        {/* Floating Button */}
-        <FloatingButton />
+          {/* Floating Button */}
+          <FloatingButton />
+        </Providers>
       </body>
     </html>
   );

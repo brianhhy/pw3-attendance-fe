@@ -1,181 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import useAttendanceStore from "../(shared)/(store)/attendanceStore";
-import { markTeacherAttendance, getTeacherAttendances } from "../(shared)/(api)/attendance";
+import {
+  useTeacherAttendanceQuery,
+  useMarkTeacherAttendance,
+  getTeacherAttendanceStatus,
+  isTeacherAttendanceMarked,
+  getTeacherAttendanceErrorMessage,
+} from "../(shared)/(hooks)/useTeacherAttendance";
+import { getTeacherList } from "../(shared)/(api)/teacher";
+import { queryKeys } from "../(shared)/(api)/queryKeys";
 import Alert from "../(shared)/(modal)/Alert";
 import Search from "../(shared)/(components)/Search";
 
 export default function TeacherAttendance() {
-  const {
-    teachers,
-    getTeachers,
-    selectedDate,
-    getAttendances
-  } = useAttendanceStore();
+  const { selectedDate } = useAttendanceStore();
 
-  const [attendanceStatuses, setAttendanceStatuses] = useState<{ [key: number]: { status?: string } }>({});
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
 
-  // 컴포넌트 마운트 시 선생님 목록과 출석 데이터를 초기 로드한다.
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        await Promise.all([getTeachers(), getAttendances()]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, [getTeachers, getAttendances]);
+  const { data: teachers = [], isPending: isLoading } = useQuery<{ id: number; name: string; status: string; number: string; classesByYear?: { [year: string]: { schoolType: string; grade: number; classNumber: number }[] } }[]>({
+    queryKey: queryKeys.teachersList(),
+    queryFn: getTeacherList,
+  });
 
-  // 선택된 날짜 또는 선생님 목록이 변경될 때 출석 상태를 다시 조회하여 매핑한다.
-  useEffect(() => {
-    const fetchAndMatchTeacherStatuses = async () => {
-      try {
-        const attendanceResponse = await getTeacherAttendances(selectedDate);
+  const { data: attendanceStatuses = {} } =
+    useTeacherAttendanceQuery(selectedDate);
+  const { mutate: markAttendance } = useMarkTeacherAttendance(selectedDate);
 
-        const statuses: { [key: number]: { status?: string } } = {};
-
-        if (Array.isArray(attendanceResponse)) {
-          attendanceResponse.forEach((item: any) => {
-            const teacherId = item.teacherId || item.teacher_id || item.id;
-            const status = item.status || item.attendanceStatus || item.attendance_status;
-
-            if (teacherId) {
-              statuses[teacherId] = { status };
-            }
-          });
-        } else if (attendanceResponse && typeof attendanceResponse === 'object') {
-          Object.keys(attendanceResponse).forEach((key) => {
-            const item = attendanceResponse[key];
-            const teacherId = item?.teacherId || item?.teacher_id || item?.id || Number(key);
-            const status = item?.status || item?.attendanceStatus || item?.attendance_status;
-
-            if (teacherId) {
-              statuses[teacherId] = { status };
-            }
-          });
-        }
-
-        setAttendanceStatuses(statuses);
-      } catch (error) {
-        setAttendanceStatuses({});
-      }
-    };
-
-    if (selectedDate && teachers.length > 0) {
-      setAttendanceStatuses({});
-      fetchAndMatchTeacherStatuses();
-    }
-  }, [selectedDate, teachers]);
-
-  // 출석 버튼 클릭 시 9시 이전이면 출석, 이후면 지각으로 처리하고 서버에 반영한다.
-  const handleAttendanceClick = async (teacherId: number) => {
+  const handleAttendanceClick = (teacherId: number) => {
     const currentHour = new Date().getHours();
     const currentMinute = new Date().getMinutes();
-    const attendanceStatus = currentHour < 9 || (currentHour === 9 && currentMinute === 0) ? "ATTEND" : "LATE";
+    const status =
+      currentHour < 9 || (currentHour === 9 && currentMinute === 0)
+        ? "ATTEND"
+        : "LATE";
 
-    setAttendanceStatuses(prev => ({
-      ...prev,
-      [teacherId]: { status: attendanceStatus },
-    }));
-
-    try {
-      await markTeacherAttendance(teacherId, attendanceStatus, selectedDate);
-
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const attendanceResponse = await getTeacherAttendances(selectedDate);
-      const statuses: { [key: number]: { status?: string } } = {};
-
-      if (Array.isArray(attendanceResponse)) {
-        attendanceResponse.forEach((item: any) => {
-          const id = item.teacherId || item.teacher_id || item.id;
-          if (id) {
-            statuses[id] = { status: item.status };
-          }
-        });
+    markAttendance(
+      { teacherId, status },
+      {
+        onSuccess: () => {
+          setAlertType("success");
+          setAlertMessage("출석 체크가 완료되었습니다.");
+          setAlertOpen(true);
+        },
+        onError: (error) => {
+          setAlertType("error");
+          setAlertMessage(getTeacherAttendanceErrorMessage(error));
+          setAlertOpen(true);
+        },
       }
-
-      setAttendanceStatuses(prev => {
-        const updated = { ...prev };
-        Object.keys(statuses).forEach(id => {
-          const teacherIdNum = Number(id);
-          if (statuses[teacherIdNum]?.status) {
-            updated[teacherIdNum] = statuses[teacherIdNum];
-          }
-        });
-        if ((!statuses[teacherId] || !statuses[teacherId].status) && prev[teacherId]?.status) {
-          updated[teacherId] = prev[teacherId];
-        }
-        return updated;
-      });
-
-      await getAttendances();
-
-      setAlertType("success");
-      setAlertMessage("출석 체크가 완료되었습니다.");
-      setAlertOpen(true);
-    } catch (error: any) {
-      const attendanceResponse = await getTeacherAttendances(selectedDate);
-      const statuses: { [key: number]: { status?: string } } = {};
-
-      if (Array.isArray(attendanceResponse)) {
-        attendanceResponse.forEach((item: any) => {
-          const id = item.teacherId || item.teacher_id || item.id;
-          if (id) {
-            statuses[id] = { status: item.status };
-          }
-        });
-      }
-
-      setAttendanceStatuses(statuses);
-
-      let errorMessage = "출석 체크 중 오류가 발생했습니다.";
-      if (error.response?.status === 400) {
-        const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";
-        errorMessage = `잘못된 요청입니다: ${serverMessage}`;
-      } else if (error.response?.status === 500) {
-        errorMessage = "서버 오류가 발생했습니다. 날짜가 올바른지 확인해주세요.";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-
-      setAlertType("error");
-      setAlertMessage(errorMessage);
-      setAlertOpen(true);
-    }
+    );
   };
 
-  // 선생님의 출석 또는 지각 여부를 반환한다.
-  const isAttendanceMarked = (teacherId: number) => {
-    const status = attendanceStatuses[teacherId];
-    if (!status || !status.status) return false;
-
-    const statusUpper = String(status.status).toUpperCase();
-    return statusUpper === "ATTEND" || statusUpper === "ATTENDED" || statusUpper === "LATE";
-  };
-
-  // 선생님의 출석 상태를 "ATTEND" | "LATE" | null로 반환한다.
-  const getAttendanceStatus = (teacherId: number): "ATTEND" | "LATE" | null => {
-    const status = attendanceStatuses[teacherId];
-    if (!status || !status.status) return null;
-
-    const statusUpper = String(status.status).toUpperCase();
-    if (statusUpper === "ATTEND" || statusUpper === "ATTENDED") return "ATTEND";
-    if (statusUpper === "LATE") return "LATE";
-    return null;
-  };
-
-  // 학교 유형 코드를 한국어 이름으로 변환한다.
   const getSchoolTypeName = (schoolType: string) => {
     if (schoolType === "MIDDLE") return "중학교";
     if (schoolType === "HIGH") return "고등학교";
@@ -183,19 +65,24 @@ export default function TeacherAttendance() {
     return schoolType;
   };
 
-  // 선생님이 담당하는 반 정보를 "OO학교 O학년 O반 담임" 형식의 문자열로 반환한다.
-  const getTeacherDescription = (teacher: { classesByYear?: { [year: string]: { schoolType: string; grade: number; classNumber: number }[] } }) => {
+  const getTeacherDescription = (teacher: {
+    classesByYear?: {
+      [year: string]: { schoolType: string; grade: number; classNumber: number }[];
+    };
+  }) => {
     const classes = teacher.classesByYear?.["2026"];
     if (!classes || classes.length === 0) return "담임";
     return classes
-      .map((c) => `${getSchoolTypeName(c.schoolType)} ${c.grade}학년 ${c.classNumber}반 담임`)
+      .map(
+        (c) =>
+          `${getSchoolTypeName(c.schoolType)} ${c.grade}학년 ${c.classNumber}반 담임`
+      )
       .join(", ");
   };
 
   const filteredTeachers = teachers.filter((teacher) => {
     if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return teacher.name.toLowerCase().includes(query);
+    return teacher.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   return (
@@ -232,8 +119,14 @@ export default function TeacherAttendance() {
         ) : (
           <div className="flex flex-col gap-3">
             {filteredTeachers.map((teacher) => {
-              const isMarked = isAttendanceMarked(teacher.id);
-              const attendanceStatus = getAttendanceStatus(teacher.id);
+              const isMarked = isTeacherAttendanceMarked(
+                attendanceStatuses,
+                teacher.id
+              );
+              const attendanceStatus = getTeacherAttendanceStatus(
+                attendanceStatuses,
+                teacher.id
+              );
 
               return (
                 <div
@@ -262,7 +155,11 @@ export default function TeacherAttendance() {
                         : "bg-[#d9d9d9] text-[#697077] hover:opacity-90"
                     }`}
                   >
-                    {attendanceStatus === "ATTEND" ? "출석" : attendanceStatus === "LATE" ? "지각" : "출석"}
+                    {attendanceStatus === "ATTEND"
+                      ? "출석"
+                      : attendanceStatus === "LATE"
+                      ? "지각"
+                      : "출석"}
                   </button>
                 </div>
               );
