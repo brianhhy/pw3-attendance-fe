@@ -10,6 +10,7 @@ import {
   isTeacherAttendanceMarked,
   getTeacherAttendanceErrorMessage,
 } from "../(shared)/(hooks)/useTeacherAttendance";
+import { useAttendanceWebSocket } from "../(shared)/(hooks)/useAttendanceWebSocket";
 import { getTeacherList } from "../(shared)/(api)/teacher";
 import { queryKeys } from "../(shared)/(api)/queryKeys";
 import Alert from "../(shared)/(modal)/Alert";
@@ -32,6 +33,7 @@ export default function TeacherAttendance() {
   const { data: attendanceStatuses = {} } =
     useTeacherAttendanceQuery(selectedDate);
   const { mutate: markAttendance } = useMarkTeacherAttendance(selectedDate);
+  useAttendanceWebSocket(selectedDate);
 
   const handleAttendanceClick = (teacherId: number) => {
     const currentHour = new Date().getHours();
