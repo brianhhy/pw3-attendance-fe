@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getAttendanceReport } from "../(api)/attendance";
+import { queryKeys } from "../(api)/queryKeys";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { Copy, Check } from "lucide-react";
 import Search from "../(components)/Search";
@@ -73,38 +75,30 @@ function getGradeOrder(className: string) {
 
 export default function ExportAttendance({ open, onOpenChange }: ExportAttendanceProps) {
   const { selectedDate } = useAttendanceStore();
-  const [isLoading, setIsLoading] = useState(false);
-  const [reportData, setReportData] = useState<AttendanceReport | null>(null);
   const [copied, setCopied] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
+  const { data: reportData, isLoading } = useQuery({
+    queryKey: queryKeys.attendanceReport(selectedDate),
+    queryFn: async () => {
+      const text = await getAttendanceReport(selectedDate);
+      return parseReport(text);
+    },
+    enabled: open,
+  });
+
   useEffect(() => {
     if (open) {
       setShouldAnimate(true);
-      fetchReport();
     } else {
       setShouldAnimate(false);
-      setReportData(null);
       setCopied(false);
       setSearchQuery("");
       setIsSearchOpen(false);
     }
-  }, [open, selectedDate]);
-
-  const fetchReport = async () => {
-    setIsLoading(true);
-    try {
-      const text = await getAttendanceReport(selectedDate);
-      setReportData(parseReport(text));
-    } catch (error) {
-      console.error("출석부 조회 실패:", error);
-      setReportData(null);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [open]);
 
   const getFilteredClasses = () => {
     if (!reportData) return [];

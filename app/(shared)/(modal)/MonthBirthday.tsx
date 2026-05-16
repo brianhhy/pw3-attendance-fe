@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { getBirthdays, BirthdayStudent, BirthdayTeacher } from "../(api)/birth";
+import { queryKeys } from "../(api)/queryKeys";
 
 interface MonthBirthdayProps {
   open: boolean;
@@ -17,8 +19,6 @@ interface DayGroup {
 }
 
 export default function MonthBirthday({ open, onOpenChange, initialMonth }: MonthBirthdayProps) {
-  const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => initialMonth ?? new Date().getMonth() + 1);
 
   useEffect(() => {
@@ -29,30 +29,27 @@ export default function MonthBirthday({ open, onOpenChange, initialMonth }: Mont
     }
   }, [open, initialMonth]);
 
-  useEffect(() => {
-    if (!open) return;
-    setIsLoading(true);
-    getBirthdays(selectedMonth)
-      .then((data) => {
-        const map = new Map<number, DayGroup>();
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.birthdays(selectedMonth),
+    queryFn: () => getBirthdays(selectedMonth),
+    enabled: open,
+  });
 
-        data.students.forEach((s) => {
-          const day = s.birth[2];
-          if (!map.has(day)) map.set(day, { day, students: [], teachers: [] });
-          map.get(day)!.students.push(s);
-        });
-
-        data.teachers.forEach((t) => {
-          const day = t.birth[2];
-          if (!map.has(day)) map.set(day, { day, students: [], teachers: [] });
-          map.get(day)!.teachers.push(t);
-        });
-
-        setDayGroups(Array.from(map.values()).sort((a, b) => a.day - b.day));
-      })
-      .catch(() => setDayGroups([]))
-      .finally(() => setIsLoading(false));
-  }, [open, selectedMonth]);
+  const dayGroups = useMemo<DayGroup[]>(() => {
+    if (!data) return [];
+    const map = new Map<number, DayGroup>();
+    data.students.forEach((s) => {
+      const day = s.birth[2];
+      if (!map.has(day)) map.set(day, { day, students: [], teachers: [] });
+      map.get(day)!.students.push(s);
+    });
+    data.teachers.forEach((t) => {
+      const day = t.birth[2];
+      if (!map.has(day)) map.set(day, { day, students: [], teachers: [] });
+      map.get(day)!.teachers.push(t);
+    });
+    return Array.from(map.values()).sort((a, b) => a.day - b.day);
+  }, [data]);
 
   const totalCount = dayGroups.reduce(
     (acc, g) => acc + g.students.length + g.teachers.length,

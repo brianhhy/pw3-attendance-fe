@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getStudentClassesByYear } from "@/app/(shared)/(api)/student";
+import { queryKeys } from "@/app/(shared)/(api)/queryKeys";
 
 interface ClassInfo {
   id: number;
@@ -32,95 +34,58 @@ const getSchoolTypeName = (schoolType: string): string => {
   }
 };
 
+const CURRENT_YEAR = new Date().getFullYear();
+
+function getSchoolTypePriority(schoolType: string): number {
+  if (schoolType === "MIDDLE") return 1;
+  if (schoolType === "ELEMENTARY") return 2;
+  if (schoolType === "HIGH") return 3;
+  return 4;
+}
+
 export default function RestClassList({ selectedItem, activeTab, onClassSelect }: RestClassListProps) {
-  const [classes, setClasses] = useState<ClassInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
 
   useEffect(() => {
     if (selectedItem) {
-      // 컴포넌트가 마운트된 후 약간의 지연을 두고 애니메이션 트리거
-      const timer = setTimeout(() => {
-        setShouldAnimate(true);
-      }, 10);
+      const timer = setTimeout(() => setShouldAnimate(true), 10);
       return () => clearTimeout(timer);
     } else {
       setShouldAnimate(false);
     }
   }, [selectedItem]);
 
-  useEffect(() => {
-    const fetchClasses = async () => {
-      if (!selectedItem) {
-        setClasses([]);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        const currentYear = new Date().getFullYear();
-        const data = await getStudentClassesByYear(currentYear);
-        
-        if (Array.isArray(data)) {
-          const uniqueClasses = data.reduce((acc: ClassInfo[], classItem: any) => {
-            const classId = classItem.classRoomId || classItem.id;
-            const existingClass = acc.find(c => c.id === classId);
-            
-            if (!existingClass) {
-              acc.push({
-                id: classId,
-                schoolType: classItem.schoolType,
-                grade: classItem.grade,
-                classNumber: classItem.classNumber,
-                name: classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`,
-                className: classItem.className,
-                teacherName: classItem.teacherName,
-              });
-            }
-            return acc;
-          }, []);
-          
-          // 선생님 매칭일 때는 담임이 없는 반만 필터링
-          const filteredClasses = activeTab === "teacher" 
-            ? uniqueClasses.filter((classItem) => !classItem.teacherName)
-            : uniqueClasses;
-          
-          const sortedClasses = filteredClasses.sort((a, b) => {
-            const getSchoolTypePriority = (schoolType: string): number => {
-              if (schoolType === "MIDDLE") return 1;
-              if (schoolType === "ELEMENTARY") return 2;
-              if (schoolType === "HIGH") return 3;
-              return 4;
-            };
-            
-            const priorityA = getSchoolTypePriority(a.schoolType);
-            const priorityB = getSchoolTypePriority(b.schoolType);
-            
-            if (priorityA !== priorityB) {
-              return priorityA - priorityB;
-            }
-            
-            if (a.grade !== b.grade) {
-              return a.grade - b.grade;
-            }
-            
-            return a.classNumber - b.classNumber;
+  const { data: classes = [], isLoading } = useQuery({
+    queryKey: queryKeys.classesByYear(CURRENT_YEAR),
+    queryFn: async () => {
+      const data = await getStudentClassesByYear(CURRENT_YEAR);
+      if (!Array.isArray(data)) return [];
+      const uniqueClasses = data.reduce((acc: ClassInfo[], classItem: any) => {
+        const classId = classItem.classRoomId || classItem.id;
+        if (!acc.find((c) => c.id === classId)) {
+          acc.push({
+            id: classId,
+            schoolType: classItem.schoolType,
+            grade: classItem.grade,
+            classNumber: classItem.classNumber,
+            name: classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`,
+            className: classItem.className,
+            teacherName: classItem.teacherName,
           });
-          
-          setClasses(sortedClasses);
-        } else {
-          setClasses([]);
         }
-      } catch (error) {
-        console.error("반 목록 조회 실패:", error);
-        setClasses([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchClasses();
-  }, [selectedItem]);
+        return acc;
+      }, []);
+      return uniqueClasses.sort((a, b) => {
+        const pa = getSchoolTypePriority(a.schoolType);
+        const pb = getSchoolTypePriority(b.schoolType);
+        if (pa !== pb) return pa - pb;
+        if (a.grade !== b.grade) return a.grade - b.grade;
+        return a.classNumber - b.classNumber;
+      });
+    },
+    enabled: !!selectedItem,
+    select: (data) => activeTab === "teacher" ? data.filter((c) => !c.teacherName) : data,
+  });
 
   if (!selectedItem) {
     return null;

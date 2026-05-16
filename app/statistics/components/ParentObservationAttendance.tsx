@@ -1,30 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getParentAttendanceStats, type ParentAttendanceStats } from "../../(shared)/(api)/attendance";
+import { useQuery } from "@tanstack/react-query";
+import { getParentAttendanceStats } from "../../(shared)/(api)/attendance";
 import { getTodayKST } from "../../(shared)/utils/dateUtil";
+import { queryKeys } from "../../(shared)/(api)/queryKeys";
 
 export default function ParentObservationAttendance() {
     const today = getTodayKST();
-    const [stats, setStats] = useState<ParentAttendanceStats | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const run = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const data = await getParentAttendanceStats(today);
-                setStats(data);
-            } catch {
-                setError("부모님 출석 데이터를 불러오지 못했습니다.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        run();
-    }, [today]);
+    const { data: stats, isLoading, isError } = useQuery({
+        queryKey: queryKeys.parentAttendanceStats(today),
+        queryFn: () => getParentAttendanceStats(today),
+    });
 
     const rate = stats && stats.totalStudents > 0
         ? Math.round((stats.studentsWithParent / stats.totalStudents) * 100)
@@ -39,8 +26,8 @@ export default function ParentObservationAttendance() {
 
             {isLoading ? (
                 <div className="flex-1 flex items-center justify-center text-gray-500">로딩 중...</div>
-            ) : error ? (
-                <div className="flex-1 flex items-center justify-center text-gray-500">{error}</div>
+            ) : isError ? (
+                <div className="flex-1 flex items-center justify-center text-gray-500">부모님 출석 데이터를 불러오지 못했습니다.</div>
             ) : stats ? (
                 <div className="flex-1 flex flex-col gap-3">
                     <div className="rounded-xl bg-white/30 backdrop-blur-md border border-white/45 px-4 py-4 flex items-center justify-between">

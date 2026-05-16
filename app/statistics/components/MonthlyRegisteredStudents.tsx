@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getStudentRegistrationsByYear } from "../../(shared)/(api)/student";
+import { queryKeys } from "../../(shared)/(api)/queryKeys";
 import { toDateStringKST } from "../../(shared)/utils/dateUtil";
 
 type MonthlyStudent = {
@@ -147,42 +148,22 @@ function extractStudentsFromResponse(data: any): MonthlyStudent[] {
 }
 
 export default function MonthlyRegisteredStudents() {
-  const { selectedDate } = useAttendanceStore();
   const yearMonthOptions = useMemo(() => buildRecentYearMonthOptions(new Date(), 12), []);
   const [monthDate, setMonthDate] = useState(() => {
-    // 최신 월(현재 월)을 기본값으로
     const base = new Date();
     return new Date(base.getFullYear(), base.getMonth(), 1);
   });
-  const [students, setStudents] = useState<MonthlyStudent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // 다른 화면들과 선택 날짜를 공유하고 싶다면 selectedDate로 동기화할 수 있지만,
-    // 이 컴포넌트는 상단 select로 월을 선택하는 UX를 사용하므로 기본값만 현재 월로 둡니다.
-  }, [selectedDate]);
 
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth() + 1;
 
-  useEffect(() => {
-    const run = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const data = await getStudentRegistrationsByYear(year);
-        const list = extractStudentsFromResponse(data);
-        setStudents(list);
-      } catch (e: any) {
-        setError("신규 등록 학생 데이터를 불러오지 못했습니다.");
-        setStudents([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    run();
-  }, [year]);
+  const { data: students = [], isLoading, isError } = useQuery({
+    queryKey: queryKeys.monthlyStudents(year),
+    queryFn: async () => {
+      const data = await getStudentRegistrationsByYear(year);
+      return extractStudentsFromResponse(data);
+    },
+  });
 
   const filtered = useMemo(() => {
     return students.filter((s) => {
@@ -224,8 +205,8 @@ export default function MonthlyRegisteredStudents() {
         <div className="flex-1 bg-white/10 backdrop-blur-xl backdrop-saturate-150 overflow-auto">
           {isLoading ? (
             <div className="h-full flex items-center justify-center text-gray-500">로딩 중...</div>
-          ) : error ? (
-            <div className="h-full flex items-center justify-center text-gray-500">{error}</div>
+          ) : isError ? (
+            <div className="h-full flex items-center justify-center text-gray-500">신규 등록 학생 데이터를 불러오지 못했습니다.</div>
           ) : filtered.length === 0 ? (
             <div className="h-full flex items-center justify-center text-gray-500">
               등록 학생이 없습니다.

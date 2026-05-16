@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { sendChatMessage } from "../(api)/ai";
 import ReactMarkdown from "react-markdown";
@@ -25,36 +26,26 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
   const [currentTime, setCurrentTime] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // 초기 시간 설정
     const updateTime = () => {
       const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes().toString().padStart(2, "0");
-      setCurrentTime(`${hours}:${minutes}`);
+      setCurrentTime(`${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`);
     };
-
     updateTime();
-    // 1분마다 시간 업데이트
     const interval = setInterval(updateTime, 60000);
-
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (isOpen && !isClosing) {
-      // 채팅창이 열릴 때 메시지 초기화
       setMessages([]);
       setInputValue("");
     } else if (!isOpen) {
-      // 채팅창이 완전히 닫혔을 때 상태 초기화
       setMessages([]);
       setInputValue("");
-      // 타이핑 timeout 정리
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
@@ -62,100 +53,53 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
     }
   }, [isOpen, isClosing]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = async (question: string) => {
-    if (isLoading) return;
-
-    const now = new Date();
-    const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
-
-    // 사용자 메시지 추가
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content: question,
-      time: timeString,
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setIsLoading(true);
-
-    try {
-      const response = await sendChatMessage(question);
+  const { mutate: sendMessage, isPending: isLoading } = useMutation({
+    mutationFn: (question: string) => sendChatMessage(question),
+    onMutate: (question) => {
+      const now = new Date();
+      const timeString = `${now.getHours()}:${now.getMinutes().toString().padStart(2, "0")}`;
+      setMessages((prev) => [...prev, { id: Date.now().toString(), type: "user", content: question, time: timeString }]);
+      setInputValue("");
+      return { timeString };
+    },
+    onSuccess: (response, _question, context) => {
+      const timeString = context?.timeString ?? currentTime;
       const fullContent = response.answer || response.message || "응답을 받지 못했습니다.";
-      
-      // 봇 메시지 추가 (전체 내용은 저장, displayedChars로 점진 표시)
       const botMessageId = (Date.now() + 1).toString();
-      const initialBotMessage: Message = {
-        id: botMessageId,
-        type: "bot",
-        content: fullContent,
-        time: timeString,
-        isTyping: true,
-        displayedChars: [],
-      };
-      setMessages((prev) => [...prev, initialBotMessage]);
-      
-      // 타이핑 시작 시 로딩 숨김
-      setIsLoading(false);
 
-      // 이전 타이핑이 있으면 정리
+      setMessages((prev) => [...prev, { id: botMessageId, type: "bot", content: fullContent, time: timeString, isTyping: true, displayedChars: [] }]);
+
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = null;
       }
 
-      // 글자 단위 타이핑 (가변 딜레이)
-      const chars = [...fullContent]; // 유니코드 안전 split
+      const chars = [...fullContent];
       let charIndex = 0;
 
       function typeNext() {
         if (charIndex >= chars.length) {
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === botMessageId ? { ...msg, isTyping: false } : msg
-            )
-          );
+          setMessages((prev) => prev.map((msg) => msg.id === botMessageId ? { ...msg, isTyping: false } : msg));
           return;
         }
-
         const ch = chars[charIndex++];
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === botMessageId
-              ? { ...msg, displayedChars: [...(msg.displayedChars ?? []), ch] }
-              : msg
-          )
-        );
-
+        setMessages((prev) => prev.map((msg) => msg.id === botMessageId ? { ...msg, displayedChars: [...(msg.displayedChars ?? []), ch] } : msg));
         let delay = 25 + Math.random() * 20;
         if (".,!?:".includes(ch)) delay = 160 + Math.random() * 120;
         else if (ch === "\n") delay = 220;
-
         typingTimeoutRef.current = setTimeout(typeNext, delay);
       }
-
       typeNext();
-      
-    } catch (error) {
-      console.error("AI 채팅 오류:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 2).toString(),
-        type: "bot",
-        content: "죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.",
-        time: timeString,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-      setIsLoading(false);
-    }
-  };
+    },
+    onError: (_error, _question, context) => {
+      const timeString = context?.timeString ?? currentTime;
+      setMessages((prev) => [...prev, { id: (Date.now() + 2).toString(), type: "bot", content: "죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.", time: timeString }]);
+    },
+  });
 
   const handleButtonClick = (question: string) => {
     sendMessage(question);

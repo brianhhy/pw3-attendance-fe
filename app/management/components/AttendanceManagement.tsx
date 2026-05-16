@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 import { markStudentAttendance, markTeacherAttendance, getStudentAttendances, getTeacherAttendances } from "../../(shared)/(api)/attendance";
+import { queryKeys } from "../../(shared)/(api)/queryKeys";
 import Alert from "../../(shared)/(modal)/Alert";
 import Search from "../../(shared)/(components)/Search";
 
@@ -66,84 +68,116 @@ const getStatusColor = (status: string | null): string => {
   }
 };
 
+function parseAttendanceItems(studentAttendances: any[], teacherAttendances: any[], date: string): AttendanceItem[] {
+  const items: AttendanceItem[] = [];
+
+  if (Array.isArray(studentAttendances)) {
+    studentAttendances.forEach((classItem: any) => {
+      const className = classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`;
+      if (classItem.students && Array.isArray(classItem.students)) {
+        classItem.students.forEach((student: any) => {
+          const studentClassId = student.studentClassId || student.student_class_id;
+          const status = student.status;
+          if (status && status.toUpperCase() !== "UNCHECKED") {
+            items.push({
+              id: student.studentId || student.student_id || student.id || studentClassId,
+              name: student.studentName || student.student_name || student.name,
+              type: "student",
+              status: status.toUpperCase() as "ATTEND" | "LATE" | "ABSENT" | "OTHER",
+              studentClassId,
+              className,
+              date,
+            });
+          }
+        });
+      }
+    });
+  }
+
+  if (Array.isArray(teacherAttendances)) {
+    teacherAttendances.forEach((teacher: any) => {
+      const teacherId = teacher.teacherId || teacher.teacher_id || teacher.id;
+      const status = teacher.status || teacher.attendanceStatus || teacher.attendance_status;
+      if (status && status.toUpperCase() !== "UNCHECKED") {
+        items.push({
+          id: teacherId,
+          name: teacher.teacherName || teacher.teacher_name || teacher.name,
+          type: "teacher",
+          status: status.toUpperCase() as "ATTEND" | "LATE" | "ABSENT" | "OTHER",
+          teacherId,
+          date,
+        });
+      }
+    });
+  }
+
+  return items;
+}
+
+function getAttendanceErrorMessage(error: any): string {
+  if (error?.response?.status === 400) {
+    const msg = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";
+    return `잘못된 요청입니다: ${msg}`;
+  }
+  if (error?.response?.status === 500) return "서버 오류가 발생했습니다. 날짜가 올바른지 확인해주세요.";
+  return error?.response?.data?.message || error?.message || "출석 상태 변경 중 오류가 발생했습니다.";
+}
+
 export default function AttendanceManagement() {
+  const queryClient = useQueryClient();
   const { selectedDate, getAttendances } = useAttendanceStore();
-  const [attendanceItems, setAttendanceItems] = useState<AttendanceItem[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
 
-  useEffect(() => {
-    const fetchAttendanceData = async () => {
-      try {
-        setIsLoading(true);
-        const schoolYear = 2026;
-        
-        const [studentAttendances, teacherAttendances] = await Promise.all([
-          getStudentAttendances(schoolYear, selectedDate),
-          getTeacherAttendances(selectedDate),
-        ]);
+  const { data: attendanceItems = [], isLoading } = useQuery({
+    queryKey: queryKeys.attendanceManagement(selectedDate),
+    queryFn: async () => {
+      const [studentAttendances, teacherAttendances] = await Promise.all([
+        getStudentAttendances(2026, selectedDate),
+        getTeacherAttendances(selectedDate),
+      ]);
+      getAttendances();
+      return parseAttendanceItems(studentAttendances, teacherAttendances, selectedDate);
+    },
+  });
 
-        const items: AttendanceItem[] = [];
-
-        if (Array.isArray(studentAttendances)) {
-          studentAttendances.forEach((classItem: any) => {
-            const className = classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`;
-
-            if (classItem.students && Array.isArray(classItem.students)) {
-              classItem.students.forEach((student: any) => {
-                const studentClassId = student.studentClassId || student.student_class_id;
-                const status = student.status;
-
-                if (status && status.toUpperCase() !== "UNCHECKED") {
-                  items.push({
-                    id: student.studentId || student.student_id || student.id || studentClassId,
-                    name: student.studentName || student.student_name || student.name,
-                    type: "student",
-                    status: status.toUpperCase() as "ATTEND" | "LATE" | "ABSENT" | "OTHER",
-                    studentClassId: studentClassId,
-                    className: className,
-                    date: selectedDate,
-                  });
-                }
-              });
-            }
-          });
-        }
-
-        if (Array.isArray(teacherAttendances)) {
-          teacherAttendances.forEach((teacher: any) => {
-            const teacherId = teacher.teacherId || teacher.teacher_id || teacher.id;
-            const status = teacher.status || teacher.attendanceStatus || teacher.attendance_status;
-            
-            if (status && status.toUpperCase() !== "UNCHECKED") {
-              items.push({
-                id: teacherId,
-                name: teacher.teacherName || teacher.teacher_name || teacher.name,
-                type: "teacher",
-                status: status.toUpperCase() as "ATTEND" | "LATE" | "ABSENT" | "OTHER",
-                teacherId: teacherId,
-                date: selectedDate,
-              });
-            }
-          });
-        }
-
-        setAttendanceItems(items);
-      } catch (error) {
-        console.error("출석 정보 조회 실패:", error);
-        setAttendanceItems([]);
-      } finally {
-        setIsLoading(false);
+  const { mutate: changeStatus } = useMutation({
+    mutationFn: async ({ item, newStatus }: { item: AttendanceItem; newStatus: "ATTEND" | "LATE" | "ABSENT" | "OTHER" }) => {
+      if (item.type === "student" && item.studentClassId) {
+        await markStudentAttendance(item.studentClassId, selectedDate, newStatus);
+      } else if (item.type === "teacher" && item.teacherId) {
+        await markTeacherAttendance(item.teacherId, newStatus, selectedDate);
       }
-    };
-
-    fetchAttendanceData();
-    getAttendances();
-  }, [selectedDate, getAttendances]);
+    },
+    onMutate: async ({ item, newStatus }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.attendanceManagement(selectedDate) });
+      const snapshot = queryClient.getQueryData<AttendanceItem[]>(queryKeys.attendanceManagement(selectedDate));
+      queryClient.setQueryData<AttendanceItem[]>(
+        queryKeys.attendanceManagement(selectedDate),
+        (old) => old?.map((i) => i.type === item.type && i.id === item.id ? { ...i, status: newStatus } : i) ?? []
+      );
+      return { snapshot };
+    },
+    onSuccess: () => {
+      setAlertType("success");
+      setAlertMessage("출석 상태가 변경되었습니다.");
+      setAlertOpen(true);
+    },
+    onError: (error: any, _variables, context) => {
+      if (context?.snapshot) {
+        queryClient.setQueryData(queryKeys.attendanceManagement(selectedDate), context.snapshot);
+      }
+      setAlertType("error");
+      setAlertMessage(getAttendanceErrorMessage(error));
+      setAlertOpen(true);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.attendanceManagement(selectedDate) });
+    },
+  });
 
   const attendCount = useMemo(() =>
     attendanceItems.filter((item) => item.status === "ATTEND").length,
@@ -151,105 +185,10 @@ export default function AttendanceManagement() {
   );
 
   const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return attendanceItems;
-    }
-
+    if (!searchQuery.trim()) return attendanceItems;
     const query = searchQuery.toLowerCase();
-    return attendanceItems.filter((item) =>
-      item.name.toLowerCase().includes(query)
-    );
+    return attendanceItems.filter((item) => item.name.toLowerCase().includes(query));
   }, [attendanceItems, searchQuery]);
-
-  // 출석 상태를 변경하고 최신 출석 데이터를 다시 불러와 화면에 반영한다.
-  const handleStatusChange = async (
-    item: AttendanceItem,
-    newStatus: "ATTEND" | "LATE" | "ABSENT" | "OTHER"
-  ) => {
-    try {
-      if (item.type === "student" && item.studentClassId) {
-        await markStudentAttendance(item.studentClassId, selectedDate, newStatus);
-      } else if (item.type === "teacher" && item.teacherId) {
-        await markTeacherAttendance(item.teacherId, newStatus, selectedDate);
-      }
-
-      const schoolYear = 2026;
-      const [studentAttendances, teacherAttendances] = await Promise.all([
-        getStudentAttendances(schoolYear, selectedDate),
-        getTeacherAttendances(selectedDate),
-      ]);
-
-      const items: AttendanceItem[] = [];
-
-      if (Array.isArray(studentAttendances)) {
-        studentAttendances.forEach((classItem: any) => {
-          const className = classItem.className || `${classItem.grade}학년 ${classItem.classNumber}반`;
-
-          if (classItem.students && Array.isArray(classItem.students)) {
-            classItem.students.forEach((student: any) => {
-              const studentClassId = student.studentClassId || student.student_class_id;
-              const status = student.status;
-
-              if (status && status.toUpperCase() !== "UNCHECKED") {
-                items.push({
-                  id: student.studentId || student.student_id || student.id || studentClassId,
-                  name: student.studentName || student.student_name || student.name,
-                  type: "student",
-                  status: status.toUpperCase() as "ATTEND" | "LATE" | "ABSENT" | "OTHER",
-                  studentClassId: studentClassId,
-                  className: className,
-                  date: selectedDate,
-                });
-              }
-            });
-          }
-        });
-      }
-
-      if (Array.isArray(teacherAttendances)) {
-        teacherAttendances.forEach((teacher: any) => {
-          const teacherId = teacher.teacherId || teacher.teacher_id || teacher.id;
-          const status = teacher.status || teacher.attendanceStatus || teacher.attendance_status;
-          
-          if (status && status.toUpperCase() !== "UNCHECKED") {
-            items.push({
-              id: teacherId,
-              name: teacher.teacherName || teacher.teacher_name || teacher.name,
-              type: "teacher",
-              status: status.toUpperCase() as "ATTEND" | "LATE" | "ABSENT" | "OTHER",
-              teacherId: teacherId,
-              date: selectedDate,
-            });
-          }
-        });
-      }
-
-      setAttendanceItems(items);
-      await getAttendances();
-
-      setAlertType("success");
-      setAlertMessage("출석 상태가 변경되었습니다.");
-      setAlertOpen(true);
-    } catch (error: any) {
-      console.error("출석 상태 변경 실패:", error);
-      
-      let errorMessage = "출석 상태 변경 중 오류가 발생했습니다.";
-      if (error.response?.status === 400) {
-        const serverMessage = error.response?.data?.message || error.response?.data?.error || "잘못된 요청입니다.";
-        errorMessage = `잘못된 요청입니다: ${serverMessage}`;
-      } else if (error.response?.status === 500) {
-        errorMessage = "서버 오류가 발생했습니다. 날짜가 올바른지 확인해주세요.";
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setAlertType("error");
-      setAlertMessage(errorMessage);
-      setAlertOpen(true);
-    }
-  };
 
   return (
     <div className="w-full bg-transparent p-3">
@@ -280,11 +219,17 @@ export default function AttendanceManagement() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500 text-sm">
-                    로딩 중...
-                  </td>
-                </tr>
+                <>
+                  {[...Array(5)].map((_, i) => (
+                    <tr key={i} className="border-b border-gray-100">
+                      {[...Array(5)].map((_, j) => (
+                        <td key={j} className="py-3 px-4">
+                          <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </>
               ) : filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-500 text-sm">
@@ -322,7 +267,7 @@ export default function AttendanceManagement() {
                         <Button
                           size="sm"
                           variant={item.status === "ATTEND" ? "default" : "outline"}
-                          onClick={() => handleStatusChange(item, "ATTEND")}
+                          onClick={() => changeStatus({ item, newStatus: "ATTEND" })}
                           className={`text-xs ${
                             item.status === "ATTEND"
                               ? "bg-[#9EFC9B] text-[#00CB18] border-[#9EFC9B] hover:bg-[#8EEB8B]"
@@ -334,7 +279,7 @@ export default function AttendanceManagement() {
                         <Button
                           size="sm"
                           variant={item.status === "LATE" ? "default" : "outline"}
-                          onClick={() => handleStatusChange(item, "LATE")}
+                          onClick={() => changeStatus({ item, newStatus: "LATE" })}
                           className={`text-xs ${
                             item.status === "LATE"
                               ? "bg-[#FCD39B] text-[#F39200] border-[#FCD39B] hover:bg-[#ECC38B]"
@@ -346,7 +291,7 @@ export default function AttendanceManagement() {
                         <Button
                           size="sm"
                           variant={item.status === "ABSENT" ? "default" : "outline"}
-                          onClick={() => handleStatusChange(item, "ABSENT")}
+                          onClick={() => changeStatus({ item, newStatus: "ABSENT" })}
                           className={`text-xs ${
                             item.status === "ABSENT"
                               ? "bg-[#FCD5D5] text-[#F65656] border-[#FCD5D5] hover:bg-[#FCC5C5]"
@@ -358,7 +303,7 @@ export default function AttendanceManagement() {
                         <Button
                           size="sm"
                           variant={item.status === "OTHER" ? "default" : "outline"}
-                          onClick={() => handleStatusChange(item, "OTHER")}
+                          onClick={() => changeStatus({ item, newStatus: "OTHER" })}
                           className={`text-xs ${
                             item.status === "OTHER"
                               ? "bg-[#B3CFFF] text-[#2C79FF] border-[#B3CFFF] hover:bg-[#A3BFFF]"

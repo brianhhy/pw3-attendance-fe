@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import useAttendanceStore from "../(shared)/(store)/attendanceStore";
 import {
   useTeacherAttendanceQuery,
@@ -9,22 +10,24 @@ import {
   isTeacherAttendanceMarked,
   getTeacherAttendanceErrorMessage,
 } from "../(shared)/(hooks)/useTeacherAttendance";
+import { getTeacherList } from "../(shared)/(api)/teacher";
+import { queryKeys } from "../(shared)/(api)/queryKeys";
 import Alert from "../(shared)/(modal)/Alert";
 import Search from "../(shared)/(components)/Search";
 
 export default function TeacherAttendance() {
-  const { teachers, getTeachers, selectedDate } = useAttendanceStore();
+  const { selectedDate } = useAttendanceStore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    getTeachers().finally(() => setIsLoading(false));
-  }, [getTeachers]);
+  const { data: teachers = [], isPending: isLoading } = useQuery<{ id: number; name: string; status: string; number: string; classesByYear?: { [year: string]: { schoolType: string; grade: number; classNumber: number }[] } }[]>({
+    queryKey: queryKeys.teachersList(),
+    queryFn: getTeacherList,
+  });
 
   const { data: attendanceStatuses = {} } =
     useTeacherAttendanceQuery(selectedDate);
