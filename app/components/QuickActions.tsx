@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { Send, Users, CalendarDays, BarChart2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -20,14 +21,24 @@ interface CardConfig {
 }
 
 const cards: CardConfig[] = [
-  { key: "report",   icon: BarChart2,   title: "월별 출석 보고서",     desc: "준비 중", disabled: true },
+  { key: "report",   icon: BarChart2,   title: "월별 출석 보고서", desc: "저장된 보고서를 확인하세요" },
   { key: "export",   icon: Send,        title: "출석부 보내기",   desc: "오늘 출석 현황을 공유하세요" },
   { key: "matching", icon: Users,       title: "반 배정하기",     desc: "학생·선생님을 반에 배정하세요" },
   { key: "event",    icon: CalendarDays, title: "이벤트 설정",    desc: "특별 일정을 등록하세요" },
 ];
 
 export default function QuickActions() {
+  const router = useRouter();
   const [open, setOpen] = useState<ActionKey | null>(null);
+
+  const handleActionClick = (key: ActionKey, disabled?: boolean) => {
+    if (disabled) return;
+    if (key === "report") {
+      router.push("/monthly-report");
+      return;
+    }
+    setOpen(key);
+  };
 
   return (
     <>
@@ -36,7 +47,7 @@ export default function QuickActions() {
           {cards.map(({ key, icon: Icon, title, desc, disabled }) => (
             <button
               key={key}
-              onClick={() => !disabled && setOpen(key)}
+              onClick={() => handleActionClick(key, disabled)}
               disabled={disabled}
               className={`bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center gap-2.5 text-center shadow-sm transition-colors h-full ${
                 disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer"
