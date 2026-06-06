@@ -15,6 +15,7 @@ import { getTeacherList } from "../../(shared)/(api)/teacher";
 import { queryKeys } from "../../(shared)/(api)/queryKeys";
 import Alert from "../../(shared)/(modal)/Alert";
 import Search from "../../(shared)/(components)/Search";
+import VoiceSearchButton from "../../(shared)/(components)/VoiceSearchButton";
 
 interface TeacherListItem {
   id: number;
@@ -113,12 +114,20 @@ export default function TeacherAttendance() {
     <div className="h-[710px] w-full flex flex-col p-2">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
         <h2 className="text-2xl font-semibold whitespace-nowrap">선생님 출석</h2>
-        <Search
-          isOpen={isSearchOpen}
-          searchQuery={searchQuery}
-          onToggle={() => setIsSearchOpen(!isSearchOpen)}
-          onSearchChange={setSearchQuery}
-        />
+        <div className="flex items-center gap-2">
+          <VoiceSearchButton
+            onTranscript={(transcript) => {
+              setSearchQuery(transcript);
+              setIsSearchOpen(true);
+            }}
+          />
+          <Search
+            isOpen={isSearchOpen}
+            searchQuery={searchQuery}
+            onToggle={() => setIsSearchOpen(!isSearchOpen)}
+            onSearchChange={setSearchQuery}
+          />
+        </div>
       </div>
       <div className="flex-1 overflow-auto">
         {isLoading ? (

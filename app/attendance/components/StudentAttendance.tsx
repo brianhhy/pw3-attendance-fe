@@ -10,6 +10,7 @@ import {
 import { useAttendanceWebSocket } from "../../(shared)/(hooks)/useAttendanceWebSocket";
 import Alert from "../../(shared)/(modal)/Alert";
 import Search from "../../(shared)/(components)/Search";
+import VoiceSearchButton from "../../(shared)/(components)/VoiceSearchButton";
 
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
@@ -31,10 +32,11 @@ export default function StudentAttendance() {
 
   useEffect(() => {
     if (headerSearch?.type === "student") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery(headerSearch.query);
       setHeaderSearch(null);
     }
-  }, [headerSearch]);
+  }, [headerSearch, setHeaderSearch]);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
@@ -87,12 +89,20 @@ export default function StudentAttendance() {
     <div className="w-full h-[710px] flex flex-col p-2 @container">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
         <h2 className="text-2xl font-semibold whitespace-nowrap">학생 출석</h2>
-        <Search
-          isOpen={isSearchOpen}
-          searchQuery={searchQuery}
-          onToggle={() => setIsSearchOpen(!isSearchOpen)}
-          onSearchChange={setSearchQuery}
-        />
+        <div className="flex items-center gap-2">
+          <VoiceSearchButton
+            onTranscript={(transcript) => {
+              setSearchQuery(transcript);
+              setIsSearchOpen(true);
+            }}
+          />
+          <Search
+            isOpen={isSearchOpen}
+            searchQuery={searchQuery}
+            onToggle={() => setIsSearchOpen(!isSearchOpen)}
+            onSearchChange={setSearchQuery}
+          />
+        </div>
       </div>
       <div className="flex-1 overflow-auto">
         <div className="grid grid-cols-1 @[600px]:grid-cols-2 gap-2 pb-4">
