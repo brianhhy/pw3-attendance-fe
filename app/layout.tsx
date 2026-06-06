@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/app/(shared)/(components)/Header";
 import Sidebar from "@/app/(shared)/(components)/Sidebar";
-import FloatingButton from "@/app/(shared)/(components)/FloatingButton";
 import { Providers } from "./providers";
 
 const gmarketSans = localFont({
@@ -48,26 +47,19 @@ export default function RootLayout({
     <html lang="en" className={`${gmarketSans.variable} ${hakgyoansim.variable}`}>
       <body className="h-screen overflow-hidden">
         <Providers>
-          <div className="flex flex-col h-full">
-            {/* Header */}
-            <div className="w-full">
+          <div className="flex h-full bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
+            {/* Sidebar */}
+            <Sidebar />
+
+            {/* Right: Header + Main */}
+            <div className="flex flex-col flex-1 overflow-hidden">
               <Header />
-            </div>
-
-            {/* Content Area */}
-            <div className="flex flex-1 overflow-hidden">
-              {/* Sidebar */}
-              <Sidebar />
-
-              {/* Main */}
-              <main className="flex-1 overflow-y-auto bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
+              <main className="flex-1 overflow-y-auto">
                 {children}
               </main>
             </div>
           </div>
 
-          {/* Floating Button */}
-          <FloatingButton />
         </Providers>
       </body>
     </html>

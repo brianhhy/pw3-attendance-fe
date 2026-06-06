@@ -93,6 +93,9 @@ interface AttendanceStore {
 
     selectedItem: RecentSearchItem | null;
     setSelectedItem: (item: RecentSearchItem | null) => void;
+
+    headerSearch: { query: string; type: "student" | "teacher" } | null;
+    setHeaderSearch: (search: { query: string; type: "student" | "teacher" } | null) => void;
 }
 
 // 오늘 날짜를 YYYY-MM-DD 형식의 문자열로 반환한다.
@@ -115,10 +118,14 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     selectedDate: getTodayDateString(),
 
     selectedItem: null,
+    headerSearch: null,
 
-    // 검색에서 선택된 항목을 store에 저장한다.
     setSelectedItem: (item: RecentSearchItem | null) => {
         set({ selectedItem: item });
+    },
+
+    setHeaderSearch: (search) => {
+        set({ headerSearch: search });
     },
 
     // 전체 학생 목록을 API에서 불러와 store에 저장한다.

@@ -395,7 +395,7 @@ export default function SelfAttendance() {
       )}
 
       {selectedItem && (
-        <div className="flex flex-col max-w-[500px] max-h-[700px] p-6 gap-6 rounded-[15px] border-[1px] border-[#D7E2ED] bg-[#ffffff]">
+        <div className="flex flex-col max-w-[500px] max-h-[700px] p-6 gap-6 rounded-[15px] bg-purple-100/40 backdrop-blur-md border border-purple-200/50 shadow-lg shadow-purple-200/30">
           <button
             onClick={() => setSelectedItem(null)}
             className="self-start flex items-center gap-1 text-[#697077] hover:text-[#2C79FF] transition-colors cursor-pointer"

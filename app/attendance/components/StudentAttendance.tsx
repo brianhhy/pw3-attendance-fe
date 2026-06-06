@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import useAttendanceStore from "../(shared)/(store)/attendanceStore";
+import { useEffect, useMemo, useState } from "react";
+import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 import {
   useStudentAttendanceQuery,
   useMarkStudentAttendance,
   getStudentAttendanceErrorMessage,
-} from "../(shared)/(hooks)/useStudentAttendance";
-import { useAttendanceWebSocket } from "../(shared)/(hooks)/useAttendanceWebSocket";
-import Alert from "../(shared)/(modal)/Alert";
-import Search from "../(shared)/(components)/Search";
+} from "../../(shared)/(hooks)/useStudentAttendance";
+import { useAttendanceWebSocket } from "../../(shared)/(hooks)/useAttendanceWebSocket";
+import Alert from "../../(shared)/(modal)/Alert";
+import Search from "../../(shared)/(components)/Search";
 
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
@@ -25,9 +25,16 @@ const getSchoolTypeName = (schoolType: string): string => {
 };
 
 export default function StudentAttendance() {
-  const { selectedDate } = useAttendanceStore();
+  const { selectedDate, headerSearch, setHeaderSearch } = useAttendanceStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (headerSearch?.type === "student") {
+      setSearchQuery(headerSearch.query);
+      setHeaderSearch(null);
+    }
+  }, [headerSearch]);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
