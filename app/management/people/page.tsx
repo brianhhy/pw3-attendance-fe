@@ -1,14 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, UserStar } from "lucide-react";
 import StudentManagement from "../components/StudentManagement";
 import TeacherManagement from "../components/TeacherManagement";
+import NewPeople from "../modal/NewPeople";
+import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 
 type TabType = "student" | "teacher";
 
 export default function PeoplePage() {
-  const [activeTab, setActiveTab] = useState<TabType>("student");
+  const { headerSearch } = useAttendanceStore();
+  const [activeTab, setActiveTab] = useState<TabType>(
+    headerSearch?.type ?? "student"
+  );
+  const [selectedPerson, setSelectedPerson] = useState<{ type: "student" | "teacher"; data: any } | null>(null);
+
+  useEffect(() => {
+    if (headerSearch?.type) {
+      setActiveTab(headerSearch.type);
+    }
+  }, [headerSearch]);
 
   return (
     <div className="h-full bg-gradient-to-b from-[#FFFFFF] to-[#ECEDFF] flex flex-col">
@@ -48,13 +60,33 @@ export default function PeoplePage() {
           {activeTab === "student" ? <StudentManagement /> : <TeacherManagement />}
         </div>
 
-        {/* lg 이상: 가로 1:1 배치 */}
-        <div className="hidden lg:flex gap-6">
-          <div className="flex-1">
-            <StudentManagement />
+        {/* lg 이상: 왼쪽 테이블 (학생+선생님), 오른쪽 상세 패널 */}
+        <div className="hidden lg:flex gap-6 h-full">
+          <div className="w-[45%] flex flex-col gap-6">
+            <StudentManagement
+              onSelect={(data) => setSelectedPerson({ type: "student", data })}
+              selectedId={selectedPerson?.type === "student" ? selectedPerson.data?.id : null}
+            />
+            <TeacherManagement
+              onSelect={(data) => setSelectedPerson({ type: "teacher", data })}
+              selectedId={selectedPerson?.type === "teacher" ? selectedPerson.data?.id : null}
+            />
           </div>
           <div className="flex-1">
-            <TeacherManagement />
+            {selectedPerson ? (
+              <NewPeople
+                key={`${selectedPerson.type}-${selectedPerson.data?.id}`}
+                open={true}
+                onOpenChange={(open) => { if (!open) setSelectedPerson(null); }}
+                type={selectedPerson.type}
+                initialData={selectedPerson.data}
+                asPanel
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                학생 또는 선생님을 선택하세요
+              </div>
+            )}
           </div>
         </div>
       </div>

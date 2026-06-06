@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getStudentClassesByYear, type StudentClassItem, type StudentClassStudentItem } from "../(shared)/(api)/student";
-import { markParentAttendance, getParentAttendances } from "../(shared)/(api)/attendance";
-import Alert from "../(shared)/(modal)/Alert";
-import { getTodayKST } from "../(shared)/utils/dateUtil";
+import { getStudentClassesByYear, type StudentClassItem, type StudentClassStudentItem } from "../../(shared)/(api)/student";
+import { markParentAttendance, getParentAttendances } from "../../(shared)/(api)/attendance";
+import Alert from "../../(shared)/(modal)/Alert";
+import { getTodayKST } from "../../(shared)/utils/dateUtil";
 
 type ParentType = "MOTHER" | "FATHER";
 type ParentStatus = "ATTEND" | "ABSENT" | null;
@@ -110,7 +110,7 @@ export default function ParentsAttendance() {
                     {students.map((student) => (
                         <div
                             key={student.studentId}
-                            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
+                            className="bg-purple-100/40 backdrop-blur-md border border-purple-200/50 rounded-lg shadow-lg shadow-purple-200/30 p-4"
                         >
                             <h3 className="font-semibold text-base mb-3 text-gray-800">
                                 {student.name}

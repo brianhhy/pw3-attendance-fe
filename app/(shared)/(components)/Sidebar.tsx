@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { ClipboardCheck, Settings, BarChart, Mail, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users } from "lucide-react";
+import { LayoutDashboard, ClipboardCheck, Settings, BarChart, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users } from "lucide-react";
 import { getTodayKST } from "../utils/dateUtil";
 
 interface MenuItem {
@@ -15,7 +15,8 @@ interface MenuItem {
 }
 
 const baseMenuItems: MenuItem[] = [
-    { href: "/", label: "출석 체크", icon: ClipboardCheck },
+    { href: "/", label: "대시보드", icon: LayoutDashboard },
+    { href: "/attendance", label: "출석 체크", icon: ClipboardCheck },
     {
         href: "/management",
         label: "관리",
@@ -26,7 +27,7 @@ const baseMenuItems: MenuItem[] = [
         ],
     },
     { href: "/statistics", label: "통계", icon: BarChart },
-    { href: "/message", label: "메시지", icon: Mail },
+    // { href: "/message", label: "메시지", icon: Mail },
 ];
 
 interface SidebarProps {
@@ -40,7 +41,6 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
         pathname.startsWith("/management") ? "/management" : null
     );
     const [showParentsMenu, setShowParentsMenu] = useState(false);
-
     // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         try {
@@ -68,10 +68,21 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
     };
 
     return (
-        <aside className={`flex flex-col flex-shrink-0 h-screen gap-[12px] bg-white min-w-[250px] ${
-            isMobile ? "w-full" : "hidden lg:flex min-w-[100px] pt-[12px]"
+        <aside className={`flex flex-col flex-shrink-0 border-r border-[#D9D9D9] min-w-[250px] ${
+            isMobile ? "w-full h-screen bg-white" : "hidden lg:flex min-w-[100px] h-screen"
         }`}>
-            {/* 모바일 헤더 - 로고, 문구, X 버튼 */}
+            {/* 데스크탑 로고 */}
+            {!isMobile && (
+                <div className="flex items-center justify-center gap-2 py-4">
+                    <Image src="/images/logo.png" alt="logo" width={90} height={42} priority />
+                    <div className="flex flex-col">
+                        <span className="text-sm font-bold text-[#2C79FF] whitespace-nowrap">파워웨이브 3부</span>
+                        <span className="text-sm font-bold text-[#697077] whitespace-nowrap">출석부</span>
+                    </div>
+                </div>
+            )}
+
+            {/* 모바일 헤더 - 로고, X 버튼 */}
             {isMobile && (
                 <div className="flex items-center justify-between px-5 py-4">
                     <div className="flex items-center gap-3">
@@ -86,7 +97,7 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
                     </button>
                 </div>
             )}
-            <div className="flex-1 flex-col gap-[8px]">
+            <div className="flex-1 overflow-y-auto flex flex-col gap-[8px] px-[4px]">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -160,6 +171,7 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
                     );
                 })}
             </div>
+
         </aside>
     );
 };

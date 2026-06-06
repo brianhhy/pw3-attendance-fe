@@ -2,8 +2,9 @@
 
 import { Calendar, Phone, Users, Building2, Tag, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import useAttendanceStore from "../../(shared)/(store)/attendanceStore"
 import { getStudentsList } from "../../(shared)/(api)/student"
 import { queryKeys } from "../../(shared)/(api)/queryKeys"
 import NewPeople from "../modal/NewPeople"
@@ -28,10 +29,23 @@ const formatDate = (dateString: string | null): string => {
   return date.toLocaleDateString("ko-KR");
 };
 
-export default function StudentManagement() {
+interface StudentManagementProps {
+  onSelect?: (student: any) => void;
+  selectedId?: number | null;
+}
+
+export default function StudentManagement({ onSelect, selectedId }: StudentManagementProps = {}) {
   const queryClient = useQueryClient();
+  const { headerSearch, setHeaderSearch } = useAttendanceStore();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (headerSearch?.type === "student") {
+      setSearchQuery(headerSearch.query);
+      setHeaderSearch(null);
+    }
+  }, [headerSearch]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
@@ -94,7 +108,7 @@ export default function StudentManagement() {
         ))}
       </div>
 
-      <div className="max-h-[180px] lg:max-h-[360px] overflow-y-auto">
+      <div className="max-h-[90px] lg:max-h-[180px] overflow-y-auto">
         {isPending ? (
           <>
             {[...Array(4)].map((_, index) => (
@@ -120,12 +134,16 @@ export default function StudentManagement() {
           filteredStudents.map((student: any, index: number) => (
             <div
               key={student.id}
-              className={`group relative grid grid-cols-6 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                index % 2 === 1 ? "bg-gray-50/50" : ""
+              className={`group relative grid grid-cols-6 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+                selectedId === student.id ? "bg-blue-50 hover:bg-blue-50" : index % 2 === 1 ? "bg-gray-50/50" : ""
               }`}
               onClick={() => {
-                setIsModalOpen(true);
-                setSelectedStudent(student);
+                if (onSelect) {
+                  onSelect(student);
+                } else {
+                  setIsModalOpen(true);
+                  setSelectedStudent(student);
+                }
               }}
             >
               {filters.map((filter) => (

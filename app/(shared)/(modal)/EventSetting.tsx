@@ -30,6 +30,7 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
   const [selectedType, setSelectedType] = useState(EVENT_TYPES[0].value);
   const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -41,6 +42,10 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    setShouldAnimate(open);
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -92,7 +97,7 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={true}
-        className="sm:max-w-sm bg-white border-none"
+        className={`sm:max-w-sm bg-white border-none ${shouldAnimate ? "animate-slide-up" : ""}`}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

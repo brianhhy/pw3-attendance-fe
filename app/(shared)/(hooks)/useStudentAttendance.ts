@@ -24,17 +24,18 @@ export interface ClassData {
     id: number;
     name: string;
     studentClassId?: number;
-    status?: "attended" | "late" | "absent";
+    status?: "attended" | "late" | "absent" | "other";
   }>;
 }
 
-type AttendanceStatus = "attended" | "late" | "absent";
+type AttendanceStatus = "attended" | "late" | "absent" | "other";
 
 const mapStatus = (status: string): AttendanceStatus | undefined => {
   const upper = status.toUpperCase();
   if (upper === "ATTEND") return "attended";
   if (upper === "LATE") return "late";
   if (upper === "ABSENT") return "absent";
+  if (upper === "OTHER") return "other";
   return undefined;
 };
 
@@ -124,7 +125,7 @@ export function useMarkStudentAttendance(date: string) {
     }: {
       studentId: number;
       studentClassId: number;
-      status: "ATTEND" | "LATE" | "ABSENT";
+      status: "ATTEND" | "LATE" | "ABSENT" | "OTHER";
     }) => markStudentAttendance(studentClassId, date, status),
 
     onMutate: async ({ studentId, studentClassId, status }) => {
@@ -136,12 +137,7 @@ export function useMarkStudentAttendance(date: string) {
         queryKeys.studentAttendance(date)
       );
 
-      const mappedStatus =
-        status === "ATTEND"
-          ? "attended"
-          : status === "LATE"
-          ? "late"
-          : "absent";
+      const mappedStatus = mapStatus(status) ?? "attended";
 
       queryClient.setQueryData<ClassData[]>(
         queryKeys.studentAttendance(date),

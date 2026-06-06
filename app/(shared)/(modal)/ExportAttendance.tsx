@@ -13,7 +13,6 @@ import { getAttendanceReport } from "../(api)/attendance";
 import { queryKeys } from "../(api)/queryKeys";
 import useAttendanceStore from "../(store)/attendanceStore";
 import { Copy, Check } from "lucide-react";
-import Search from "../(components)/Search";
 
 interface ClassSection {
   name: string;
@@ -77,8 +76,6 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
   const { selectedDate } = useAttendanceStore();
   const [copied, setCopied] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const { data: reportData, isLoading } = useQuery({
     queryKey: queryKeys.attendanceReport(selectedDate),
@@ -95,40 +92,20 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
     } else {
       setShouldAnimate(false);
       setCopied(false);
-      setSearchQuery("");
-      setIsSearchOpen(false);
     }
   }, [open]);
 
   const getFilteredClasses = () => {
     if (!reportData) return [];
-    const sorted = [...reportData.classes].sort(
+    return [...reportData.classes].sort(
       (a, b) => getGradeOrder(a.name) - getGradeOrder(b.name)
     );
-    if (!searchQuery) return sorted;
-    return sorted
-      .map((cls) => ({
-        ...cls,
-        students: cls.students.filter((s) =>
-          s.toLowerCase().includes(searchQuery.toLowerCase())
-        ),
-      }))
-      .filter((cls) => cls.students.length > 0);
   };
 
   const handleCopyToClipboard = async () => {
     if (!reportData) return;
 
-    let text: string;
-    if (searchQuery) {
-      const filtered = getFilteredClasses();
-      text = `${reportData.date}\n학생: ${reportData.studentCount}\n선생님 (헬퍼포함): ${reportData.teacherCount}\n\n`;
-      filtered.forEach((cls) => {
-        text += `${cls.name}: ${cls.students.join(", ")}\n`;
-      });
-    } else {
-      text = reportData.rawText;
-    }
+    const text = reportData.rawText;
 
     try {
       await navigator.clipboard.writeText(text);
@@ -167,7 +144,7 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
 
     const filteredClasses = getFilteredClasses();
 
-    if (filteredClasses.length === 0 && !searchQuery) {
+    if (filteredClasses.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-full py-8">
           <div className="mb-6 opacity-50">
@@ -188,12 +165,7 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
           </div>
         )}
 
-        {filteredClasses.length === 0 ? (
-          <p className="text-sm text-gray-400 py-4 text-center">
-            검색 결과가 없습니다.
-          </p>
-        ) : (
-          filteredClasses.map((cls, i) => (
+        {filteredClasses.map((cls, i) => (
             <div key={i} className="bg-gray-50 rounded-lg p-4">
               <h3 className="font-bold text-base mb-2">{cls.name}</h3>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -204,8 +176,7 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
                 ))}
               </div>
             </div>
-          ))
-        )}
+        ))}
       </div>
     );
   };
@@ -219,15 +190,7 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
         }`}
       >
         <DialogHeader className="sticky top-0 bg-white z-10 pb-4 flex-shrink-0">
-          <div className="flex items-center justify-between pr-12">
-            <DialogTitle>{selectedDate} 출석부</DialogTitle>
-            <Search
-              isOpen={isSearchOpen}
-              searchQuery={searchQuery}
-              onToggle={() => setIsSearchOpen(!isSearchOpen)}
-              onSearchChange={setSearchQuery}
-            />
-          </div>
+          <DialogTitle>{selectedDate} 출석부</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6">{renderContent()}</div>

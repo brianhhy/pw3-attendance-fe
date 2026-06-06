@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { X } from "lucide-react"
 import { addNewStudent, updateStudent, deleteStudent } from "@/app/(shared)/(api)/student"
 import { addNewTeacher, updateTeacher, deleteTeacher } from "@/app/(shared)/(api)/teacher"
 import { queryKeys } from "@/app/(shared)/(api)/queryKeys"
@@ -26,6 +27,7 @@ interface NewPeopleProps {
   onOpenChange: (open: boolean) => void
   type: "student" | "teacher"
   initialData?: any
+  asPanel?: boolean
 }
 
 const formatDateForInput = (dateString: string | null): string => {
@@ -55,7 +57,7 @@ function getPeopleErrorMessage(error: any, fallback: string): string {
   return error?.message || fallback;
 }
 
-export default function NewPeople({ open, onOpenChange, type, initialData }: NewPeopleProps) {
+export default function NewPeople({ open, onOpenChange, type, initialData, asPanel }: NewPeopleProps) {
   const queryClient = useQueryClient()
   const [formData, setFormData] = useState({
     name: "",
@@ -71,7 +73,6 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
   const [alertType, setAlertType] = useState<"success" | "error">("success")
   const [alertMessage, setAlertMessage] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [shouldAnimate, setShouldAnimate] = useState(false)
 
   const isStudent = type === "student"
   const isEditMode = !!initialData
@@ -91,10 +92,12 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.studentsList() });
       queryClient.invalidateQueries({ queryKey: queryKeys.teachersList() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.students() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teachers() });
       setAlertType("success");
       setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 ${isEditMode ? "수정" : "추가"}되었습니다.`);
       setAlertOpen(true);
-      onOpenChange(false);
+      if (!asPanel) onOpenChange(false);
     },
     onError: (error: any) => {
       setAlertType("error");
@@ -111,6 +114,8 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.studentsList() });
       queryClient.invalidateQueries({ queryKey: queryKeys.teachersList() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.students() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teachers() });
       setAlertType("success");
       setAlertMessage(`${isStudent ? "학생" : "선생님"}이 성공적으로 삭제되었습니다.`);
       setAlertOpen(true);
@@ -147,18 +152,6 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
   }
 
   useEffect(() => {
-    if (open) {
-      // 모달이 열릴 때 약간의 지연을 두고 애니메이션 트리거
-      const timer = setTimeout(() => {
-        setShouldAnimate(true)
-      }, 10)
-      return () => clearTimeout(timer)
-    } else {
-      setShouldAnimate(false)
-    }
-  }, [open])
-
-  useEffect(() => {
     if (open && initialData) {
       setFormData({
         name: initialData.name || "",
@@ -184,159 +177,177 @@ export default function NewPeople({ open, onOpenChange, type, initialData }: New
     }
   }, [open, initialData, type])
 
+  const formContent = (
+    <form onSubmit={handleSubmit}>
+      <div className="grid gap-4 py-4">
+        <div className="grid gap-2">
+          <Label>이름 * / 성별</Label>
+          <div className="flex gap-2">
+            <Input
+              id="name"
+              placeholder="이름을 입력하세요"
+              value={formData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+              className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0 flex-1"
+              required
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleChange("sex", "MAN")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  formData.sex === "MAN"
+                    ? "bg-[#2C79FF] text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                남성
+              </button>
+              <button
+                type="button"
+                onClick={() => handleChange("sex", "WOMAN")}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  formData.sex === "WOMAN"
+                    ? "bg-[#2C79FF] text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                여성
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="birth">생년월일</Label>
+          <Input
+            id="birth"
+            type="date"
+            value={formData.birth}
+            onChange={(e) => handleChange("birth", e.target.value)}
+            className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+          />
+        </div>
+
+        <div className="grid gap-2">
+          <Label htmlFor="phone">전화번호</Label>
+          <Input
+            id="phone"
+            type="tel"
+            placeholder="010-1234-5678"
+            value={formData.phone}
+            onChange={(e) => handlePhoneChange("phone", e.target.value)}
+            className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+          />
+        </div>
+
+        {isStudent ? (
+          <>
+            <div className="grid gap-2">
+              <Label htmlFor="parentPhone">부모님 연락처</Label>
+              <Input
+                id="parentPhone"
+                type="tel"
+                placeholder="010-1234-5678"
+                value={formData.parentPhone}
+                onChange={(e) => handlePhoneChange("parentPhone", e.target.value)}
+                className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="school">소속 학교</Label>
+              <Input
+                id="school"
+                placeholder="소속 학교를 입력하세요"
+                value={formData.school}
+                onChange={(e) => handleChange("school", e.target.value)}
+                className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+              />
+            </div>
+          </>
+        ) : (
+          <div className="grid gap-2">
+            <Label htmlFor="teacherType">선생님 타입</Label>
+            <select
+              id="teacherType"
+              value={formData.teacherType}
+              onChange={(e) => handleChange("teacherType", e.target.value)}
+              className="flex h-10 w-full rounded-md border-0 bg-gray-100 px-3 py-2 text-base focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+            >
+              <option value="">선택하세요</option>
+              <option value="teacher">선생님</option>
+              <option value="helper">도우미</option>
+              <option value="pastor">교역자</option>
+            </select>
+          </div>
+        )}
+
+        <div className="grid gap-2">
+          <Label htmlFor="memo">기타</Label>
+          <Textarea
+            id="memo"
+            placeholder="기타 사항을 입력하세요"
+            value={formData.memo}
+            onChange={(e) => handleChange("memo", e.target.value)}
+            rows={3}
+            className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+          />
+        </div>
+      </div>
+
+      <div className="flex justify-between">
+        {isEditMode && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleDeleteClick}
+            className="text-gray-600 hover:text-red-500 hover:bg-transparent"
+          >
+            삭제
+          </Button>
+        )}
+        <Button
+          type="submit"
+          className="bg-[#2C79FF] text-white hover:bg-[#2C79FF]/90 ml-auto"
+        >
+          {isEditMode ? "수정하기" : "추가"}
+        </Button>
+      </div>
+    </form>
+  )
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={`sm:max-w-[500px] border-0 bg-[#F9F9FF] fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-out ${
-          shouldAnimate 
-            ? 'opacity-100 scale-100' 
-            : 'opacity-0 scale-95'
-        }`}>
-          <DialogHeader>
-            <DialogTitle>{isEditMode ? (isStudent ? "학생 정보 수정" : "선생님 정보 수정") : (isStudent ? "새 학생" : "새 선생님")}</DialogTitle>
-            <DialogDescription>
-              {isEditMode
-                ? (isStudent ? "학생 정보를 수정해주세요." : "선생님 정보를 수정해주세요.")
-                : (isStudent ? "새로운 학생 정보를 입력해주세요." : "새로운 선생님 정보를 입력해주세요.")}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label>이름 * / 성별</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="name"
-                    placeholder="이름을 입력하세요"
-                    value={formData.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
-                    className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0 flex-1"
-                    required
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleChange("sex", "MAN")}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                        formData.sex === "MAN"
-                          ? "bg-[#2C79FF] text-white"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      남성
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleChange("sex", "WOMAN")}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                        formData.sex === "WOMAN"
-                          ? "bg-[#2C79FF] text-white"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      여성
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="birth">생년월일</Label>
-                <Input
-                  id="birth"
-                  type="date"
-                  value={formData.birth}
-                  onChange={(e) => handleChange("birth", e.target.value)}
-                  className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="phone">전화번호</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="010-1234-5678"
-                  value={formData.phone}
-                  onChange={(e) => handlePhoneChange("phone", e.target.value)}
-                  className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
-                />
-              </div>
-
-              {isStudent ? (
-                <>
-                  <div className="grid gap-2">
-                    <Label htmlFor="parentPhone">부모님 연락처</Label>
-                    <Input
-                      id="parentPhone"
-                      type="tel"
-                      placeholder="010-1234-5678"
-                      value={formData.parentPhone}
-                      onChange={(e) => handlePhoneChange("parentPhone", e.target.value)}
-                      className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="school">소속 학교</Label>
-                    <Input
-                      id="school"
-                      placeholder="소속 학교를 입력하세요"
-                      value={formData.school}
-                      onChange={(e) => handleChange("school", e.target.value)}
-                      className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="grid gap-2">
-                  <Label htmlFor="teacherType">선생님 타입</Label>
-                  <select
-                    id="teacherType"
-                    value={formData.teacherType}
-                    onChange={(e) => handleChange("teacherType", e.target.value)}
-                    className="flex h-10 w-full rounded-md border-0 bg-gray-100 px-3 py-2 text-base focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                  >
-                    <option value="">선택하세요</option>
-                    <option value="teacher">선생님</option>
-                    <option value="helper">도우미</option>
-                    <option value="pastor">교역자</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="grid gap-2">
-                <Label htmlFor="memo">기타</Label>
-                <Textarea
-                  id="memo"
-                  placeholder="기타 사항을 입력하세요"
-                  value={formData.memo}
-                  onChange={(e) => handleChange("memo", e.target.value)}
-                  rows={3}
-                  className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
-                />
-              </div>
-            </div>
-            <DialogFooter className="flex justify-between">
-              {isEditMode && (
-                <Button 
-                  type="button"
-                  variant="ghost"
-                  onClick={handleDeleteClick}
-                  className="text-gray-600 hover:text-red-500 hover:bg-transparent"
-                >
-                  삭제
-                </Button>
-              )}
-              <Button 
-                type="submit"
-                className="bg-[#2C79FF] text-white hover:bg-[#2C79FF]/90"
-              >
-                {isEditMode ? "수정하기" : "추가"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {asPanel ? (
+        <div className="bg-transparent p-6 h-full overflow-y-auto animate-in fade-in slide-in-from-right-6 duration-300">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">
+              {isEditMode ? `${initialData.name} ${isStudent ? "학생" : "선생님"}` : (isStudent ? "새 학생" : "새 선생님")}
+            </h2>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          {formContent}
+        </div>
+      ) : (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogContent className="sm:max-w-[500px] border-0 bg-[#F9F9FF] duration-300">
+            <DialogHeader>
+              <DialogTitle>{isEditMode ? (isStudent ? "학생 정보 수정" : "선생님 정보 수정") : (isStudent ? "새 학생" : "새 선생님")}</DialogTitle>
+              <DialogDescription>
+                {isEditMode
+                  ? (isStudent ? "학생 정보를 수정해주세요." : "선생님 정보를 수정해주세요.")
+                  : (isStudent ? "새로운 학생 정보를 입력해주세요." : "새로운 선생님 정보를 입력해주세요.")}
+              </DialogDescription>
+            </DialogHeader>
+            {formContent}
+          </DialogContent>
+        </Dialog>
+      )}
       <Alert
         open={alertOpen}
         onOpenChange={setAlertOpen}

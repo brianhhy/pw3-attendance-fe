@@ -1,82 +1,54 @@
 "use client";
 
 import Image from "next/image";
-import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
-import { Search, Calendar, ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Search, Calendar, ChevronLeft, ChevronRight, Menu, X, Sparkles } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
 import useAttendanceStore from "../(store)/attendanceStore";
-import { getStudentAttendances } from "../(api)/attendance";
-import { getBirthdays } from "../(api)/birth";
 import Sidebar from "./Sidebar";
 
-const MonthBirthday = dynamic(() => import("../(modal)/MonthBirthday"), { ssr: false });
-
-interface Description{
-    title: string;
-    description: string;
-}
+const Chating = dynamic(() => import("../(modal)/Chating"), { ssr: false });
 
 interface SearchResult {
     id: number;
     name: string;
     type: "student" | "teacher";
     description: string;
+    destination: "attendance" | "management" | "management-attendance";
+    breadcrumb: string;
 }
-
-const descriptions: Description[] = [
-    {
-        title: "출석 체크 페이지",
-        description: "이름을 검색 후 출석 체크를 완료하세요!",
-    },
-    {
-        title: "관리 페이지",
-        description: "새로운 학생과 선생님을 추가하고 출석 상태를 관리하세요!",
-    },
-    {
-        title: "매칭 페이지",
-        description: "새로운 학생과 선생님을 반에 배정하세요!",
-    },
-    {
-        title: "통계 페이지",
-        description: "반별 출석률, 요일별 출석률과 같은 다양한 지표를 확인하세요!!",
-    },
-    {
-        title: "메시지 페이지",
-        description: "학생과 학부모에게 메시지를 보내보세요!",
-    },
-]
 
 
 const Header = () => {
 
     const pathname = usePathname();
+    const router = useRouter();
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [isAiOpen, setIsAiOpen] = useState(false);
+    const [isAiClosing, setIsAiClosing] = useState(false);
     const [calendarMonth, setCalendarMonth] = useState(new Date());
     const calendarRef = useRef<HTMLDivElement>(null);
     const mobileCalendarRef = useRef<HTMLDivElement>(null);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [birthdayList, setBirthdayList] = useState<{ name: string; label: string; day: number }[]>([]);
-    const [currentBdayIndex, setCurrentBdayIndex] = useState(0);
-    const [birthdayViewMonth, setBirthdayViewMonth] = useState(() => new Date().getMonth() + 1);
-    const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
     
-    const { 
-        students, 
-        teachers, 
-        getStudents, 
-        getTeachers, 
-        selectedDate, 
-        setSelectedDate, 
+    const {
+        students,
+        teachers,
+        getStudents,
+        getTeachers,
+        selectedDate,
+        setSelectedDate,
         getAttendances,
-        setSelectedItem
+        setSelectedItem,
+        setHeaderSearch,
     } = useAttendanceStore();
 
     useEffect(() => {
-        if (pathname === "/") {
+        if (pathname === "/attendance") {
             getStudents();
             getTeachers();
         }
@@ -88,31 +60,6 @@ const Header = () => {
             setCalendarMonth(new Date(selectedDate));
         }
     }, [selectedDate]);
-
-    useEffect(() => {
-        getBirthdays(birthdayViewMonth)
-            .then((data) => {
-                const list: { name: string; label: string; day: number }[] = [];
-                data.students.forEach((s) => {
-                    list.push({ name: s.name, label: s.className, day: s.birth[2] });
-                });
-                data.teachers.forEach((t) => {
-                    list.push({ name: t.name, label: "선생님", day: t.birth[2] });
-                });
-                list.sort((a, b) => a.day - b.day);
-                setBirthdayList(list);
-                setCurrentBdayIndex(0);
-            })
-            .catch(() => {});
-    }, [birthdayViewMonth]);
-
-    useEffect(() => {
-        if (birthdayList.length <= 1) return;
-        const interval = setInterval(() => {
-            setCurrentBdayIndex((prev) => (prev + 1) % birthdayList.length);
-        }, 3000);
-        return () => clearInterval(interval);
-    }, [birthdayList.length]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -133,92 +80,96 @@ const Header = () => {
     }, [isCalendarOpen]);
 
     const searchResults = useMemo(() => {
-        if (pathname !== "/" || !searchQuery.trim()) return [];
+        if (!searchQuery.trim()) return [];
 
         const query = searchQuery.toLowerCase();
         const results: SearchResult[] = [];
 
-        students.forEach((student) => {
-            if (student.name.toLowerCase().includes(query)) {
+        const matchingStudents = students.filter((s) => s.name.toLowerCase().includes(query)).slice(0, 5);
+        const matchingTeachers = teachers.filter((t) => t.name.toLowerCase().includes(query)).slice(0, 5);
+
+        if (pathname === "/management/attendance") {
+            matchingStudents.forEach((student) => {
                 const currentYear = "2025";
                 const classes2025 = student.classesByYear?.[currentYear];
-                let description = "학생";
-                
+                let breadcrumb = student.name;
                 if (classes2025 && classes2025.length > 0) {
-                    const classInfo = classes2025[0];
-                    const schoolTypeName = classInfo.schoolType === "MIDDLE" ? "중학교" 
-                        : classInfo.schoolType === "HIGH" ? "고등학교"
-                        : classInfo.schoolType === "ELEMENTARY" ? "초등학교"
-                        : "학교";
-                    description = `${schoolTypeName} ${classInfo.grade}학년 ${classInfo.classNumber}반 학생`;
+                    const c = classes2025[0];
+                    breadcrumb = `${c.grade}학년 ${c.classNumber}반 > ${student.name}`;
                 }
-                
-                results.push({ 
-                    id: student.id,
-                    name: student.name, 
-                    type: "student",
-                    description: description
-                });
+                results.push({ id: student.id, name: student.name, type: "student", description: "학생", destination: "management-attendance", breadcrumb });
+            });
+            return results.slice(0, 10);
+        }
+
+        matchingStudents.forEach((student) => {
+            const currentYear = "2025";
+            const classes2025 = student.classesByYear?.[currentYear];
+            let description = "학생";
+
+            if (classes2025 && classes2025.length > 0) {
+                const classInfo = classes2025[0];
+                const schoolTypeName = classInfo.schoolType === "MIDDLE" ? "중학교"
+                    : classInfo.schoolType === "HIGH" ? "고등학교"
+                    : classInfo.schoolType === "ELEMENTARY" ? "초등학교"
+                    : "학교";
+                description = `${schoolTypeName} ${classInfo.grade}학년 ${classInfo.classNumber}반 학생`;
             }
+
+            results.push({ id: student.id, name: student.name, type: "student", description, destination: "attendance", breadcrumb: `출석체크 > 학생 > ${student.name}` });
+            results.push({ id: student.id, name: student.name, type: "student", description, destination: "management", breadcrumb: `사용자 관리 > 학생 > ${student.name}` });
         });
 
-        teachers.forEach((teacher) => {
-            if (teacher.name.toLowerCase().includes(query)) {
-                results.push({ 
-                    id: teacher.id,
-                    name: teacher.name, 
-                    type: "teacher",
-                    description: "선생님"
-                });
-            }
+        matchingTeachers.forEach((teacher) => {
+            results.push({ id: teacher.id, name: teacher.name, type: "teacher", description: "선생님", destination: "attendance", breadcrumb: `출석체크 > 선생님 > ${teacher.name}` });
+            results.push({ id: teacher.id, name: teacher.name, type: "teacher", description: "선생님", destination: "management", breadcrumb: `관리 > 선생님 > ${teacher.name}` });
         });
 
         return results.slice(0, 10);
-    }, [pathname, searchQuery, students, teachers]);
+    }, [searchQuery, students, teachers]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
+        if (pathname === "/management/attendance") {
+            setHeaderSearch(e.target.value.trim() ? { query: e.target.value, type: "student" } : null);
+        }
     };
 
     const handleResultClick = (result: SearchResult) => {
-        setSearchQuery(result.name);
+        setSearchQuery("");
         setIsSearchFocused(false);
-        
-        try {
-            const recentSearchItem = {
-                id: result.id,
-                name: result.name,
-                description: result.description,
-                type: result.type,
-                status: "before" as const,
-            };
 
+        const recentSearchItem = {
+            id: result.id,
+            name: result.name,
+            description: result.description,
+            type: result.type,
+            status: "before" as const,
+        };
+
+        try {
             const existingData = localStorage.getItem("recentSearchItems");
             let recentSearches: typeof recentSearchItem[] = [];
-            
             if (existingData) {
-                try {
-                    recentSearches = JSON.parse(existingData);
-                } catch (e) {
-                    recentSearches = [];
-                }
+                try { recentSearches = JSON.parse(existingData); } catch { recentSearches = []; }
             }
-
             recentSearches = recentSearches.filter(
                 (item) => !(item.id === recentSearchItem.id && item.type === recentSearchItem.type)
             );
-
             recentSearches.unshift(recentSearchItem);
-
-            recentSearches = recentSearches.slice(0, 5);
-
-            localStorage.setItem("recentSearchItems", JSON.stringify(recentSearches));
-            
+            localStorage.setItem("recentSearchItems", JSON.stringify(recentSearches.slice(0, 5)));
             window.dispatchEvent(new Event("localStorageUpdate"));
-            
+        } catch {}
+
+        setHeaderSearch({ query: result.name, type: result.type });
+
+        if (result.destination === "attendance") {
             setSelectedItem(recentSearchItem);
-        } catch (error) {
+            router.push("/attendance");
+        } else if (result.destination === "management") {
+            router.push("/management/people");
         }
+        // "management-attendance": 이미 해당 페이지에 있으므로 headerSearch만 설정
     };
 
     const formatDate = (dateString: string): string => {
@@ -279,6 +230,16 @@ const Header = () => {
             selected.getMonth() === calendarMonth.getMonth() &&
             selected.getDate() === day
         );
+    };
+
+    const handleAiToggle = () => {
+        if (isAiOpen) {
+            setIsAiClosing(true);
+            setIsAiOpen(false);
+            setTimeout(() => setIsAiClosing(false), 300);
+        } else {
+            setIsAiOpen(true);
+        }
     };
 
     const isFuture = (day: number): boolean => {
@@ -367,56 +328,23 @@ const Header = () => {
 
     return (
         <>
-            <header className="flex flex-col relative bg-white z-50">
-                <div className="flex flex-row items-center w-full px-5 py-5 relative">
-                    {/* lg 이상: 기존 레이아웃 */}
-                    <div className="hidden lg:flex flex-row items-center gap-6">
-                        <div className="flex flex-col items-center border-b border-[#d9d9d9] pb-2">
-                            <Image src="/images/logo.png" alt="logo" width={171} height={80} priority />
-                            <p className="text-[15px] font-medium text-[#2c79ff] mt-1 ml-5 whitespace-nowrap">서빙고 파워웨이브 3부 출석부</p>
-                        </div>
-                        <div className="flex flex-col ml-10">
-                            <span className="text-[30px] font-bold text-[#2C79FF]">{descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}</span>
-                            <span className="text-[20px] font-medium">{descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].description}</span>
-                        </div>
-                    </div>
-
+            <header className="flex flex-col relative bg-white z-50 border-b border-[#D9D9D9]">
+                <div className="flex flex-row items-center w-full px-5 py-3 relative">
                     {/* ===== lg 미만: 모바일 레이아웃 ===== */}
-                    {/* 왼쪽: 로고 + title */}
+                    {/* 왼쪽: 로고 */}
                     <div className="lg:hidden flex items-center gap-2 shrink-0 min-w-0">
                         <Image src="/images/logo.png" alt="logo" width={60} height={28} className="shrink-0" priority />
-                        <span className="max-[450px]:text-sm text-base font-bold text-[#2C79FF] truncate">
-                            {descriptions[pathname.startsWith("/management") ? 1 : pathname === "/matching" ? 2 : pathname === "/statistics" ? 3 : pathname === "/message" ? 4 : 0].title}
-                        </span>
                     </div>
 
-                    {/* 중앙: 생일자 (flex-1으로 정중앙 배치) */}
-                    <div className="lg:hidden flex-1 flex justify-center items-center">
-                        <button
-                            onClick={() => setIsBirthdayModalOpen(true)}
-                            className="flex items-center gap-1 px-1.5 py-1 rounded-lg hover:bg-pink-50 transition-colors"
-                        >
-                            <span className="text-sm">🎂</span>
-                            <span className="text-xs font-semibold text-pink-400 whitespace-nowrap">{birthdayViewMonth}월</span>
-                            {birthdayList.length > 0 ? (
-                                <div className="overflow-hidden h-5 relative w-16">
-                                    <span
-                                        key={currentBdayIndex}
-                                        className="absolute inset-0 flex items-center animate-birthday-ticker"
-                                    >
-                                        <span className="text-xs font-semibold text-[#2C79FF] whitespace-nowrap">
-                                            {birthdayList[currentBdayIndex].name}
-                                        </span>
-                                    </span>
-                                </div>
-                            ) : (
-                                <span className="text-xs text-gray-400">생일자</span>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* 오른쪽: 달력 아이콘 + 메뉴 */}
+                    {/* 오른쪽: AI 아이콘 + 달력 아이콘 + 메뉴 */}
                     <div className="lg:hidden flex items-center gap-0.5 shrink-0">
+                        <button
+                            onClick={handleAiToggle}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            aria-label="AI 채팅"
+                        >
+                            <Sparkles className="w-5 h-5 text-[#2C79FF]" />
+                        </button>
                         <div className="relative">
                             <button
                                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
@@ -439,40 +367,45 @@ const Header = () => {
                         </button>
                     </div>
 
-                    {/* 생일자 ticker - title~calendar 사이 정중앙 (lg 이상) */}
-                    <div className="hidden lg:flex flex-1 justify-center items-center">
-                        <button
-                            onClick={() => setIsBirthdayModalOpen(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-pink-50 transition-colors group"
-                        >
-                            <span className="text-sm">🎂</span>
-                            <span className="text-xs font-semibold text-pink-400 whitespace-nowrap group-hover:text-pink-500">{birthdayViewMonth}월 생일자</span>
-                            <div className="w-px h-3.5 bg-gray-200" />
-                            {birthdayList.length > 0 ? (
-                                <div className="overflow-hidden h-5 relative w-52">
-                                    <span
-                                        key={currentBdayIndex}
-                                        className="absolute inset-0 flex items-center gap-1.5 animate-birthday-ticker"
-                                    >
-                                        <span className="text-xs font-bold text-gray-700 whitespace-nowrap">
-                                            {birthdayList[currentBdayIndex].day}일
-                                        </span>
-                                        <span className="text-xs font-semibold text-[#2C79FF] whitespace-nowrap">
-                                            {birthdayList[currentBdayIndex].name}
-                                        </span>
-                                        <span className="text-xs text-gray-400 whitespace-nowrap">
-                                            ({birthdayList[currentBdayIndex].label})
-                                        </span>
-                                    </span>
+                    {/* lg 이상: 검색창 - 왼쪽 */}
+                    <div className="hidden lg:flex flex-1 relative mr-4">
+                        <div className="relative w-full max-w-lg">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={handleSearchChange}
+                                onFocus={() => setIsSearchFocused(true)}
+                                onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
+                                placeholder="이름을 입력해주세요"
+                                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none transition-all"
+                            />
+                            {isSearchFocused && searchResults.length > 0 && pathname !== "/management/attendance" && (
+                                <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-[999] overflow-hidden">
+                                    {searchResults.map((result) => (
+                                        <button
+                                            key={`${result.type}-${result.id}-${result.destination}`}
+                                            onMouseDown={() => handleResultClick(result)}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[#F7F8FF] transition-colors border-b border-gray-100 last:border-0 text-left"
+                                        >
+                                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${result.destination === "attendance" ? "bg-[#2C79FF]" : "bg-emerald-500"}`} />
+                                            <span className="text-sm text-gray-700 truncate">{result.breadcrumb}</span>
+                                        </button>
+                                    ))}
                                 </div>
-                            ) : (
-                                <span className="text-xs text-gray-400">없음</span>
                             )}
-                        </button>
+                        </div>
                     </div>
 
-                    {/* lg 이상: 달력 - 오른쪽 */}
-                    <div className="hidden lg:flex flex-shrink-0 z-50">
+                    {/* lg 이상: AI 버튼 + 달력 - 오른쪽 */}
+                    <div className="hidden lg:flex items-center gap-1 flex-shrink-0 z-50">
+                        <button
+                            onClick={handleAiToggle}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            aria-label="AI 채팅"
+                        >
+                            <Sparkles className="w-5 h-5 text-[#2C79FF]" />
+                        </button>
                         <div className="relative">
                             <button
                                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
@@ -495,7 +428,7 @@ const Header = () => {
 
             </header>
 
-            <MonthBirthday open={isBirthdayModalOpen} onOpenChange={setIsBirthdayModalOpen} initialMonth={birthdayViewMonth} />
+            <Chating isOpen={isAiOpen} isClosing={isAiClosing} onClose={handleAiToggle} />
 
             {/* 모바일 Sidebar 오버레이 - lg 이하 */}
             {isMobileMenuOpen && (

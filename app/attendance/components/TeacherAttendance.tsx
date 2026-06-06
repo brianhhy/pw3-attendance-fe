@@ -1,26 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import useAttendanceStore from "../(shared)/(store)/attendanceStore";
+import useAttendanceStore from "../../(shared)/(store)/attendanceStore";
 import {
   useTeacherAttendanceQuery,
   useMarkTeacherAttendance,
   getTeacherAttendanceStatus,
   isTeacherAttendanceMarked,
   getTeacherAttendanceErrorMessage,
-} from "../(shared)/(hooks)/useTeacherAttendance";
-import { useAttendanceWebSocket } from "../(shared)/(hooks)/useAttendanceWebSocket";
-import { getTeacherList } from "../(shared)/(api)/teacher";
-import { queryKeys } from "../(shared)/(api)/queryKeys";
-import Alert from "../(shared)/(modal)/Alert";
-import Search from "../(shared)/(components)/Search";
+} from "../../(shared)/(hooks)/useTeacherAttendance";
+import { useAttendanceWebSocket } from "../../(shared)/(hooks)/useAttendanceWebSocket";
+import { getTeacherList } from "../../(shared)/(api)/teacher";
+import { queryKeys } from "../../(shared)/(api)/queryKeys";
+import Alert from "../../(shared)/(modal)/Alert";
+import Search from "../../(shared)/(components)/Search";
 
 export default function TeacherAttendance() {
-  const { selectedDate } = useAttendanceStore();
+  const { selectedDate, headerSearch, setHeaderSearch } = useAttendanceStore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (headerSearch?.type === "teacher") {
+      setSearchQuery(headerSearch.query);
+      setHeaderSearch(null);
+    }
+  }, [headerSearch]);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
