@@ -16,6 +16,17 @@ import { queryKeys } from "../../(shared)/(api)/queryKeys";
 import Alert from "../../(shared)/(modal)/Alert";
 import Search from "../../(shared)/(components)/Search";
 
+interface TeacherListItem {
+  id: number;
+  name: string;
+  status: string;
+  number: string;
+  teacherType?: string | null;
+  classesByYear?: {
+    [year: string]: { schoolType: string; grade: number; classNumber: number }[];
+  };
+}
+
 export default function TeacherAttendance() {
   const { selectedDate, headerSearch, setHeaderSearch } = useAttendanceStore();
 
@@ -24,15 +35,16 @@ export default function TeacherAttendance() {
 
   useEffect(() => {
     if (headerSearch?.type === "teacher") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSearchQuery(headerSearch.query);
       setHeaderSearch(null);
     }
-  }, [headerSearch]);
+  }, [headerSearch, setHeaderSearch]);
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState<"success" | "error">("success");
   const [alertMessage, setAlertMessage] = useState("");
 
-  const { data: teachers = [], isPending: isLoading } = useQuery<{ id: number; name: string; status: string; number: string; classesByYear?: { [year: string]: { schoolType: string; grade: number; classNumber: number }[] } }[]>({
+  const { data: teachers = [], isPending: isLoading } = useQuery<TeacherListItem[]>({
     queryKey: queryKeys.teachersList(),
     queryFn: getTeacherList,
   });
@@ -74,13 +86,16 @@ export default function TeacherAttendance() {
     return schoolType;
   };
 
-  const getTeacherDescription = (teacher: {
-    classesByYear?: {
-      [year: string]: { schoolType: string; grade: number; classNumber: number }[];
-    };
-  }) => {
-    const classes = teacher.classesByYear?.["2026"];
-    if (!classes || classes.length === 0) return "담임";
+  const getTeacherTypeName = (teacherType?: string | null) => {
+    if (teacherType === "HELPER") return "헬퍼";
+    if (teacherType === "PASTOR") return "교역자";
+    return "교사";
+  };
+
+  const getTeacherDescription = (teacher: TeacherListItem) => {
+    const currentYear = String(new Date().getFullYear());
+    const classes = teacher.classesByYear?.[currentYear];
+    if (!classes || classes.length === 0) return getTeacherTypeName(teacher.teacherType);
     return classes
       .map(
         (c) =>
