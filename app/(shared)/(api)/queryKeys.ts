@@ -8,6 +8,8 @@ export const queryKeys = {
   parentAttendanceStats: (date: string) => ["parent-attendance-stats", date] as const,
   birthdays: (month: number) => ["birthdays", month] as const,
   attendanceReport: (date: string) => ["attendance-report", date] as const,
+  monthlyAttendanceReport: (year: number, month: number, schoolYear: number, weakClassThreshold: number) =>
+    ["monthly-attendance-report", year, month, schoolYear, weakClassThreshold] as const,
   studentsList: () => ["students-list"] as const,
   teachersList: () => ["teachers-list"] as const,
   classesByYear: (year: number) => ["classes-by-year", year] as const,

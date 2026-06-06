@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LayoutDashboard, ClipboardCheck, Settings, BarChart, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users } from "lucide-react";
+import { LayoutDashboard, ClipboardCheck, Settings, BarChart, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users, FileText } from "lucide-react";
 import { getTodayKST } from "../utils/dateUtil";
 
 interface MenuItem {
@@ -27,6 +27,7 @@ const baseMenuItems: MenuItem[] = [
         ],
     },
     { href: "/statistics", label: "통계", icon: BarChart },
+    { href: "/monthly-report", label: "월별 보고서", icon: FileText },
     // { href: "/message", label: "메시지", icon: Mail },
 ];
 
@@ -41,7 +42,6 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
         pathname.startsWith("/management") ? "/management" : null
     );
     const [showParentsMenu, setShowParentsMenu] = useState(false);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => {
         try {
             const raw = localStorage.getItem("pw3_event");
@@ -53,6 +53,7 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
                 (e: { date: string; type: string }) =>
                     e.date === today && e.type === "parents_observation"
             );
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowParentsMenu(hasToday);
         } catch {
             // ignore invalid data
