@@ -337,7 +337,7 @@ const Header = () => {
                     </div>
 
                     {/* 오른쪽: AI 아이콘 + 달력 아이콘 + 메뉴 */}
-                    <div className="lg:hidden flex items-center gap-0.5 shrink-0">
+                    <div className="lg:hidden flex items-center gap-0.5 shrink-0 ml-auto">
                         <button
                             onClick={handleAiToggle}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
