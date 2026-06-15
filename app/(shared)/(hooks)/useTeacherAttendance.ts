@@ -58,7 +58,7 @@ export function useMarkTeacherAttendance(date: string) {
       status,
     }: {
       teacherId: number;
-      status: "ATTEND" | "LATE" | "ABSENT";
+      status: "ATTEND" | "LATE" | "ABSENT" | "OTHER";
     }) => markTeacherAttendance(teacherId, status, date),
 
     onMutate: async ({ teacherId, status }) => {
@@ -98,12 +98,14 @@ export function useMarkTeacherAttendance(date: string) {
 export const getTeacherAttendanceStatus = (
   statuses: TeacherAttendanceStatuses,
   teacherId: number
-): "ATTEND" | "LATE" | null => {
+): "ATTEND" | "LATE" | "ABSENT" | "OTHER" | null => {
   const status = statuses[teacherId]?.status;
   if (!status) return null;
   const upper = String(status).toUpperCase();
   if (upper === "ATTEND" || upper === "ATTENDED") return "ATTEND";
   if (upper === "LATE") return "LATE";
+  if (upper === "ABSENT") return "ABSENT";
+  if (upper === "OTHER") return "OTHER";
   return null;
 };
 
@@ -114,7 +116,7 @@ export const isTeacherAttendanceMarked = (
   const status = statuses[teacherId]?.status;
   if (!status) return false;
   const upper = String(status).toUpperCase();
-  return upper === "ATTEND" || upper === "ATTENDED" || upper === "LATE";
+  return upper === "ATTEND" || upper === "ATTENDED" || upper === "LATE" || upper === "ABSENT" || upper === "OTHER";
 };
 
 export const getTeacherAttendanceErrorMessage = (error: unknown): string => {
