@@ -16,6 +16,7 @@ import { queryKeys } from "../../../(shared)/(api)/queryKeys";
 import Alert from "../../../(shared)/(modal)/Alert";
 import Search from "../../../(shared)/(components)/Search";
 import VoiceSearchButton from "../../../(shared)/(components)/VoiceSearchButton";
+import FaceImageHoverPreview from "../../../(shared)/(components)/FaceImageHoverPreview";
 
 interface TeacherListItem {
   id: number;
@@ -23,6 +24,7 @@ interface TeacherListItem {
   status: string;
   number: string;
   teacherType?: string | null;
+  hasFaceImage?: boolean;
   classesByYear?: {
     [year: string]: { schoolType: string; grade: number; classNumber: number }[];
   };
@@ -167,9 +169,13 @@ export default function TeacherAttendance() {
                   className="flex items-center justify-between p-3 xl:p-4 bg-white rounded-lg shadow-sm border border-gray-200"
                 >
                   <div className="flex flex-col min-w-0 mr-2">
-                    <span className="text-lg xl:text-2xl font-bold text-black truncate">
-                      {teacher.name}
-                    </span>
+                    <FaceImageHoverPreview
+                      id={teacher.id}
+                      name={teacher.name}
+                      type="teacher"
+                      hasFaceImage={teacher.hasFaceImage}
+                      className="block truncate text-lg font-bold text-black xl:text-2xl"
+                    />
                     <span className="text-xs xl:text-sm text-gray-500 mt-1 truncate">
                       {getTeacherDescription(teacher)}
                     </span>

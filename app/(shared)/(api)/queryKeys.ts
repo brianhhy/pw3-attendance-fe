@@ -13,4 +13,6 @@ export const queryKeys = {
   studentsList: () => ["students-list"] as const,
   teachersList: () => ["teachers-list"] as const,
   classesByYear: (year: number) => ["classes-by-year", year] as const,
+  faceImage: (type: "student" | "teacher", id: number) =>
+    ["face-image", type, id] as const,
 };

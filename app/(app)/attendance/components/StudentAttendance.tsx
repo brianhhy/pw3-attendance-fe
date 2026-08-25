@@ -11,6 +11,7 @@ import { useAttendanceWebSocket } from "../../../(shared)/(hooks)/useAttendanceW
 import Alert from "../../../(shared)/(modal)/Alert";
 import Search from "../../../(shared)/(components)/Search";
 import VoiceSearchButton from "../../../(shared)/(components)/VoiceSearchButton";
+import FaceImageHoverPreview from "../../../(shared)/(components)/FaceImageHoverPreview";
 
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
@@ -148,7 +149,13 @@ export default function StudentAttendance() {
                       {classItem.students.map((student, idx) => (
                         <tr key={student.id} className="border-b border-gray-100">
                           <td className="py-3 px-4 text-sm">{idx + 1}</td>
-                          <td className="py-3 px-4 text-sm">{student.name}</td>
+                          <td className="py-3 px-4 text-sm">
+                            <FaceImageHoverPreview
+                              id={student.id}
+                              name={student.name}
+                              type="student"
+                            />
+                          </td>
                           <td className="py-3 px-4">
                             <button
                               onClick={() =>
