@@ -68,8 +68,8 @@ export default function TeacherManagement({ onSelect, selectedId }: TeacherManag
   }
 
   return (
-    <div className="w-full bg-transparent p-3">
-      <div className="flex items-center justify-between mb-6 gap-4">
+    <div className="w-full h-full flex flex-col bg-transparent p-3">
+      <div className="flex-shrink-0 flex items-center justify-between mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground whitespace-nowrap">선생님 관리</h1>
         <Search
           isOpen={isSearchOpen}
@@ -79,7 +79,7 @@ export default function TeacherManagement({ onSelect, selectedId }: TeacherManag
         />
       </div>
 
-      <div className="grid grid-cols-5 gap-4 pb-4 border-b border-gray-200">
+      <div className="flex-shrink-0 grid grid-cols-5 gap-4 pb-4 border-b border-gray-200">
         {filters.map((filter, index) => (
           <button
             key={index}
@@ -91,7 +91,7 @@ export default function TeacherManagement({ onSelect, selectedId }: TeacherManag
         ))}
       </div>
 
-      <div className="max-h-[90px] lg:max-h-[180px] overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         {isPending ? (
           <>
             {[...Array(4)].map((_, index) => (
@@ -139,10 +139,10 @@ export default function TeacherManagement({ onSelect, selectedId }: TeacherManag
         )}
       </div>
 
-      <div className="mt-2 flex justify-start">
+      <div className="flex-shrink-0 mt-2">
         <Button
           variant="ghost"
-          className="text-gray-600 hover:text-gray-900 whitespace-nowrap"
+          className="w-full justify-start bg-[#EAF1FF] hover:bg-[#D6E4FF] text-[#2C79FF] whitespace-nowrap"
           onClick={() => {
             setSelectedTeacher(null);
             setIsModalOpen(true);

@@ -133,6 +133,14 @@
   background-color: #e2e4ff;
 }
 
+.dark .step-connector {
+  background-color: #374151;
+}
+
+.dark .back-button {
+  color: #9ca3af;
+}
+
 .step-connector-inner {
   position: absolute;
   left: 0;

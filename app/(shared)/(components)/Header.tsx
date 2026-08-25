@@ -7,9 +7,11 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import dynamic from "next/dynamic";
 import useAttendanceStore from "../(store)/attendanceStore";
 import useAuthStore from "../(store)/authStore";
+import useThemeStore from "../(store)/themeStore";
 import { getAdmins, approveAdmin, rejectAdmin, type AdminApplicant } from "../(api)/admin";
 import Sidebar from "./Sidebar";
 import Alert from "../(modal)/Alert";
+import ThemeToggle from "./ThemeToggle";
 
 const Chating = dynamic(() => import("../(modal)/Chating"), { ssr: false });
 
@@ -65,6 +67,11 @@ const Header = () => {
     } = useAttendanceStore();
 
     const { admin } = useAuthStore();
+    const { syncTheme } = useThemeStore();
+
+    useEffect(() => {
+        syncTheme();
+    }, [syncTheme]);
 
     useEffect(() => {
         if (pathname === "/attendance") {
@@ -183,7 +190,7 @@ const Header = () => {
         const matchingStudents = students.filter((s) => s.name.toLowerCase().includes(query)).slice(0, 5);
         const matchingTeachers = teachers.filter((t) => t.name.toLowerCase().includes(query)).slice(0, 5);
 
-        if (pathname === "/management/attendance") {
+        if (pathname === "/management/attendance/student") {
             matchingStudents.forEach((student) => {
                 const currentYear = "2025";
                 const classes2025 = student.classesByYear?.[currentYear];
@@ -225,7 +232,7 @@ const Header = () => {
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
-        if (pathname === "/management/attendance") {
+        if (pathname === "/management/attendance/student") {
             setHeaderSearch(e.target.value.trim() ? { query: e.target.value, type: "student" } : null);
         }
     };
@@ -262,7 +269,7 @@ const Header = () => {
             setSelectedItem(recentSearchItem);
             router.push("/attendance");
         } else if (result.destination === "management") {
-            router.push("/management/people");
+            router.push(result.type === "teacher" ? "/management/people/teacher" : "/management/people/student");
         }
         // "management-attendance": 이미 해당 페이지에 있으므로 headerSearch만 설정
     };
@@ -364,12 +371,12 @@ const Header = () => {
                     disabled={future}
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs transition-colors ${
                         future
-                            ? "text-gray-300 cursor-not-allowed"
+                            ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
                             : isSelected(day)
                             ? "bg-[#2C79FF] text-white font-bold"
                             : isToday(day)
-                            ? "bg-gray-200 font-semibold"
-                            : "hover:bg-gray-100"
+                            ? "bg-gray-200 dark:bg-gray-700 font-semibold text-gray-900 dark:text-gray-100"
+                            : "text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
                 >
                     {day}
@@ -384,32 +391,32 @@ const Header = () => {
         const isNextMonthFuture = nextMonth > today;
 
         return (
-            <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-[250px]">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 w-[250px]">
                 <div className="flex items-center justify-between mb-3">
                     <button
                         onClick={handlePrevMonth}
-                        className="p-1 hover:bg-gray-100 rounded"
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                     >
-                        <ChevronLeft className="w-4 h-4" />
+                        <ChevronLeft className="w-4 h-4 text-gray-900 dark:text-gray-100" />
                     </button>
-                    <span className="font-bold text-base">
+                    <span className="font-bold text-base text-gray-900 dark:text-gray-100">
                         {calendarMonth.getFullYear()}년 {calendarMonth.getMonth() + 1}월
                     </span>
                     <button
                         onClick={handleNextMonth}
                         disabled={isNextMonthFuture}
                         className={`p-1 rounded ${
-                            isNextMonthFuture 
-                                ? "opacity-30 cursor-not-allowed" 
-                                : "hover:bg-gray-100"
+                            isNextMonthFuture
+                                ? "opacity-30 cursor-not-allowed"
+                                : "hover:bg-gray-100 dark:hover:bg-gray-700"
                         }`}
                     >
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-4 h-4 text-gray-900 dark:text-gray-100" />
                     </button>
                 </div>
                 <div className="grid grid-cols-7 gap-1 mb-2">
                     {weekdays.map((day) => (
-                        <div key={day} className="w-8 h-8 flex items-center justify-center text-xs font-semibold text-gray-600">
+                        <div key={day} className="w-8 h-8 flex items-center justify-center text-xs font-semibold text-gray-600 dark:text-gray-400">
                             {day}
                         </div>
                     ))}
@@ -422,23 +429,23 @@ const Header = () => {
     };
 
     const renderNotificationPanel = () => (
-        <div className="bg-white border border-gray-200 rounded-lg shadow-lg w-80 max-w-[calc(100vw-2.5rem)]">
-            <div className="px-4 py-3 border-b border-gray-100 font-bold text-sm text-gray-900">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg w-80 max-w-[calc(100vw-2.5rem)]">
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 font-bold text-sm text-gray-900 dark:text-gray-100">
                 알림
             </div>
             <div className="max-h-80 overflow-y-auto">
                 {isAdminsLoading ? (
-                    <div className="px-4 py-6 text-center text-sm text-gray-400">불러오는 중...</div>
+                    <div className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">불러오는 중...</div>
                 ) : pendingAdmins.length === 0 ? (
-                    <div className="px-4 py-6 text-center text-sm text-gray-400">승인 대기 중인 신청이 없습니다.</div>
+                    <div className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">승인 대기 중인 신청이 없습니다.</div>
                 ) : (
                     pendingAdmins.map((admin) => (
-                        <div key={admin.id} className="px-4 py-3 border-b border-gray-100 last:border-0">
+                        <div key={admin.id} className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
                             <div className="flex flex-col gap-0.5 mb-2">
-                                <span className="text-sm font-semibold text-gray-900">
-                                    {admin.name} <span className="text-gray-400 font-normal">({admin.username})</span>
+                                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                    {admin.name} <span className="text-gray-400 dark:text-gray-500 font-normal">({admin.username})</span>
                                 </span>
-                                <span className="text-xs text-gray-500">{admin.email} · {admin.phone}</span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">{admin.email} · {admin.phone}</span>
                             </div>
                             <div className="flex gap-2">
                                 <button
@@ -451,7 +458,7 @@ const Header = () => {
                                 <button
                                     onClick={() => handleRejectAdmin(admin.id)}
                                     disabled={processingAdminId === admin.id}
-                                    className="flex-1 rounded-md border border-gray-200 text-gray-600 text-xs font-medium py-1.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 rounded-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-xs font-medium py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     거절
                                 </button>
@@ -465,7 +472,7 @@ const Header = () => {
 
     return (
         <>
-            <header className="flex flex-col relative bg-white z-50 border-b border-[#D9D9D9]">
+            <header className="flex flex-col relative bg-white dark:bg-gray-900 z-50 border-b border-[#D9D9D9] dark:border-gray-800">
                 <div className="flex flex-row items-center w-full px-5 py-3 relative">
                     {/* ===== lg 미만: 모바일 레이아웃 ===== */}
                     {/* 왼쪽: 로고 */}
@@ -475,9 +482,10 @@ const Header = () => {
 
                     {/* 오른쪽: AI 아이콘 + 달력 아이콘 + 메뉴 */}
                     <div className="lg:hidden flex items-center gap-0.5 shrink-0 ml-auto">
+                        <ThemeToggle className="mr-1" />
                         <button
                             onClick={handleAiToggle}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             aria-label="AI 채팅"
                         >
                             <Sparkles className="w-5 h-5 text-[#2C79FF]" />
@@ -485,7 +493,7 @@ const Header = () => {
                         <div className="relative">
                             <button
                                 onClick={handleNotificationToggle}
-                                className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                 aria-label="가입 승인 알림"
                             >
                                 <Bell className="w-5 h-5 text-[#2C79FF]" />
@@ -504,7 +512,7 @@ const Header = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             >
                                 <Calendar className="w-5 h-5 text-[#2C79FF]" />
                             </button>
@@ -516,7 +524,7 @@ const Header = () => {
                         </div>
                         <button
                             onClick={() => setIsMobileMenuOpen(true)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             aria-label="메뉴 열기"
                         >
                             <Menu className="w-6 h-6 text-[#2C79FF]" />
@@ -534,18 +542,18 @@ const Header = () => {
                                 onFocus={() => setIsSearchFocused(true)}
                                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
                                 placeholder="이름을 입력해주세요"
-                                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none transition-all"
+                                className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none transition-all"
                             />
-                            {isSearchFocused && searchResults.length > 0 && pathname !== "/management/attendance" && (
-                                <div className="absolute top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-[999] overflow-hidden">
+                            {isSearchFocused && searchResults.length > 0 && pathname !== "/management/attendance/student" && (
+                                <div className="absolute top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-[999] overflow-hidden">
                                     {searchResults.map((result) => (
                                         <button
                                             key={`${result.type}-${result.id}-${result.destination}`}
                                             onMouseDown={() => handleResultClick(result)}
-                                            className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[#F7F8FF] transition-colors border-b border-gray-100 last:border-0 text-left"
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-[#F7F8FF] dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 last:border-0 text-left"
                                         >
                                             <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${result.destination === "attendance" ? "bg-[#2C79FF]" : "bg-emerald-500"}`} />
-                                            <span className="text-sm text-gray-700 truncate">{result.breadcrumb}</span>
+                                            <span className="text-sm text-gray-700 dark:text-gray-200 truncate">{result.breadcrumb}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -555,9 +563,10 @@ const Header = () => {
 
                     {/* lg 이상: AI 버튼 + 알림 + 달력 - 오른쪽 */}
                     <div className="hidden lg:flex items-center gap-1 flex-shrink-0 z-50">
+                        <ThemeToggle className="mr-1" />
                         <button
                             onClick={handleAiToggle}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             aria-label="AI 채팅"
                         >
                             <Sparkles className="w-5 h-5 text-[#2C79FF]" />
@@ -565,7 +574,7 @@ const Header = () => {
                         <div className="relative">
                             <button
                                 onClick={handleNotificationToggle}
-                                className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                                 aria-label="가입 승인 알림"
                             >
                                 <Bell className="w-5 h-5 text-[#2C79FF]" />
@@ -584,7 +593,7 @@ const Header = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors relative z-50"
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative z-50"
                             >
                                 <Calendar className="w-4 h-4 text-[#2C79FF]" />
                                 <span className="text-base font-medium text-[#2C79FF]">
@@ -598,8 +607,8 @@ const Header = () => {
                             )}
                         </div>
                         {admin && (
-                            <div className="flex items-center gap-2 pl-3 ml-1 border-l border-gray-200">
-                                <div className="w-9 h-9 rounded-full bg-[#EAF1FF] flex items-center justify-center flex-shrink-0">
+                            <div className="flex items-center gap-2 pl-3 ml-1 border-l border-gray-200 dark:border-gray-700">
+                                <div className="w-9 h-9 rounded-full bg-[#EAF1FF] dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
                                     {admin.role.includes("SUPER") ? (
                                         <ShieldUser className="w-5 h-5 text-[#2C79FF]" />
                                     ) : (
@@ -607,8 +616,8 @@ const Header = () => {
                                     )}
                                 </div>
                                 <div className="flex flex-col leading-tight">
-                                    <span className="text-sm font-semibold text-gray-900">{admin.name}</span>
-                                    <span className="text-xs text-gray-500">{admin.username}</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{admin.name}</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">{admin.username}</span>
                                 </div>
                             </div>
                         )}

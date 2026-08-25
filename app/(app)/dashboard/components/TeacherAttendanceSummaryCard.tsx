@@ -8,6 +8,7 @@ import { useTeacherAttendanceQuery } from "@/app/(shared)/(hooks)/useTeacherAtte
 import { getTeacherList } from "@/app/(shared)/(api)/teacher";
 import { queryKeys } from "@/app/(shared)/(api)/queryKeys";
 import { getTodayKST } from "@/app/(shared)/utils/dateUtil";
+import SpotlightCard from "@/app/(shared)/(components)/SpotlightCard";
 
 const formatKoreanDate = (dateStr: string) => {
   const [y, m, d] = dateStr.split("-");
@@ -46,18 +47,18 @@ export default function TeacherAttendanceSummaryCard() {
   }, [teachers, attendanceStatuses]);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 w-full flex flex-col gap-4">
+    <SpotlightCard className="p-6 w-full flex flex-col gap-4" spotlightColor="rgba(44, 121, 255, 0.15)">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-            <Users className="w-5 h-5 text-gray-700" />
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+            <Users className="w-5 h-5 text-gray-700 dark:text-gray-300" />
             선생님 출석 현황
           </h2>
-          <p className="text-sm text-gray-400 mt-0.5">{formatKoreanDate(today)}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-0.5">{formatKoreanDate(today)}</p>
         </div>
         <Link
           href="/attendance"
-          className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
         >
           출석 체크 <ArrowRight className="w-4 h-4" />
         </Link>
@@ -67,37 +68,37 @@ export default function TeacherAttendanceSummaryCard() {
         <div className="flex gap-8 animate-pulse">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="flex flex-col gap-1.5">
-              <div className="h-3.5 w-10 bg-gray-200 rounded-full" />
-              <div className="h-8 w-12 bg-gray-200 rounded-full" />
+              <div className="h-3.5 w-10 bg-gray-200 dark:bg-gray-700 rounded-full" />
+              <div className="h-8 w-12 bg-gray-200 dark:bg-gray-700 rounded-full" />
             </div>
           ))}
         </div>
       ) : (
         <div className="flex gap-8">
           <div>
-            <p className="text-xs text-gray-500 mb-1">출석</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">출석</p>
             <p className="text-3xl font-bold text-emerald-500">{stats.present}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">결석</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">결석</p>
             <p className="text-3xl font-bold text-red-500">{stats.absent}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-500 mb-1">미입력</p>
-            <p className="text-3xl font-bold text-gray-400">{stats.unrecorded}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">미입력</p>
+            <p className="text-3xl font-bold text-gray-400 dark:text-gray-500">{stats.unrecorded}</p>
           </div>
         </div>
       )}
 
-      <p className="text-[11px] text-gray-300">매주 일요일만 집계합니다</p>
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <span className="text-sm text-gray-500">출석률</span>
+      <p className="text-[11px] text-gray-300 dark:text-gray-600">매주 일요일만 집계합니다</p>
+      <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+        <span className="text-sm text-gray-500 dark:text-gray-400">출석률</span>
         {isLoading ? (
-          <div className="h-4 w-10 bg-gray-200 rounded-full animate-pulse" />
+          <div className="h-4 w-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
         ) : (
-          <span className="text-sm font-bold text-gray-800">{stats.markedPct}%</span>
+          <span className="text-sm font-bold text-gray-800 dark:text-gray-100">{stats.markedPct}%</span>
         )}
       </div>
-    </div>
+    </SpotlightCard>
   );
 }

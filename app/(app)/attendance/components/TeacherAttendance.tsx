@@ -17,6 +17,9 @@ import Alert from "../../../(shared)/(modal)/Alert";
 import Search from "../../../(shared)/(components)/Search";
 import VoiceSearchButton from "../../../(shared)/(components)/VoiceSearchButton";
 import FaceImageHoverPreview from "../../../(shared)/(components)/FaceImageHoverPreview";
+import AnimatedList from "@/components/ui/AnimatedList";
+import MagicBentoSection from "../../../(shared)/(components)/MagicBentoSection";
+import MagicBentoCard from "../../../(shared)/(components)/MagicBentoCard";
 
 interface TeacherListItem {
   id: number;
@@ -115,7 +118,7 @@ export default function TeacherAttendance() {
   return (
     <div className="h-[710px] w-full flex flex-col p-2">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
-        <h2 className="text-2xl font-semibold whitespace-nowrap">선생님 출석</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">선생님 출석</h2>
         <div className="flex items-center gap-2">
           <VoiceSearchButton
             onTranscript={(transcript) => {
@@ -131,29 +134,35 @@ export default function TeacherAttendance() {
           />
         </div>
       </div>
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <MagicBentoSection enabled glowColor="44, 121, 255">
         {isLoading ? (
           <div className="flex flex-col gap-3">
             {[...Array(5)].map((_, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 animate-pulse"
+                className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 animate-pulse"
               >
                 <div className="flex flex-col gap-2 flex-1">
-                  <div className="h-7 bg-gray-200 rounded w-24"></div>
-                  <div className="h-4 bg-gray-200 rounded w-40"></div>
+                  <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40"></div>
                 </div>
-                <div className="h-12 w-20 bg-gray-200 rounded-lg"></div>
+                <div className="h-12 w-20 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
               </div>
             ))}
           </div>
         ) : filteredTeachers.length === 0 ? (
-          <div className="py-8 text-center text-gray-500 text-sm">
+          <div className="py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             {searchQuery ? "검색 결과가 없습니다" : "선생님이 없습니다"}
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {filteredTeachers.map((teacher) => {
+          <AnimatedList
+            items={filteredTeachers}
+            getKey={(teacher) => teacher.id}
+            showGradients
+            enableArrowNavigation
+            displayScrollbar
+            renderItem={(teacher) => {
               const isMarked = isTeacherAttendanceMarked(
                 attendanceStatuses,
                 teacher.id
@@ -164,9 +173,9 @@ export default function TeacherAttendance() {
               );
 
               return (
-                <div
-                  key={teacher.id}
-                  className="flex items-center justify-between p-3 xl:p-4 bg-white rounded-lg shadow-sm border border-gray-200"
+                <MagicBentoCard
+                  glowColor="44, 121, 255"
+                  className="flex items-center justify-between p-3 xl:p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800"
                 >
                   <div className="flex flex-col min-w-0 mr-2">
                     <FaceImageHoverPreview
@@ -174,9 +183,9 @@ export default function TeacherAttendance() {
                       name={teacher.name}
                       type="teacher"
                       hasFaceImage={teacher.hasFaceImage}
-                      className="block truncate text-lg font-bold text-black xl:text-2xl"
+                      className="block truncate text-lg font-bold text-black dark:text-gray-100 xl:text-2xl"
                     />
-                    <span className="text-xs xl:text-sm text-gray-500 mt-1 truncate">
+                    <span className="text-xs xl:text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
                       {getTeacherDescription(teacher)}
                     </span>
                   </div>
@@ -190,8 +199,8 @@ export default function TeacherAttendance() {
                           ? "bg-[#9EFC9B] text-[#00CB18] cursor-not-allowed"
                           : attendanceStatus === "LATE"
                           ? "bg-[#FCD39B] text-[#F39200] cursor-not-allowed"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-[#d9d9d9] text-[#697077] hover:opacity-90"
+                          : "bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                        : "bg-[#d9d9d9] dark:bg-gray-700 text-[#697077] dark:text-gray-300 hover:opacity-90"
                     }`}
                   >
                     {attendanceStatus === "ATTEND"
@@ -200,11 +209,12 @@ export default function TeacherAttendance() {
                       ? "지각"
                       : "출석"}
                   </button>
-                </div>
+                </MagicBentoCard>
               );
-            })}
-          </div>
+            }}
+          />
         )}
+        </MagicBentoSection>
       </div>
 
       <Alert

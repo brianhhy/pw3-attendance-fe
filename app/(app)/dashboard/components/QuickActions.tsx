@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Send, Users, CalendarDays, BarChart2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import SpotlightCard from "@/app/(shared)/(components)/SpotlightCard";
 
 const MatchingModal = dynamic(() => import("@/app/(shared)/(modal)/MatchingModal"), { ssr: false });
 const ExportAttendance = dynamic(() => import("@/app/(shared)/(modal)/ExportAttendance"), { ssr: false });
@@ -45,22 +46,27 @@ export default function QuickActions() {
       <div className="h-full">
         <div className="grid grid-cols-2 gap-3 h-full">
           {cards.map(({ key, icon: Icon, title, desc, disabled }) => (
-            <button
+            <SpotlightCard
               key={key}
-              onClick={() => handleActionClick(key, disabled)}
-              disabled={disabled}
-              className={`bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center gap-2.5 text-center shadow-sm transition-colors h-full ${
-                disabled ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50 cursor-pointer"
-              }`}
+              className={`h-full ${disabled ? "opacity-50" : ""}`}
+              spotlightColor="rgba(44, 121, 255, 0.15)"
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${disabled ? "bg-gray-100" : "bg-gray-100"}`}>
-                <Icon className={`w-6 h-6 ${disabled ? "text-gray-400" : "text-gray-700"}`} />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-gray-800">{title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
-              </div>
-            </button>
+              <button
+                onClick={() => handleActionClick(key, disabled)}
+                disabled={disabled}
+                className={`w-full h-full rounded-2xl p-5 flex flex-col items-center justify-center gap-2.5 text-center transition-colors ${
+                  disabled ? "cursor-not-allowed" : "hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                }`}
+              >
+                <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <Icon className={`w-6 h-6 ${disabled ? "text-gray-400 dark:text-gray-600" : "text-gray-700 dark:text-gray-300"}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-800 dark:text-gray-100">{title}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{desc}</p>
+                </div>
+              </button>
+            </SpotlightCard>
           ))}
         </div>
       </div>

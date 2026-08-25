@@ -12,6 +12,8 @@ import Alert from "../../../(shared)/(modal)/Alert";
 import Search from "../../../(shared)/(components)/Search";
 import VoiceSearchButton from "../../../(shared)/(components)/VoiceSearchButton";
 import FaceImageHoverPreview from "../../../(shared)/(components)/FaceImageHoverPreview";
+import MagicBentoSection from "../../../(shared)/(components)/MagicBentoSection";
+import MagicBentoCard from "../../../(shared)/(components)/MagicBentoCard";
 
 const getSchoolTypeName = (schoolType: string): string => {
   switch (schoolType) {
@@ -89,7 +91,7 @@ export default function StudentAttendance() {
   return (
     <div className="w-full h-[710px] flex flex-col p-2 @container">
       <div className="flex items-center justify-between mb-6 gap-4 sticky top-0 bg-transparent z-10 pb-2">
-        <h2 className="text-2xl font-semibold whitespace-nowrap">학생 출석</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">학생 출석</h2>
         <div className="flex items-center gap-2">
           <VoiceSearchButton
             onTranscript={(transcript) => {
@@ -106,20 +108,22 @@ export default function StudentAttendance() {
         </div>
       </div>
       <div className="flex-1 overflow-auto">
+        <MagicBentoSection enabled glowColor="44, 121, 255">
         <div className="grid grid-cols-1 @[600px]:grid-cols-2 gap-2 pb-4">
           {isLoading ? (
-            <div className="col-span-2 py-8 text-center text-gray-500 text-sm">
+            <div className="col-span-2 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
               로딩 중...
             </div>
           ) : filteredClassData.length === 0 ? (
-            <div className="col-span-2 py-8 text-center text-gray-500 text-sm">
+            <div className="col-span-2 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
               {searchQuery ? "검색 결과가 없습니다" : "반이 없습니다"}
             </div>
           ) : (
             filteredClassData.map((classItem) => (
-              <div
+              <MagicBentoCard
                 key={`${classItem.schoolType}-${classItem.grade}-${classItem.classNumber}`}
-                className="w-full max-w-[400px] @[600px]:max-w-none mx-auto h-auto @[600px]:h-[450px] bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col"
+                glowColor="44, 121, 255"
+                className="w-full max-w-[400px] @[600px]:max-w-none mx-auto h-auto @[600px]:h-[450px] bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4 flex flex-col"
               >
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-[#5E99FF]">
@@ -132,24 +136,24 @@ export default function StudentAttendance() {
                 </div>
                 <div className="overflow-y-auto flex-1">
                   <table className="w-full">
-                    <thead className="sticky top-0 bg-white">
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+                    <thead className="sticky top-0 bg-white dark:bg-gray-900">
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">
                           번호
                         </th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">
                           이름
                         </th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700">
+                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300">
                           출석 상태
                         </th>
                       </tr>
                     </thead>
                     <tbody>
                       {classItem.students.map((student, idx) => (
-                        <tr key={student.id} className="border-b border-gray-100">
-                          <td className="py-3 px-4 text-sm">{idx + 1}</td>
-                          <td className="py-3 px-4 text-sm">
+                        <tr key={student.id} className="border-b border-gray-100 dark:border-gray-800">
+                          <td className="py-3 px-4 text-sm text-black dark:text-white">{idx + 1}</td>
+                          <td className="py-3 px-4 text-sm text-black dark:text-white">
                             <FaceImageHoverPreview
                               id={student.id}
                               name={student.name}
@@ -175,7 +179,7 @@ export default function StudentAttendance() {
                                   ? "bg-[#9EFC9B] text-[#00CB18] cursor-not-allowed"
                                   : student.status === "late"
                                   ? "bg-[#FCD39B] text-[#F39200] cursor-not-allowed"
-                                  : "bg-[#d9d9d9] text-[#697077] hover:opacity-90"
+                                  : "bg-[#d9d9d9] dark:bg-gray-700 text-[#697077] dark:text-gray-300 hover:opacity-90"
                               }`}
                             >
                               {student.status === "attended"
@@ -190,10 +194,11 @@ export default function StudentAttendance() {
                     </tbody>
                   </table>
                 </div>
-              </div>
+              </MagicBentoCard>
             ))
           )}
         </div>
+        </MagicBentoSection>
       </div>
 
       <Alert

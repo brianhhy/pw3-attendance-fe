@@ -3,7 +3,7 @@ import Sidebar from "@/app/(shared)/(components)/Sidebar";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-full bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
+    <div className="flex h-full bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF] dark:from-gray-900 dark:to-gray-950">
       {/* Sidebar */}
       <Sidebar />
 
