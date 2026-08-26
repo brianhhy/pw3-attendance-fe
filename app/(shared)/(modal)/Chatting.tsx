@@ -16,13 +16,13 @@ interface Message {
   displayedChars?: string[];
 }
 
-interface ChatingProps {
+interface ChattingProps {
   isOpen: boolean;
   isClosing: boolean;
   onClose: () => void;
 }
 
-export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
+export default function Chatting({ isOpen, isClosing, onClose }: ChattingProps) {
   const [currentTime, setCurrentTime] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -115,87 +115,87 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
   if (!isOpen && !isClosing) return null;
 
   return (
-    <div className={`fixed z-[99999] bg-white shadow-2xl flex flex-col
+    <div className={`fixed z-[99999] bg-white dark:bg-gray-900 border border-[#2C79FF] shadow-2xl flex flex-col
       sm:bottom-24 sm:right-6 sm:w-96 sm:h-[80vh] sm:max-h-[80vh] sm:rounded-lg
       max-sm:inset-0 max-sm:h-full max-sm:w-full max-sm:rounded-none
       ${isClosing ? "animate-slide-down" : "animate-slide-up"}
     `}>
       {/* Header */}
-      <div className="p-4 bg-white border-b border-gray-200 flex items-center justify-between rounded-t-lg">
-        <h3 className="font-semibold text-gray-800">PW3 봇</h3>
-        <button 
+      <div className="p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between rounded-t-lg">
+        <h3 className="font-semibold text-gray-800 dark:text-gray-100">PW3 봇</h3>
+        <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full bg-[#F2F4F6] flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-300 transition-colors"
+          className="w-8 h-8 rounded-full bg-[#F2F4F6] dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 p-4 overflow-y-auto bg-white">
+      <div className="flex-1 p-4 overflow-y-auto bg-white dark:bg-gray-900">
         {/* Date Divider */}
         <div className="flex items-center justify-center mb-4">
-          <span className="text-xs text-gray-600 bg-white/80 px-3 py-1 rounded-full">
+          <span className="text-xs text-gray-600 dark:text-gray-400 bg-white/80 dark:bg-gray-900/80 px-3 py-1 rounded-full">
             오늘
           </span>
         </div>
 
         {/* Bot Message */}
         <div className="flex items-start gap-2 mb-4">
-          <div className="w-10 h-10 bg-[#2C79FF] rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="font-hakgyoansim text-sm font-bold text-gray-800 text-white">PW3</span>
+          <div className="w-10 h-10 bg-[#2C79FF] dark:bg-yellow-300 rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="font-hakgyoansim text-sm font-bold text-white dark:text-gray-900">PW3</span>
           </div>
           <div className="flex flex-col gap-2 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-700">PW3 AI 출석 조교</span>
-              <span className="text-xs text-gray-500">{currentTime}</span>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">PW3 AI 출석 조교</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{currentTime}</span>
             </div>
-            
+
             {/* First Message */}
-            <div className="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
-              <p className="text-sm text-gray-800">안녕하세요! 무엇을 도와드릴까요? 😊</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-none p-3 shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: "0.3s", animationFillMode: "forwards" }}>
+              <p className="text-sm text-gray-800 dark:text-gray-100">안녕하세요! 무엇을 도와드릴까요? 😊</p>
             </div>
-            
+
             {/* Second Message */}
-            <div className="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: "1.3s", animationFillMode: "forwards" }}>
-              <p className="text-sm text-gray-800">문의하실 내용을 간단히 입력하시거나, 아래 버튼을 선택해 주세요.</p>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-none p-3 shadow-sm opacity-0 animate-fade-in-up" style={{ animationDelay: "1.3s", animationFillMode: "forwards" }}>
+              <p className="text-sm text-gray-800 dark:text-gray-100">문의하실 내용을 간단히 입력하시거나, 아래 버튼을 선택해 주세요.</p>
             </div>
-            
+
             {/* Suggestion Buttons */}
             <div className="flex flex-wrap gap-2 mt-2 opacity-0 animate-fade-in-up" style={{ animationDelay: "2.3s", animationFillMode: "forwards" }}>
-                <button 
+                <button
                   onClick={() => handleButtonClick("이번 달 한 번도 안 나온 학생 알려줘")}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
+                  className="px-4 py-2 bg-white dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
                 >
                   장기 결석자 조회
                 </button>
-                <button 
+                <button
                   onClick={() => handleButtonClick("3주 연속 결석한 학생")}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
+                  className="px-4 py-2 bg-white dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
                 >
                   연속 결석자 조회
                 </button>
-                <button 
+                <button
                   onClick={() => handleButtonClick("지각이 잦은 학생 알려줘")}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
+                  className="px-4 py-2 bg-white dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
                 >
                   지각률 높은 학생
                 </button>
-                <button 
+                <button
                   onClick={() => handleButtonClick("학년별 출석률 알려줘")}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
+                  className="px-4 py-2 bg-white dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
                 >
                   학년별 평균 출석률
                 </button>
-                <button 
+                <button
                   onClick={() => handleButtonClick("관리가 필요한 학생")}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
+                  className="px-4 py-2 bg-white dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
                 >
                   관리 필요 학생 조회
                 </button>
-                <button 
+                <button
                   onClick={() => handleButtonClick("신입생 중 연속 출석한 학생")}
-                  className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-gray-100 border border-gray-200"
+                  className="px-4 py-2 bg-white dark:bg-gray-800 rounded-full text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
                 >
                   신입생 정착 현황
                 </button>
@@ -207,20 +207,20 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
         {messages.map((message) => (
           <div key={message.id} className={`flex items-start gap-2 mb-4 ${message.type === "user" ? "flex-row-reverse" : ""}`}>
             {message.type === "bot" && (
-              <div className="w-10 h-10 bg-[#2C79FF] rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="font-hakgyoansim text-sm font-bold text-white">PW3</span>
+              <div className="w-10 h-10 bg-[#2C79FF] dark:bg-yellow-300 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="font-hakgyoansim text-sm font-bold text-white dark:text-gray-900">PW3</span>
               </div>
             )}
             <div className="flex flex-col gap-1 flex-1">
               <div className={`flex items-center gap-2 ${message.type === "user" ? "justify-end" : ""}`}>
-                {message.type === "bot" && <span className="text-xs font-medium text-gray-700">PW3 봇</span>}
-                <span className="text-xs text-gray-500">{message.time}</span>
-                {message.type === "user" && <span className="text-xs font-medium text-gray-700">나</span>}
+                {message.type === "bot" && <span className="text-xs font-medium text-gray-700 dark:text-gray-300">PW3 봇</span>}
+                <span className="text-xs text-gray-500 dark:text-gray-400">{message.time}</span>
+                {message.type === "user" && <span className="text-xs font-medium text-gray-700 dark:text-gray-300">나</span>}
               </div>
               <div className={`rounded-2xl p-3 shadow-sm ${
-                message.type === "user" 
-                  ? "bg-[#2C79FF] text-white rounded-tr-none ml-auto" 
-                  : "bg-white text-gray-800 rounded-tl-none"
+                message.type === "user"
+                  ? "bg-[#2C79FF] dark:bg-yellow-300 text-white dark:text-gray-900 rounded-tr-none ml-auto"
+                  : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-tl-none"
               }`}>
                 {message.type === "user" ? (
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -243,9 +243,9 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
                         ul: ({ node, ...props }) => <ul className="my-1 ml-4 list-disc" {...props} />,
                         ol: ({ node, ...props }) => <ol className="my-1 ml-4 list-decimal" {...props} />,
                         li: ({ node, ...props }) => <li className="my-0.5" {...props} />,
-                        strong: ({ node, ...props }) => <strong className="font-bold text-gray-900" {...props} />,
+                        strong: ({ node, ...props }) => <strong className="font-bold text-gray-900 dark:text-gray-100" {...props} />,
                         em: ({ node, ...props }) => <em className="italic" {...props} />,
-                        code: ({ node, ...props }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs" {...props} />,
+                        code: ({ node, ...props }) => <code className="bg-gray-100 dark:bg-gray-700 dark:text-gray-100 px-1 py-0.5 rounded text-xs" {...props} />,
                       }}
                     >
                       {message.content}
@@ -260,10 +260,10 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
         {/* Loading Indicator */}
         {isLoading && (
           <div className="flex items-start gap-2 mb-4">
-            <div className="w-10 h-10 bg-[#2C79FF] rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="font-hakgyoansim text-sm font-bold text-white">PW3</span>
+            <div className="w-10 h-10 bg-[#2C79FF] dark:bg-yellow-300 rounded-full flex items-center justify-center flex-shrink-0">
+              <span className="font-hakgyoansim text-sm font-bold text-white dark:text-gray-900">PW3</span>
             </div>
-            <div className="bg-white rounded-2xl rounded-tl-none p-3 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-none p-3 shadow-sm">
               <WaveLoadingText />
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-gray-200 rounded-b-lg">
+      <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 rounded-b-lg">
         <form onSubmit={handleInputSubmit} className="flex gap-2">
           <input
             type="text"
@@ -281,14 +281,14 @@ export default function Chating({ isOpen, isClosing, onClose }: ChatingProps) {
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="메시지를 입력해주세요."
             disabled={isLoading || messages.some((m) => m.isTyping)}
-            className="flex-1 px-4 py-3 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2C79FF] text-sm disabled:opacity-50"
+            className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2C79FF] dark:focus:ring-yellow-300 text-sm disabled:opacity-50"
           />
-          <button 
+          <button
             type="submit"
             disabled={isLoading || messages.some((m) => m.isTyping) || !inputValue.trim()}
-            className="p-3 bg-[#2C79FF] hover:bg-[#2C79FF]/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-3 bg-[#2C79FF] dark:bg-yellow-300 hover:bg-[#2C79FF]/90 dark:hover:bg-yellow-300/90 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-white dark:text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>

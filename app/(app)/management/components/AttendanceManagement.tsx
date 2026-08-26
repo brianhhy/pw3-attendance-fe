@@ -206,25 +206,25 @@ export default function AttendanceManagement() {
       </div>
 
       <div className="overflow-hidden flex flex-col">
-        <div className="overflow-x-auto overflow-y-auto max-h-[280px] lg:max-h-[480px]">
-          <table className="w-full min-w-[600px]">
-            <thead className="border-b border-gray-200 sticky top-0 z-10 bg-white">
+        <div className="overflow-x-auto overflow-y-auto max-h-[280px] lg:max-h-[480px] scrollbar-transparent-track">
+          <table className="w-full min-w-[600px] border-separate border-spacing-0">
+            <thead className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 bg-white dark:bg-gray-900">
               <tr>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">구분</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">이름</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">반/직책</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">현재 상태</th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">상태 변경</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">구분</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">이름</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">반/직책</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">현재 상태</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">상태 변경</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <>
                   {[...Array(5)].map((_, i) => (
-                    <tr key={i} className="border-b border-gray-100">
+                    <tr key={i} className="border-b border-gray-100 dark:border-gray-800">
                       {[...Array(5)].map((_, j) => (
                         <td key={j} className="py-3 px-4">
-                          <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
                         </td>
                       ))}
                     </tr>
@@ -232,29 +232,29 @@ export default function AttendanceManagement() {
                 </>
               ) : filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-500 text-sm">
+                  <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                     {searchQuery ? "검색 결과가 없습니다" : "출석 정보가 없습니다."}
                   </td>
                 </tr>
               ) : (
                 filteredItems.map((item, index) => (
-                  <tr 
-                    key={`${item.type}-${item.id || item.studentClassId || item.teacherId || index}`} 
-                    className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
-                      index % 2 === 1 ? "bg-gray-50/50" : ""
+                  <tr
+                    key={`${item.type}-${item.id || item.studentClassId || item.teacherId || index}`}
+                    className={`border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors cursor-pointer ${
+                      index % 2 === 1 ? "bg-gray-50/50 dark:bg-gray-800/30" : ""
                     }`}
                   >
                     <td className="py-3 px-4 text-sm whitespace-nowrap">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        item.type === "student" 
-                          ? "bg-blue-100 text-blue-700" 
-                          : "bg-purple-100 text-purple-700"
+                        item.type === "student"
+                          ? "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300"
+                          : "bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300"
                       }`}>
                         {item.type === "student" ? "학생" : "선생님"}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm font-medium whitespace-nowrap">{item.name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
+                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{item.name}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                       {item.className || "-"}
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap">

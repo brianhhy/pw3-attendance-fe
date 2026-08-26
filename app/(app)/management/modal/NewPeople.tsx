@@ -370,8 +370,8 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
       <div className="grid gap-4 py-4">
         <div className="grid gap-2">
           <Label htmlFor="faceImage">얼굴 사진</Label>
-          <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-3">
-            <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-100 text-gray-400">
+          <div className="flex items-center gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+            <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500">
               {displayedFaceImage ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -387,7 +387,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="mb-1 text-sm font-medium text-gray-700">
+              <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
                 {faceImageFile
                   ? faceImageFile.name
                   : removeFaceImage
@@ -396,7 +396,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
                       ? "등록된 대표 사진"
                       : "대표 얼굴 사진을 등록해 주세요."}
               </p>
-              <p className="mb-3 text-xs text-gray-400">
+              <p className="mb-3 text-xs text-gray-400 dark:text-gray-500">
                 JPEG 또는 PNG · 최대 5MB · 최대 4096px
               </p>
 
@@ -432,7 +432,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
                     variant="ghost"
                     size="sm"
                     onClick={handleRemoveFaceImage}
-                    className="text-gray-500 hover:bg-red-50 hover:text-red-500"
+                    className="text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500"
                   >
                     <Trash2 className="h-4 w-4" />
                     {faceImageFile ? "선택 취소" : "사진 삭제"}
@@ -451,7 +451,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
               placeholder="이름을 입력하세요"
               value={formData.name}
               onChange={(e) => handleChange("name", e.target.value)}
-              className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0 flex-1"
+              className="border-0 bg-gray-100 dark:bg-gray-800 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0 flex-1"
               required
             />
             <div className="flex gap-2">
@@ -461,7 +461,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   formData.sex === "MAN"
                     ? "bg-[#2C79FF] text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
               >
                 남성
@@ -472,7 +472,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   formData.sex === "WOMAN"
                     ? "bg-[#2C79FF] text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                 }`}
               >
                 여성
@@ -488,7 +488,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
             type="date"
             value={formData.birth}
             onChange={(e) => handleChange("birth", e.target.value)}
-            className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+            className="border-0 bg-gray-100 dark:bg-gray-800 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
           />
         </div>
 
@@ -500,7 +500,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
             placeholder="010-1234-5678"
             value={formData.phone}
             onChange={(e) => handlePhoneChange("phone", e.target.value)}
-            className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+            className="border-0 bg-gray-100 dark:bg-gray-800 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
           />
         </div>
 
@@ -514,7 +514,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
                 placeholder="010-1234-5678"
                 value={formData.parentPhone}
                 onChange={(e) => handlePhoneChange("parentPhone", e.target.value)}
-                className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+                className="border-0 bg-gray-100 dark:bg-gray-800 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
               />
             </div>
             <div className="grid gap-2">
@@ -524,7 +524,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
                 placeholder="소속 학교를 입력하세요"
                 value={formData.school}
                 onChange={(e) => handleChange("school", e.target.value)}
-                className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+                className="border-0 bg-gray-100 dark:bg-gray-800 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
               />
             </div>
           </>
@@ -535,7 +535,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
               id="teacherType"
               value={formData.teacherType}
               onChange={(e) => handleChange("teacherType", e.target.value)}
-              className="flex h-10 w-full rounded-md border-0 bg-gray-100 px-3 py-2 text-base focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              className="flex h-10 w-full rounded-md border-0 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 text-base focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
             >
               <option value="">선택하세요</option>
               <option value="teacher">선생님</option>
@@ -553,7 +553,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
             value={formData.memo}
             onChange={(e) => handleChange("memo", e.target.value)}
             rows={3}
-            className="border-0 bg-gray-100 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
+            className="border-0 bg-gray-100 dark:bg-gray-800 focus-visible:border-2 focus-visible:border-[#5E99FF] focus-visible:ring-0"
           />
         </div>
       </div>
@@ -564,7 +564,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
             type="button"
             variant="ghost"
             onClick={handleDeleteClick}
-            className="text-gray-600 hover:text-red-500 hover:bg-transparent"
+            className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-100 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 dark:hover:text-white transition-colors"
           >
             삭제
           </Button>
@@ -572,7 +572,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
         <Button
           type="submit"
           disabled={submitMutation.isPending}
-          className="bg-[#2C79FF] text-white hover:bg-[#2C79FF]/90 ml-auto"
+          className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-100 hover:bg-[#2C79FF] hover:text-white dark:hover:bg-[#2C79FF] dark:hover:text-white transition-colors ml-auto"
         >
           {submitMutation.isPending ? "저장 중..." : isEditMode ? "수정하기" : "추가"}
         </Button>
@@ -583,14 +583,14 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
   return (
     <>
       {asPanel ? (
-        <div className="bg-transparent p-6 h-full overflow-y-auto animate-in fade-in slide-in-from-right-6 duration-300">
+        <div className="bg-transparent p-4 h-full overflow-y-auto animate-in fade-in slide-in-from-right-6 duration-300 scrollbar-transparent-track">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               {isEditMode ? `${initialData.name} ${isStudent ? "학생" : "선생님"}` : (isStudent ? "새 학생" : "새 선생님")}
             </h2>
             <button
               onClick={() => onOpenChange(false)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -599,7 +599,7 @@ export default function NewPeople({ open, onOpenChange, type, initialData, asPan
         </div>
       ) : (
         <Dialog open={open} onOpenChange={onOpenChange}>
-          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px] border-0 bg-[#F9F9FF] duration-300">
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px] border-0 bg-[#F9F9FF] dark:bg-gray-900 duration-300 scrollbar-transparent-track">
             <DialogHeader>
               <DialogTitle>{isEditMode ? (isStudent ? "학생 정보 수정" : "선생님 정보 수정") : (isStudent ? "새 학생" : "새 선생님")}</DialogTitle>
               <DialogDescription>

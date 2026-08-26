@@ -292,10 +292,10 @@ export default function VoiceSearchButton({ onTranscript }: VoiceSearchButtonPro
         type="button"
         onClick={isListening ? stopListening : startListening}
         disabled={!isSupported}
-        className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
+        className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
           isListening
-            ? "border-[#2C79FF] bg-[#F7F8FF] text-[#2C79FF]"
-            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            ? "bg-[#EAF1FF] dark:bg-blue-950 text-[#2C79FF]"
+            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
         } disabled:cursor-not-allowed disabled:opacity-50`}
         aria-label={isListening ? "음성인식 중지" : "음성으로 검색"}
         title={!isSupported ? "이 브라우저는 음성인식을 지원하지 않습니다." : "음성으로 검색"}
@@ -303,7 +303,7 @@ export default function VoiceSearchButton({ onTranscript }: VoiceSearchButtonPro
         {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
       </button>
       {message && (
-        <span className="absolute right-0 top-12 z-20 whitespace-nowrap rounded-md border border-gray-100 bg-white px-2 py-1 text-xs text-gray-600 shadow-sm">
+        <span className="absolute right-0 top-12 z-20 whitespace-nowrap rounded-md border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1 text-xs text-gray-600 dark:text-gray-300 shadow-sm">
           {message}
         </span>
       )}

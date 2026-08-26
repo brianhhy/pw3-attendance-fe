@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -16,7 +17,7 @@ import {
 import CardSwap, { Card } from "@/components/ui/CardSwap";
 import SpecularButton from "@/components/ui/SpecularButton";
 import Stepper, { Step } from "@/components/ui/Stepper";
-import { CheckCircle2, Bot, BarChart3 } from "lucide-react";
+import { CheckCircle2, Bot, BarChart3, X } from "lucide-react";
 import { login, signup, refresh } from "./(shared)/(api)/auth";
 import useAuthStore from "./(shared)/(store)/authStore";
 import { setCookie, getCookie, removeCookie, epochSecondsToDate } from "@/lib/utils";
@@ -104,10 +105,8 @@ export default function LoginPage() {
       setAuth(data.accessToken, data.admin);
       setCookie("refreshToken", data.refreshToken, epochSecondsToDate(data.refreshTokenExpiresAt));
       router.push("/dashboard");
-    } catch (error: any) {
-      setLoginError(
-        error.response?.data?.message || "아이디 또는 비밀번호를 확인해주세요."
-      );
+    } catch {
+      setLoginError("ID 또는 비밀번호를 확인해 주세요.");
     } finally {
       setIsSubmitting(false);
     }
@@ -150,12 +149,12 @@ export default function LoginPage() {
 
   if (checkingSession) {
     return (
-      <div className="flex h-full items-center justify-center bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]" />
+      <div className="flex h-full items-center justify-center bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF] dark:from-gray-900 dark:to-gray-950" />
     );
   }
 
   return (
-    <div className="relative flex h-full items-center justify-center overflow-hidden bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF] px-4">
+    <div className="relative flex h-full items-center justify-center overflow-hidden bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF] dark:from-gray-900 dark:to-gray-950 px-4">
       <div className="relative grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-2xl bg-transparent lg:grid-cols-2">
         <div className="flex flex-col items-center justify-center gap-6 p-12 text-center">
           <Image src="/images/logo.png" alt="logo" width={140} height={64} priority />
@@ -165,26 +164,30 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4 text-left">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="id">아이디</Label>
+              <Label htmlFor="id" className="text-gray-900 dark:text-gray-100">아이디</Label>
               <Input
                 id="id"
                 name="id"
                 autoComplete="username"
+                spellCheck={false}
                 value={id}
                 onChange={(e) => setId(e.target.value)}
                 placeholder="아이디를 입력하세요"
+                className="bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-900 dark:text-gray-100 focus:text-gray-900 dark:focus:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:border-[#2C79FF] focus-visible:ring-[#2C79FF]/30"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="password" className="text-gray-900 dark:text-gray-100">비밀번호</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
+                spellCheck={false}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호를 입력하세요"
+                className="bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-900 dark:text-gray-100 focus:text-gray-900 dark:focus:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus-visible:border-[#2C79FF] focus-visible:ring-[#2C79FF]/30"
               />
             </div>
 
@@ -205,7 +208,14 @@ export default function LoginPage() {
                   회원가입
                 </button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent
+                className="dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
+                showCloseButton={false}
+              >
+                <DialogClose className="absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-hidden disabled:pointer-events-none z-50 cursor-pointer">
+                  <X className="w-6 h-6" />
+                  <span className="sr-only">Close</span>
+                </DialogClose>
                 <DialogHeader>
                   <DialogTitle>회원가입</DialogTitle>
                   <DialogDescription>아래 단계를 따라 회원가입을 진행하세요.</DialogDescription>
@@ -310,28 +320,28 @@ export default function LoginPage() {
                   <Step>
                     <div className="flex flex-col gap-3 text-left">
                       <h3 className="text-lg font-bold text-[#2C79FF]">가입 정보 확인</h3>
-                      <dl className="flex flex-col gap-2 rounded-lg bg-[#F2F4F6] p-4 text-sm">
+                      <dl className="flex flex-col gap-2 rounded-lg bg-[#F2F4F6] dark:bg-gray-800 p-4 text-sm">
                         <div className="flex justify-between gap-4">
-                          <dt className="text-[#697077]">아이디</dt>
-                          <dd className="font-medium text-[#1B1C1E]">{signupId}</dd>
+                          <dt className="text-[#697077] dark:text-gray-400">아이디</dt>
+                          <dd className="font-medium text-[#1B1C1E] dark:text-gray-100">{signupId}</dd>
                         </div>
                         <div className="flex justify-between gap-4">
-                          <dt className="text-[#697077]">비밀번호</dt>
-                          <dd className="font-medium text-[#1B1C1E]">
+                          <dt className="text-[#697077] dark:text-gray-400">비밀번호</dt>
+                          <dd className="font-medium text-[#1B1C1E] dark:text-gray-100">
                             {"•".repeat(signupPassword.length)}
                           </dd>
                         </div>
                         <div className="flex justify-between gap-4">
-                          <dt className="text-[#697077]">이름</dt>
-                          <dd className="font-medium text-[#1B1C1E]">{signupName}</dd>
+                          <dt className="text-[#697077] dark:text-gray-400">이름</dt>
+                          <dd className="font-medium text-[#1B1C1E] dark:text-gray-100">{signupName}</dd>
                         </div>
                         <div className="flex justify-between gap-4">
-                          <dt className="text-[#697077]">이메일</dt>
-                          <dd className="font-medium text-[#1B1C1E]">{signupEmail}</dd>
+                          <dt className="text-[#697077] dark:text-gray-400">이메일</dt>
+                          <dd className="font-medium text-[#1B1C1E] dark:text-gray-100">{signupEmail}</dd>
                         </div>
                         <div className="flex justify-between gap-4">
-                          <dt className="text-[#697077]">휴대폰 번호</dt>
-                          <dd className="font-medium text-[#1B1C1E]">{signupPhone}</dd>
+                          <dt className="text-[#697077] dark:text-gray-400">휴대폰 번호</dt>
+                          <dd className="font-medium text-[#1B1C1E] dark:text-gray-100">{signupPhone}</dd>
                         </div>
                       </dl>
                     </div>
@@ -365,10 +375,10 @@ export default function LoginPage() {
                     <item.icon className="size-5 shrink-0 text-[#2C79FF]" />
                     <h3 className="text-lg font-bold text-[#2C79FF]">{item.title}</h3>
                   </div>
-                  <p className="text-sm text-[#697077]">{item.description}</p>
+                  <p className="text-sm text-[#697077] dark:text-gray-400">{item.description}</p>
                   <div className="flex flex-1 gap-2">
                     {item.images.map((src) => (
-                      <div key={src} className="relative flex-1 overflow-hidden rounded-lg border border-[#E8ECFF]">
+                      <div key={src} className="relative flex-1 overflow-hidden rounded-lg border border-[#E8ECFF] dark:border-gray-700">
                         <Image
                           src={src}
                           alt=""

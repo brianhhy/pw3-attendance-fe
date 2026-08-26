@@ -27,7 +27,12 @@ const refreshAccessToken = async (): Promise<string | null> => {
 
   try {
     const data = await refresh(refreshToken);
-    useAuthStore.getState().setAccessToken(data.accessToken);
+    // admin 정보는 메모리에만 있어 새로고침 시 사라지므로, 재발급 응답에 포함돼 있으면 함께 복원한다.
+    if (data.admin) {
+      useAuthStore.getState().setAuth(data.accessToken, data.admin);
+    } else {
+      useAuthStore.getState().setAccessToken(data.accessToken);
+    }
     if (data.refreshToken) {
       setCookie(
         "refreshToken",
@@ -39,6 +44,17 @@ const refreshAccessToken = async (): Promise<string | null> => {
   } catch {
     return null;
   }
+};
+
+// 진행 중인 재발급이 있으면 그 결과를 공유하고, 없으면 새로 시작한다.
+// 401 인터셉터와 세션 부트스트랩(Header)이 동시에 refresh를 호출해도 refreshToken이 중복 소모되지 않도록 한다.
+export const ensureAccessToken = (): Promise<string | null> => {
+  if (!refreshPromise) {
+    refreshPromise = refreshAccessToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 };
 
 const forceLogout = () => {
@@ -67,12 +83,7 @@ apiClient.interceptors.response.use(
     }
     originalRequest._retry = true;
 
-    if (!refreshPromise) {
-      refreshPromise = refreshAccessToken().finally(() => {
-        refreshPromise = null;
-      });
-    }
-    const newAccessToken = await refreshPromise;
+    const newAccessToken = await ensureAccessToken();
 
     if (newAccessToken) {
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
