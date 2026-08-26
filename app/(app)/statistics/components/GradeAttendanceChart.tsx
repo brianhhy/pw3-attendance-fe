@@ -12,7 +12,6 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 type SundayPoint = {
@@ -49,6 +48,9 @@ export default function GradeAttendanceChart(props: {
   const { activeGrade, gradeData } = props;
   const label = activeGrade ? `${activeGrade.schoolLabel} ${activeGrade.grade}학년` : null;
 
+  const pointColor = "#2C79FF";
+  const pointRgb = "44,121,255";
+
   const [points, setPoints] = useState<SundayPoint[]>([]);
 
   useEffect(() => {
@@ -81,23 +83,23 @@ export default function GradeAttendanceChart(props: {
         {
           label: label || "출석 인원",
           data: displayedPoints.map((p) => p.attended),
-          borderColor: "#2C79FF",
-          backgroundColor: "rgba(44,121,255,0.2)",
+          borderColor: pointColor,
+          backgroundColor: `rgba(${pointRgb},0.2)`,
           borderWidth: 2,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: "#2C79FF",
+          pointBackgroundColor: pointColor,
           pointBorderColor: "#FFFFFF",
           pointBorderWidth: 2,
           pointHoverBackgroundColor: "#FFFFFF",
-          pointHoverBorderColor: "#2C79FF",
+          pointHoverBorderColor: pointColor,
           pointHoverBorderWidth: 2,
           fill: false,
           tension: 0.4,
         },
       ],
     };
-  }, [displayedPoints, label]);
+  }, [displayedPoints, label, pointColor, pointRgb]);
 
   const chartOptions = useMemo(() => {
     const fontFamily = "Pretendard, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji";
@@ -135,7 +137,7 @@ export default function GradeAttendanceChart(props: {
           backgroundColor: "rgba(255,255,255,0.95)",
           titleColor: "#1F2937",
           bodyColor: "#4B5563",
-          borderColor: "rgba(44,121,255,0.3)",
+          borderColor: `rgba(${pointRgb},0.3)`,
           borderWidth: 1,
           cornerRadius: 8,
           displayColors: true,
@@ -180,29 +182,30 @@ export default function GradeAttendanceChart(props: {
         },
       },
     } as const;
-  }, [displayedPoints]);
+  }, [displayedPoints, pointRgb]);
 
   if (!activeGrade) {
     return (
-      <div className="w-full h-full rounded-xl bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center">
-        <span className="text-gray-500 text-sm">학년을 선택하면 그래프가 표시됩니다.</span>
+      <div className="w-full h-full rounded-xl bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border border-white/60 dark:border-gray-700/60 flex items-center justify-center">
+        <span className="text-gray-500 dark:text-gray-400 text-sm">학년을 선택하면 그래프가 표시됩니다.</span>
       </div>
     );
   }
 
   if (!gradeData || points.length === 0) {
     return (
-      <div className="w-full h-full rounded-xl bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center">
-        <span className="text-gray-500 text-sm">{label} 데이터가 없습니다.</span>
+      <div className="w-full h-full rounded-xl bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border border-white/60 dark:border-gray-700/60 flex items-center justify-center">
+        <span className="text-gray-500 dark:text-gray-400 text-sm">{label} 데이터가 없습니다.</span>
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full rounded-xl bg-white/30 backdrop-blur-md border border-white/60 p-4 flex flex-col">
-      <h3 className="text-lg font-bold text-gray-800 mb-3">{label} 출석 추이</h3>
-      <div className="flex-1 rounded-lg border border-white/45 bg-gradient-to-b from-white/35 to-white/15 backdrop-blur-xl backdrop-saturate-150 overflow-hidden">
+    <div className="w-full h-full rounded-xl bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border border-white/60 dark:border-gray-700/60 p-4 flex flex-col">
+      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3">{label} 출석 추이</h3>
+      <div className="flex-1 rounded-lg border border-white/45 dark:border-gray-700/60 bg-gradient-to-b from-white/35 to-white/15 dark:from-white/10 dark:to-white/5 backdrop-blur-xl backdrop-saturate-150 overflow-hidden">
         <div className="h-full p-2" key={`chart-${points.length}-${points[0]?.label ?? 'empty'}`}>
+          {/* 라인/포인트 색은 useIsDarkMode로 다크모드에 맞춰 노란색으로 바뀐다. 축/툴팁 텍스트 등 나머지 차트 크롬은 라이트 팔레트 그대로 둔다. */}
           <Line data={chartData} options={chartOptions} />
         </div>
       </div>

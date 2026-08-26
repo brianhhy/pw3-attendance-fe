@@ -10,19 +10,20 @@ import {
 } from "react";
 import { motion, useInView } from "motion/react";
 
-import "./AnimatedList.css";
-
 interface AnimatedItemProps {
   children: ReactNode;
   delay?: number;
   index: number;
   onMouseEnter: () => void;
   onClick: MouseEventHandler<HTMLDivElement>;
+  /** true = scroll-reveal (fires when scrolled into view, for long scrollable lists); false = always animate in on mount (for short, fully-visible lists). */
+  viewportTrigger?: boolean;
 }
 
-const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick }: AnimatedItemProps) => {
+const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick, viewportTrigger = true }: AnimatedItemProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.5, once: false });
+  const isVisible = viewportTrigger ? inView : true;
 
   return (
     <motion.div
@@ -32,8 +33,8 @@ const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick }: Ani
       onMouseEnter={onMouseEnter}
       onClick={onClick}
       initial={{ scale: 0.7, opacity: 0 }}
-      animate={inView ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
-      transition={{ duration: 0.2, delay }}
+      animate={isVisible ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
+      transition={{ duration: 0.3, delay }}
     >
       {children}
     </motion.div>
@@ -57,6 +58,8 @@ interface AnimatedListProps<T> {
   itemClassName?: string;
   displayScrollbar?: boolean;
   initialSelectedIndex?: number;
+  /** When true, the list grows to fit its content instead of filling a fixed-height parent (no internal scroll). */
+  autoHeight?: boolean;
 }
 
 const AnimatedList = <T,>({
@@ -70,6 +73,7 @@ const AnimatedList = <T,>({
   itemClassName = "",
   displayScrollbar = true,
   initialSelectedIndex = -1,
+  autoHeight = false,
 }: AnimatedListProps<T>) => {
   const listRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(initialSelectedIndex);
@@ -146,7 +150,7 @@ const AnimatedList = <T,>({
   }, [selectedIndex, keyboardNav]);
 
   return (
-    <div className={`scroll-list-container ${className}`}>
+    <div className={`scroll-list-container ${autoHeight ? "auto-height" : ""} ${className}`}>
       <div
         ref={listRef}
         className={`scroll-list ${!displayScrollbar ? "no-scrollbar" : ""}`}
@@ -157,8 +161,9 @@ const AnimatedList = <T,>({
           return (
             <AnimatedItem
               key={getKey ? getKey(item, index) : index}
-              delay={0.05}
+              delay={autoHeight ? index * 0.08 : 0.05}
               index={index}
+              viewportTrigger={!autoHeight}
               onMouseEnter={() => handleItemMouseEnter(index)}
               onClick={() => handleItemClick(item, index)}
             >
@@ -179,6 +184,126 @@ const AnimatedList = <T,>({
           <div className="bottom-gradient" style={{ opacity: bottomGradientOpacity }} />
         </>
       )}
+
+      <style jsx global>{`
+        .scroll-list-container {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+
+        .scroll-list-container.auto-height {
+          height: auto;
+        }
+
+        .scroll-list {
+          height: 100%;
+          overflow-y: auto;
+          padding: 4px;
+        }
+
+        .scroll-list-container.auto-height .scroll-list {
+          height: auto;
+          overflow: visible;
+        }
+
+        .animated-list-item {
+          cursor: pointer;
+        }
+
+        .animated-list-item:not(:last-child) {
+          margin-bottom: 0.75rem;
+        }
+
+        .scroll-list::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .scroll-list::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .scroll-list::-webkit-scrollbar-thumb {
+          background: #d9d9d9;
+          border-radius: 4px;
+        }
+
+        .dark .scroll-list::-webkit-scrollbar-thumb {
+          background: #374151;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .item {
+          padding: 16px;
+          background-color: #f7f8fa;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          margin-bottom: 1rem;
+          transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .item.selected {
+          background-color: #eaf1ff;
+          border-color: #2c79ff;
+        }
+
+        .dark .item {
+          background-color: #1f2937;
+          border-color: #374151;
+        }
+
+        .dark .item.selected {
+          background-color: rgba(44, 121, 255, 0.15);
+          border-color: #2c79ff;
+        }
+
+        .item-text {
+          color: #1f2937;
+          margin: 0;
+        }
+
+        .dark .item-text {
+          color: #f3f4f6;
+        }
+
+        .top-gradient {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 50px;
+          background: linear-gradient(to bottom, #ffffff, transparent);
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+        }
+
+        .dark .top-gradient {
+          background: linear-gradient(to bottom, #111827, transparent);
+        }
+
+        .bottom-gradient {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 100px;
+          background: linear-gradient(to top, #ffffff, transparent);
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+        }
+
+        .dark .bottom-gradient {
+          background: linear-gradient(to top, #111827, transparent);
+        }
+      `}</style>
     </div>
   );
 };

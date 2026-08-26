@@ -38,7 +38,7 @@ export default function TeacherManagementPage() {
               asPanel
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+            <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">
               선생님을 선택하세요
             </div>
           )}

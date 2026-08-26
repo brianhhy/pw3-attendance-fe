@@ -27,8 +27,8 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-gmarket-sans);
   --font-mono: var(--font-geist-mono);
   --font-hakgyoansim: var(--font-hakgyoansim);
@@ -57,9 +57,37 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: var(--font-gmarket-sans), Arial, Helvetica, sans-serif;
+}
+
+/* View Transition API가 지원되는 브라우저에서는 그라데이션과 이미지까지 함께 교차 전환한다. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 350ms;
+  animation-timing-function: ease-in-out;
+}
+
+/* 미지원 브라우저에서는 테마를 바꾸는 동안에만 색상 관련 속성을 보간한다.
+   평소 hover 및 컴포넌트 애니메이션에는 영향을 주지 않는다. */
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition-property: background-color, border-color, color, fill, stroke, text-decoration-color, outline-color, box-shadow;
+  transition-duration: 350ms !important;
+  transition-timing-function: ease-in-out !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  .theme-transitioning *,
+  .theme-transitioning *::before,
+  .theme-transitioning *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
 
 /* 브라우저 자동완성 시 강제로 입히는 배경/글자색을 막고 화면(라이트/다크)에 맞는 색을 유지한다. */
@@ -95,6 +123,43 @@ textarea:-webkit-autofill:active {
 
 .font-hakgyoansim {
   font-family: var(--font-hakgyoansim), sans-serif;
+}
+
+/* 관리 페이지 스크롤 영역의 스크롤바 배경(트랙)을 투명하게 만든다. */
+.scrollbar-transparent-track {
+  scrollbar-color: #d9d9d9 transparent;
+}
+
+.scrollbar-transparent-track::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-transparent-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-transparent-track::-webkit-scrollbar-thumb {
+  background-color: #d9d9d9;
+  border-radius: 9999px;
+}
+
+.dark .scrollbar-transparent-track {
+  scrollbar-color: #374151 transparent;
+}
+
+.dark .scrollbar-transparent-track::-webkit-scrollbar-thumb {
+  background-color: #374151;
+}
+
+/* 스크롤은 되지만 스크롤바 자체가 보이지 않도록 완전히 숨긴다. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes fade-in-slide-down {
@@ -386,6 +451,43 @@ textarea:-webkit-autofill:active {
   border: 1px solid #E6EAF7;
   padding: 0.5rem 0.75rem;
   color: #374151;
+}
+
+.dark .monthly-report-markdown h1,
+.dark .monthly-report-markdown h2,
+.dark .monthly-report-markdown h3 {
+  color: #f3f4f6;
+}
+
+.dark .monthly-report-markdown p,
+.dark .monthly-report-markdown em,
+.dark .monthly-report-markdown td {
+  color: #d1d5db;
+}
+
+.dark .monthly-report-markdown strong {
+  color: #f9fafb;
+}
+
+.dark .monthly-report-markdown blockquote {
+  border-left-color: #2C79FF;
+  background: rgba(44, 121, 255, 0.1);
+  color: #d1d5db;
+}
+
+.dark .monthly-report-markdown code {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+.dark .monthly-report-markdown th {
+  border-color: #374151;
+  background: rgba(44, 121, 255, 0.12);
+  color: #f3f4f6;
+}
+
+.dark .monthly-report-markdown td {
+  border-color: #374151;
 }
 
 @keyframes birthdayTickerIn {

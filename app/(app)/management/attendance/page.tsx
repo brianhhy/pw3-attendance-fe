@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import AttendanceRoster from "../components/AttendanceRoster";
 
 export default function AttendanceManagementIndexPage() {
-  redirect("/management/attendance/student");
+  return <AttendanceRoster />;
 }

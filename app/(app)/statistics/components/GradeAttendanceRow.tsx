@@ -7,8 +7,8 @@ import useStatisticStore, { type GradeData } from "../../../(shared)/(store)/sta
 const GradeAttendanceChart = dynamic(() => import("./GradeAttendanceChart"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full rounded-xl bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center">
-      <span className="text-gray-500 text-sm">차트 로딩 중...</span>
+    <div className="w-full h-full rounded-xl bg-white/30 dark:bg-gray-800/40 backdrop-blur-md border border-white/60 dark:border-gray-700/60 flex items-center justify-center">
+      <span className="text-gray-500 dark:text-gray-400 text-sm">차트 로딩 중...</span>
     </div>
   ),
 });
@@ -92,10 +92,10 @@ export default function GradeAttendanceRow() {
   }, [activeGrade, gradeDataList]);
 
   return (
-    <div className="w-full h-full max-h-[500px] rounded-2xl bg-[rgba(236,237,255,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] p-6 flex flex-col">
+    <div className="w-full h-full lg:max-h-[500px] rounded-2xl bg-[rgba(236,237,255,0.55)] dark:bg-[rgba(17,24,39,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] dark:border-[rgba(75,85,99,0.35)] p-6 flex flex-col">
       <h1 className="text-2xl font-bold text-[#2C79FF] mb-4">학년별 통계</h1>
-      
-      <div className="flex-1 flex gap-6">
+
+      <div className="flex-1 flex flex-col lg:flex-row gap-6">
         {/* 왼쪽: 학년별 통계 2x3 그리드 */}
         <div className="flex-1 grid grid-cols-2 gap-4 content-start">
           {GRADE_ITEMS.map((item) => {
@@ -108,22 +108,22 @@ export default function GradeAttendanceRow() {
                 aria-pressed={isActive}
                 onClick={() => setActiveGradeKey((prev) => (prev === item.key ? null : item.key))}
                 className={[
-                  "rounded-xl backdrop-blur-md border border-white/60 p-4 transition-all duration-200 text-left",
+                  "rounded-xl backdrop-blur-md border border-white/60 dark:border-gray-700/60 p-4 transition-all duration-200 text-left",
                   "cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2C79FF]/40",
-                  isActive ? "bg-[rgba(112,164,255,0.55)] ring-2 ring-[#2C79FF]" : "bg-white/40 hover:bg-white/50",
+                  isActive ? "bg-[rgba(112,164,255,0.55)] ring-2 ring-[#2C79FF]" : "bg-white/40 dark:bg-gray-800/40 hover:bg-white/50 dark:hover:bg-gray-700/50",
                 ].join(" ")}
               >
-                <div className="text-lg font-bold text-gray-800 mb-3">
+                <div className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3">
                   {item.schoolLabel} {item.grade}학년
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between text-sm font-medium">
-                    <span className="text-gray-600">전체 학생</span>
-                    <span className="text-gray-800 font-bold">{isLoading ? "-" : `${s.total}명`}</span>
+                    <span className="text-gray-600 dark:text-gray-400">전체 학생</span>
+                    <span className="text-gray-800 dark:text-gray-100 font-bold">{isLoading ? "-" : `${s.total}명`}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm font-medium">
-                    <span className="text-gray-600">평균 출석률</span>
+                    <span className="text-gray-600 dark:text-gray-400">평균 출석률</span>
                     <span className="text-[#2C79FF] font-bold">{isLoading ? "-" : `${s.rate}%`}</span>
                   </div>
                 </div>
@@ -133,9 +133,9 @@ export default function GradeAttendanceRow() {
         </div>
 
         {/* 오른쪽: 차트 */}
-        <div className="flex-[1.5]">
+        <div className="h-[260px] lg:h-auto lg:flex-[1.5]">
           <GradeAttendanceChart
-            activeGrade={activeGrade} 
+            activeGrade={activeGrade}
             gradeData={filteredGradeData}
           />
         </div>

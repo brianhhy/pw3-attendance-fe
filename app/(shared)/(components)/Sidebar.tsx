@@ -38,10 +38,6 @@ const baseMenuItems: MenuItem[] = [
                 href: "/management/attendance",
                 label: "출결 관리",
                 icon: CalendarCheck,
-                subItems: [
-                    { href: "/management/attendance/student", label: "학생", icon: Users },
-                    { href: "/management/attendance/teacher", label: "선생님", icon: UserStar },
-                ],
             },
         ],
     },
@@ -63,7 +59,6 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
         const initial = new Set<string>();
         if (pathname.startsWith("/management")) initial.add("/management");
         if (pathname.startsWith("/management/people")) initial.add("/management/people");
-        if (pathname.startsWith("/management/attendance")) initial.add("/management/attendance");
         return initial;
     });
     const [showParentsMenu, setShowParentsMenu] = useState(false);

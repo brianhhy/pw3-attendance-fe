@@ -59,6 +59,12 @@ export default function MagicBentoCard({
     particlesInitialized.current = true;
   }, [particleCount, glowColor]);
 
+  // 색이 바뀌면(다크모드 전환 등) 캐시해둔 파티클을 버려서 다음 호버 때 새 색으로 다시 만들게 한다.
+  useEffect(() => {
+    particlesInitialized.current = false;
+    memoizedParticles.current = [];
+  }, [glowColor]);
+
   const clearAllParticles = useCallback(() => {
     timeoutsRef.current.forEach(clearTimeout);
     timeoutsRef.current = [];

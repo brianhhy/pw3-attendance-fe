@@ -96,11 +96,11 @@ export default function StudentManagement({ onSelect, selectedId }: StudentManag
         />
       </div>
 
-      <div className="flex-shrink-0 grid grid-cols-6 gap-4 pb-4 border-b border-gray-200">
+      <div className="flex-shrink-0 grid grid-cols-6 gap-4 pb-4 border-b border-gray-200 dark:border-gray-700">
         {filters.map((filter, index) => (
           <button
             key={index}
-            className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 transition-colors whitespace-nowrap"
+            className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors whitespace-nowrap"
           >
             {filter.icon}
             <span className="text-xs">{filter.label}</span>
@@ -108,35 +108,32 @@ export default function StudentManagement({ onSelect, selectedId }: StudentManag
         ))}
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-3 scrollbar-none">
         {isPending ? (
           <>
             {[...Array(4)].map((_, index) => (
               <div
                 key={index}
-                className={`grid grid-cols-6 gap-4 py-3 border-b border-gray-100 ${
-                  index % 2 === 1 ? "bg-gray-50/50" : ""
+                className={`grid grid-cols-6 gap-4 py-3 border-b border-gray-100 dark:border-gray-800 ${
+                  index % 2 === 1 ? "bg-gray-50/50 dark:bg-gray-800/30" : ""
                 }`}
               >
                 {[...Array(6)].map((_, colIndex) => (
                   <div key={colIndex} className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
                   </div>
                 ))}
               </div>
             ))}
           </>
         ) : filteredStudents.length === 0 ? (
-          <div className="py-8 text-center text-gray-500 text-sm">
+          <div className="py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             {searchQuery ? "검색 결과가 없습니다" : "학생이 없습니다"}
           </div>
         ) : (
-          filteredStudents.map((student: any, index: number) => (
+          filteredStudents.map((student: any) => (
             <div
               key={student.id}
-              className={`group relative grid grid-cols-6 gap-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
-                selectedId === student.id ? "bg-blue-50 hover:bg-blue-50" : index % 2 === 1 ? "bg-gray-50/50" : ""
-              }`}
               onClick={() => {
                 if (onSelect) {
                   onSelect(student);
@@ -145,9 +142,14 @@ export default function StudentManagement({ onSelect, selectedId }: StudentManag
                   setSelectedStudent(student);
                 }
               }}
+              className={`grid grid-cols-6 gap-4 px-3 py-3 rounded-lg border cursor-pointer transition-all ${
+                selectedId === student.id
+                  ? "border-[#2C79FF] bg-[#F7F8FF] dark:bg-[#2C79FF]/10"
+                  : "border-gray-100 dark:border-gray-800 hover:bg-[#F7F8FF] dark:hover:bg-[#2C79FF]/10 hover:border-[#2C79FF]"
+              }`}
             >
               {filters.map((filter) => (
-                <div key={filter.key} className="text-xs truncate">
+                <div key={filter.key} className="text-xs truncate text-gray-700 dark:text-gray-300">
                   {getStudentValue(student, filter.key)}
                 </div>
               ))}
@@ -159,13 +161,13 @@ export default function StudentManagement({ onSelect, selectedId }: StudentManag
       <div className="flex-shrink-0 mt-2">
         <Button
           variant="ghost"
-          className="w-full justify-start bg-[#EAF1FF] hover:bg-[#D6E4FF] text-[#2C79FF] whitespace-nowrap"
+          className="w-full justify-center gap-1.5 rounded-lg bg-[#EAF1FF] dark:bg-gray-800 text-[#467FE0] dark:text-gray-100 hover:bg-[#D6E4FF] dark:hover:bg-gray-700 font-semibold transition-all whitespace-nowrap"
           onClick={() => {
             setSelectedStudent(null);
             setIsModalOpen(true);
           }}
         >
-          <Plus className="h-4 w-4 mr-2" />새 학생
+          <Plus className="h-4 w-4" />새 학생
         </Button>
       </div>
 

@@ -174,9 +174,9 @@ export default function MonthlyRegisteredStudents() {
   }, [students, year, month]);
 
   return (
-    <section className="w-full h-full rounded-2xl bg-[rgba(236,237,255,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] p-6 flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold text-[#2C79FF] whitespace-nowrap">신규 등록 학생</h2>
+    <section className="w-full h-full rounded-2xl bg-[rgba(236,237,255,0.55)] dark:bg-[rgba(17,24,39,0.55)] backdrop-blur-[14px] border border-[rgba(180,180,255,0.35)] dark:border-[rgba(75,85,99,0.35)] p-6 flex flex-col">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-[#2C79FF] whitespace-nowrap">신규 등록 학생</h2>
 
         <select
           value={toYearMonthValue(monthDate)}
@@ -184,7 +184,7 @@ export default function MonthlyRegisteredStudents() {
             const next = fromYearMonthValue(e.target.value);
             if (next) setMonthDate(next);
           }}
-          className="px-4 py-2 rounded-full bg-white/25 text-gray-900 font-semibold whitespace-nowrap ring-1 ring-white/45 backdrop-blur-xl backdrop-saturate-150 outline-none"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base rounded-full bg-white/25 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 font-semibold whitespace-nowrap ring-1 ring-white/45 dark:ring-gray-700/60 backdrop-blur-xl backdrop-saturate-150 outline-none"
         >
           {yearMonthOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -194,34 +194,34 @@ export default function MonthlyRegisteredStudents() {
         </select>
       </div>
 
-      <div className="rounded-xl border border-white/45 bg-gradient-to-b from-white/20 to-white/10 backdrop-blur-xl backdrop-saturate-150 overflow-hidden flex-1 flex flex-col">
-        <div className="grid grid-cols-[64px_1fr_120px_1fr] bg-white/25 text-gray-900 font-semibold px-4 py-3 text-sm backdrop-blur-xl backdrop-saturate-150">
+      <div className="rounded-xl border border-white/45 dark:border-gray-700/60 bg-gradient-to-b from-white/20 to-white/10 dark:from-white/10 dark:to-white/5 backdrop-blur-xl backdrop-saturate-150 overflow-hidden flex-1 flex flex-col">
+        <div className="grid grid-cols-[40px_1fr_minmax(84px,120px)_1fr] sm:grid-cols-[64px_1fr_120px_1fr] bg-white/25 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 font-semibold px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm backdrop-blur-xl backdrop-saturate-150">
           <div>번호</div>
           <div>이름</div>
           <div>생년월일</div>
           <div>연락처</div>
         </div>
 
-        <div className="flex-1 bg-white/10 backdrop-blur-xl backdrop-saturate-150 overflow-auto">
+        <div className="flex-1 bg-white/10 dark:bg-gray-800/20 backdrop-blur-xl backdrop-saturate-150 overflow-auto scrollbar-transparent-track">
           {isLoading ? (
-            <div className="h-full flex items-center justify-center text-gray-500">로딩 중...</div>
+            <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">로딩 중...</div>
           ) : isError ? (
-            <div className="h-full flex items-center justify-center text-gray-500">신규 등록 학생 데이터를 불러오지 못했습니다.</div>
+            <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">신규 등록 학생 데이터를 불러오지 못했습니다.</div>
           ) : filtered.length === 0 ? (
-            <div className="h-full flex items-center justify-center text-gray-500">
+            <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
               등록 학생이 없습니다.
             </div>
           ) : (
-            <ul className="divide-y divide-white/25">
+            <ul className="divide-y divide-white/25 dark:divide-gray-700/40">
               {filtered.map((s, idx) => (
                 <li
                   key={s.id}
-                  className="grid grid-cols-[64px_1fr_120px_1fr] px-4 py-3 text-sm text-gray-900 hover:bg-white/15 transition-colors"
+                  className="grid grid-cols-[40px_1fr_minmax(84px,120px)_1fr] sm:grid-cols-[64px_1fr_120px_1fr] px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 dark:text-gray-100 hover:bg-white/15 dark:hover:bg-gray-700/30 transition-colors"
                 >
-                  <div className="text-gray-700">{idx + 1}</div>
+                  <div className="text-gray-700 dark:text-gray-400">{idx + 1}</div>
                   <div className="font-medium truncate">{s.name}</div>
-                  <div className="text-gray-800">{s.birth ?? "-"}</div>
-                  <div className="text-gray-800">{s.phone ?? "-"}</div>
+                  <div className="text-gray-800 dark:text-gray-300">{s.birth ?? "-"}</div>
+                  <div className="text-gray-800 dark:text-gray-300">{s.phone ?? "-"}</div>
                 </li>
               ))}
             </ul>

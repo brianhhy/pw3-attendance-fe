@@ -33,6 +33,9 @@ function toIsoDateLabel(d: [number, number, number]) {
 // 주일별 전체 출석 현황을 라인 차트로 표시한다. 최근 6개 주일 데이터를 기준으로 렌더링한다.
 export default function OverallAttendanceChart() {
   const { sundaySummary, isLoading } = useStatisticStore();
+  const pointColor = "#2C79FF";
+  const pointColorHover = "#1D5FD9";
+  const pointRgb = "44,121,255";
 
   const points = useMemo<SundayPoint[]>(() =>
     sundaySummary
@@ -57,33 +60,33 @@ export default function OverallAttendanceChart() {
         {
           label: "출석 인원",
           data: displayedPoints.map((p) => p.attended),
-          borderColor: "#2C79FF",
+          borderColor: pointColor,
           backgroundColor: (context: any) => {
             const ctx = context.chart.ctx;
             const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, "rgba(44,121,255,0.35)");
-            gradient.addColorStop(0.5, "rgba(44,121,255,0.15)");
-            gradient.addColorStop(1, "rgba(44,121,255,0.02)");
+            gradient.addColorStop(0, `rgba(${pointRgb},0.35)`);
+            gradient.addColorStop(0.5, `rgba(${pointRgb},0.15)`);
+            gradient.addColorStop(1, `rgba(${pointRgb},0.02)`);
             return gradient;
           },
-          pointBackgroundColor: "#2C79FF",
+          pointBackgroundColor: pointColor,
           pointBorderColor: "#FFFFFF",
           pointBorderWidth: 3,
           pointRadius: 5,
           pointHoverRadius: 8,
           pointHoverBorderWidth: 4,
-          pointHoverBackgroundColor: "#1D5FD9",
+          pointHoverBackgroundColor: pointColorHover,
           borderWidth: 3,
           tension: 0.4,
           fill: true,
           shadowOffsetX: 0,
           shadowOffsetY: 4,
           shadowBlur: 10,
-          shadowColor: "rgba(44,121,255,0.3)",
+          shadowColor: `rgba(${pointRgb},0.3)`,
         },
       ],
     };
-  }, [displayedPoints]);
+  }, [displayedPoints, pointColor, pointColorHover, pointRgb]);
 
   const yRange = useMemo(() => {
     if (displayedPoints.length === 0) return null;
@@ -129,7 +132,7 @@ export default function OverallAttendanceChart() {
           backgroundColor: "rgba(255,255,255,0.95)",
           titleColor: "#1F2937",
           bodyColor: "#4B5563",
-          borderColor: "rgba(44,121,255,0.3)",
+          borderColor: `rgba(${pointRgb},0.3)`,
           borderWidth: 1,
           cornerRadius: 8,
           displayColors: false,
@@ -174,17 +177,18 @@ export default function OverallAttendanceChart() {
         },
       },
     } as const;
-  }, [displayedPoints, yRange]);
+  }, [displayedPoints, yRange, pointRgb]);
 
   return (
-    <div className="flex-[2] flex flex-col rounded-xl border border-white/45 bg-gradient-to-b from-white/25 to-white/10 backdrop-blur-xl backdrop-saturate-150 p-4">
-      <div className="flex-1 rounded-xl border border-white/45 bg-gradient-to-b from-white/35 to-white/15 backdrop-blur-xl backdrop-saturate-150 overflow-hidden">
+    <div className="flex-[2] flex flex-col rounded-xl border border-white/45 dark:border-gray-700/60 bg-gradient-to-b from-white/25 to-white/10 dark:from-white/10 dark:to-white/5 backdrop-blur-xl backdrop-saturate-150 p-4">
+      <div className="flex-1 rounded-xl border border-white/45 dark:border-gray-700/60 bg-gradient-to-b from-white/35 to-white/15 dark:from-white/10 dark:to-white/5 backdrop-blur-xl backdrop-saturate-150 overflow-hidden">
         {isLoading ? (
-          <div className="h-full flex items-center justify-center text-gray-400">로딩 중...</div>
+          <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">로딩 중...</div>
         ) : points.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-gray-400">데이터가 없습니다.</div>
+          <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">데이터가 없습니다.</div>
         ) : (
           <div className="h-full p-2" key={`chart-${points.length}-${points[0]?.label ?? 'empty'}`}>
+            {/* 라인/포인트/그라디언트 색은 useIsDarkMode로 다크모드에 맞춰 노란색으로 바뀐다. 축/툴팁 텍스트 등 나머지 차트 크롬은 라이트 팔레트 그대로 둔다. */}
             <Line data={chartData} options={chartOptions} />
           </div>
         )}

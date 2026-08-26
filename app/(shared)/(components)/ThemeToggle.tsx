@@ -11,8 +11,8 @@ const ThemeToggle = ({ className = "" }: { className?: string }) => {
             onClick={toggleTheme}
             aria-label="다크 모드 전환"
             aria-pressed={isDark}
-            className={`relative w-[68px] h-8 shrink-0 rounded-full border-2 border-[#467FE0] transition-colors duration-300 ${
-                isDark ? "bg-yellow-300" : "bg-transparent"
+            className={`relative w-[68px] h-8 shrink-0 rounded-full border-2 transition-colors duration-300 ${
+                isDark ? "border-black bg-yellow-300" : "border-[#467FE0] bg-transparent"
             } ${className}`}
         >
             <span

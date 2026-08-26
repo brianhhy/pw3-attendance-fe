@@ -46,7 +46,7 @@ export default function AttendanceSummaryCard() {
         </div>
         <Link
           href="/attendance"
-          className="flex items-center gap-1.5 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#EAF1FF] dark:bg-gray-700 text-[#467FE0] dark:text-white text-sm font-semibold rounded-xl hover:bg-[#D6E4FF] dark:hover:bg-gray-600 transition-colors"
         >
           출석 체크 <ArrowRight className="w-4 h-4" />
         </Link>

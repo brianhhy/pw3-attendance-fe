@@ -13,7 +13,7 @@ export default function TabButton({ label, isActive, onClick }: TabButtonProps) 
       className={`px-6 py-3 font-semibold text-lg transition-all relative ${
         isActive
           ? "text-[#2C79FF]"
-          : "text-gray-600 hover:text-gray-900"
+          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
       }`}
     >
       {label}
