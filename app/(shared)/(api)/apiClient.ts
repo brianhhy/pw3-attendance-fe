@@ -5,18 +5,21 @@ import { getCookie, setCookie, removeCookie, epochSecondsToDate } from "@/lib/ut
 
 const apiClient = axios.create();
 
+interface RetriableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+  _accessTokenUsed?: string;
+}
+
 // 모든 요청에 accessToken이 있으면 Authorization 헤더를 붙인다.
+// 이후 401 발생 시 "이 요청이 어떤 토큰으로 실패했는지" 비교할 수 있도록 함께 기록해 둔다.
 apiClient.interceptors.request.use((config) => {
   const accessToken = useAuthStore.getState().accessToken;
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
+  (config as RetriableRequestConfig)._accessTokenUsed = accessToken ?? undefined;
   return config;
 });
-
-interface RetriableRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean;
-}
 
 // 동시에 여러 요청이 401을 받아도 refresh는 한 번만 실행되도록 진행 중인 재발급을 공유한다.
 let refreshPromise: Promise<string | null> | null = null;
@@ -83,7 +86,12 @@ apiClient.interceptors.response.use(
     }
     originalRequest._retry = true;
 
-    const newAccessToken = await ensureAccessToken();
+    // 이 요청이 실패할 당시 쓰던 토큰보다 최신 토큰이 이미 스토어에 있다면,
+    // 다른 요청이 먼저 refresh를 끝낸 것이므로 새로 refresh하지 않고 그 결과만 재사용한다.
+    // (여러 요청이 거의 동시에 401을 받아도 응답이 흩어져 도착하면서 refresh가 중복 실행되는 것을 막는다.)
+    const currentAccessToken = useAuthStore.getState().accessToken;
+    const alreadyRefreshed = currentAccessToken && currentAccessToken !== originalRequest._accessTokenUsed;
+    const newAccessToken = alreadyRefreshed ? currentAccessToken : await ensureAccessToken();
 
     if (newAccessToken) {
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
