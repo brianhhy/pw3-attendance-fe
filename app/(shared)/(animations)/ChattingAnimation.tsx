@@ -5,8 +5,8 @@ import { useEffect, useRef, useCallback } from "react";
 const WAVE_SPEED  = 0.003;
 const WAVE_SPREAD = 0.2;
 const LIFT_PX     = 5;
-const BASE_RGB    = [107, 114, 128]; // gray-500
-const WAVE_RGB    = [44, 121, 255];  // #2C79FF
+const BASE_RGB    = [107, 114, 128];    // gray-500
+const WAVE_RGB    = [44, 121, 255];     // #2C79FF
 
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 function softPeak(sin: number) { return Math.max(0, sin) ** 1.6; }

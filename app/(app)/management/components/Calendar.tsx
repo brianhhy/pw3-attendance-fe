@@ -77,18 +77,18 @@ export default function Calendar({ onSelect }: CalendarProps) {
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={prevMonth}
-          className="p-2 rounded-full hover:bg-white/60 transition-colors"
+          className="p-2 rounded-full hover:bg-white/60 dark:hover:bg-gray-800 transition-colors"
         >
-          <ChevronLeft className="w-6 h-6 text-gray-400" />
+          <ChevronLeft className="w-6 h-6 text-gray-400 dark:text-gray-500" />
         </button>
-        <span className="text-2xl font-bold text-gray-700">
+        <span className="text-2xl font-bold text-gray-700 dark:text-gray-200">
           {viewYear}년 {viewMonth + 1}월
         </span>
         <button
           onClick={nextMonth}
-          className="p-2 rounded-full hover:bg-white/60 transition-colors"
+          className="p-2 rounded-full hover:bg-white/60 dark:hover:bg-gray-800 transition-colors"
         >
-          <ChevronRight className="w-6 h-6 text-gray-400" />
+          <ChevronRight className="w-6 h-6 text-gray-400 dark:text-gray-500" />
         </button>
       </div>
 
@@ -98,7 +98,7 @@ export default function Calendar({ onSelect }: CalendarProps) {
           <div
             key={name}
             className={`text-center text-sm font-semibold py-2 ${
-              i === 0 ? "text-red-400" : i === 6 ? "text-[#2C79FF]" : "text-gray-400"
+              i === 0 ? "text-red-400" : i === 6 ? "text-[#2C79FF]" : "text-gray-400 dark:text-gray-500"
             }`}
           >
             {name}
@@ -107,7 +107,7 @@ export default function Calendar({ onSelect }: CalendarProps) {
       </div>
 
       {/* 구분선 */}
-      <div className="border-t border-gray-200/60 mb-3" />
+      <div className="border-t border-gray-200/60 dark:border-gray-700/60 mb-3" />
 
       {/* 날짜 그리드 */}
       <div className="grid grid-cols-7">
@@ -135,12 +135,12 @@ export default function Calendar({ onSelect }: CalendarProps) {
                   isSelected
                     ? "bg-[#2C79FF] text-white font-bold shadow-lg scale-110"
                     : isToday
-                    ? "bg-white text-[#2C79FF] font-bold shadow-sm ring-2 ring-[#2C79FF]/30"
+                    ? "bg-white dark:bg-gray-800 text-[#2C79FF] font-bold shadow-sm ring-2 ring-[#2C79FF]/30"
                     : dow === 0
-                    ? "text-red-400 hover:bg-white/70"
+                    ? "text-red-400 hover:bg-white/70 dark:hover:bg-gray-800/70"
                     : dow === 6
-                    ? "text-[#2C79FF] hover:bg-white/70"
-                    : "text-gray-600 hover:bg-white/70"
+                    ? "text-[#2C79FF] hover:bg-white/70 dark:hover:bg-gray-800/70"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-white/70 dark:hover:bg-gray-800/70"
                 }`}
                 onMouseEnter={() => hasBirthday && setTooltipDay(day)}
                 onMouseLeave={() => setTooltipDay(null)}
@@ -153,14 +153,14 @@ export default function Calendar({ onSelect }: CalendarProps) {
 
               {/* 생일 툴팁 */}
               {tooltipDay === day && hasBirthday && (
-                <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-3 min-w-[160px] max-w-[220px]">
-                  <p className="text-xs font-bold text-gray-500 mb-2">{viewMonth + 1}월 {day}일 생일</p>
+                <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-3 min-w-[160px] max-w-[220px]">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">{viewMonth + 1}월 {day}일 생일</p>
                   {bday.students.length > 0 && (
                     <div className="mb-1.5">
                       <p className="text-[10px] font-semibold text-[#2C79FF] mb-1">학생</p>
                       {bday.students.map((s) => (
-                        <p key={s.id} className="text-xs text-gray-700 leading-tight">
-                          {s.name} <span className="text-gray-400 text-[10px]">({s.className})</span>
+                        <p key={s.id} className="text-xs text-gray-700 dark:text-gray-300 leading-tight">
+                          {s.name} <span className="text-gray-400 dark:text-gray-500 text-[10px]">({s.className})</span>
                         </p>
                       ))}
                     </div>
@@ -169,7 +169,7 @@ export default function Calendar({ onSelect }: CalendarProps) {
                     <div>
                       <p className="text-[10px] font-semibold text-purple-500 mb-1">선생님</p>
                       {bday.teachers.map((t) => (
-                        <p key={t.id} className="text-xs text-gray-700 leading-tight">
+                        <p key={t.id} className="text-xs text-gray-700 dark:text-gray-300 leading-tight">
                           {t.name}
                         </p>
                       ))}

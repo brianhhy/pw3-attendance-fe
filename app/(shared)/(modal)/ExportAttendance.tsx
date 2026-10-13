@@ -122,11 +122,11 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <div key={i} className="animate-pulse">
-              <div className="h-6 bg-gray-200 rounded w-1/3 mb-2" />
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-2" />
               <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded w-full" />
-                <div className="h-4 bg-gray-200 rounded w-5/6" />
-                <div className="h-4 bg-gray-200 rounded w-4/5" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5" />
               </div>
             </div>
           ))}
@@ -136,7 +136,7 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
 
     if (!reportData) {
       return (
-        <div className="text-center text-gray-500 py-8">
+        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
           출석 데이터를 불러올 수 없습니다.
         </div>
       );
@@ -150,7 +150,7 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
           <div className="mb-6 opacity-50">
             <Image src="/images/logo.png" alt="logo" width={171} height={80} />
           </div>
-          <p className="text-gray-500 text-lg">오늘 출석한 인원이 없습니다.</p>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">오늘 출석한 인원이 없습니다.</p>
         </div>
       );
     }
@@ -159,18 +159,18 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
       <div className="space-y-1">
         {/* 요약 헤더 */}
         {(reportData.studentCount || reportData.teacherCount) && (
-          <div className="flex gap-4 mb-4 text-sm text-gray-500">
+          <div className="flex gap-4 mb-4 text-sm text-gray-500 dark:text-gray-400">
             {reportData.studentCount && <span>학생 {reportData.studentCount}</span>}
             {reportData.teacherCount && <span>선생님 (헬퍼포함) {reportData.teacherCount}</span>}
           </div>
         )}
 
         {filteredClasses.map((cls, i) => (
-            <div key={i} className="bg-gray-50 rounded-lg p-4">
+            <div key={i} className="bg-gray-50 dark:bg-gray-800/60 rounded-lg p-4">
               <h3 className="font-bold text-base mb-2">{cls.name}</h3>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
                 {cls.students.map((student, j) => (
-                  <span key={j} className="text-sm text-gray-700">
+                  <span key={j} className="text-sm text-gray-700 dark:text-gray-300">
                     {student}
                   </span>
                 ))}
@@ -185,11 +185,11 @@ export default function ExportAttendance({ open, onOpenChange }: ExportAttendanc
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={true}
-        className={`sm:max-w-2xl sm:h-[80vh] bg-white border-none flex flex-col ${
+        className={`sm:max-w-2xl sm:h-[80vh] bg-white dark:bg-gray-900 border-none flex flex-col ${
           shouldAnimate ? "animate-slide-up" : ""
         }`}
       >
-        <DialogHeader className="sticky top-0 bg-white z-10 pb-4 flex-shrink-0">
+        <DialogHeader className="sticky top-0 bg-white dark:bg-gray-900 z-10 pb-4 flex-shrink-0">
           <DialogTitle>{selectedDate} 출석부</DialogTitle>
         </DialogHeader>
 

@@ -64,16 +64,16 @@ export default function Acts29SyncButton() {
         <RefreshCw className="h-4 w-4" />Acts29 출석 동기화
       </button>
       <Dialog open={open} onOpenChange={(value) => { if (!busyRef.current) setOpen(value); }}>
-        <DialogContent className="content-start overflow-y-auto sm:max-h-[calc(100dvh-2rem)]" showCloseButton={!busy}>
+        <DialogContent className="content-start overflow-y-auto sm:max-h-[calc(100dvh-2rem)] dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100" showCloseButton={!busy}>
           <DialogHeader>
             <DialogTitle>Acts29 출석 동기화</DialogTitle>
             <DialogDescription>{date} · 전체 학생 출석을 Acts29와 비교하고 반영합니다.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 rounded-lg bg-[#F2F4F6] p-3 text-sm leading-relaxed text-[#697077]">
+          <div className="space-y-2 rounded-lg bg-[#F2F4F6] dark:bg-gray-800 p-3 text-sm leading-relaxed text-[#697077] dark:text-gray-400">
             <p>이름·생년월일로 매칭된 학생의 출석을 반영합니다. 로컬에만 있거나 중복 매칭된 학생은 건너뛰며, Acts29에만 있는 학생의 기존 상태는 유지됩니다.</p>
             <p>출석·지각은 출석(Y), 결석·기타·미체크는 미출석(N)으로 반영합니다. 선생님 출석은 포함되지 않습니다.</p>
           </div>
-          {busy && <p role="status" className="text-sm text-[#697077]">{busy === "compare" ? "Acts29 출석을 비교하고 있습니다." : "Acts29에 출석을 반영하고 있습니다."} 잠시 기다려주세요.</p>}
+          {busy && <p role="status" className="text-sm text-[#697077] dark:text-gray-400">{busy === "compare" ? "Acts29 출석을 비교하고 있습니다." : "Acts29에 출석을 반영하고 있습니다."} 잠시 기다려주세요.</p>}
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           {response && (
             <div className="flex flex-col gap-4">
@@ -81,11 +81,11 @@ export default function Acts29SyncButton() {
                 {response.dryRun ? "출석 비교 완료" : response.result === "NO_CHANGES" ? "변경할 출석이 없습니다." : "매칭된 학생의 Acts29 출석 반영 완료"}
               </p>
               <dl className="grid grid-cols-2 gap-3 rounded-lg border border-[#E8ECFF] p-3 text-sm">
-                <div><dt className="text-[#697077]">로컬 학생</dt><dd className="font-semibold">{response.localStudentCount}명</dd></div>
-                <div><dt className="text-[#697077]">매칭된 학생</dt><dd className="font-semibold">{response.matchedCount}명</dd></div>
-                <div><dt className="text-[#697077]">{response.dryRun ? "변경 예정" : "변경된 출석"}</dt><dd className="font-semibold">{response.changedCount}건</dd></div>
-                <div><dt className="text-[#697077]">{response.dryRun ? "건너뛸 학생" : "건너뛴 학생"}</dt><dd className="font-semibold">{response.unmatchedTargetCount}명</dd></div>
-                <div><dt className="text-[#697077]">매칭 문제</dt><dd className="font-semibold">{response.matchIssues.length}건</dd></div>
+                <div><dt className="text-[#697077] dark:text-gray-400">로컬 학생</dt><dd className="font-semibold">{response.localStudentCount}명</dd></div>
+                <div><dt className="text-[#697077] dark:text-gray-400">매칭된 학생</dt><dd className="font-semibold">{response.matchedCount}명</dd></div>
+                <div><dt className="text-[#697077] dark:text-gray-400">{response.dryRun ? "변경 예정" : "변경된 출석"}</dt><dd className="font-semibold">{response.changedCount}건</dd></div>
+                <div><dt className="text-[#697077] dark:text-gray-400">{response.dryRun ? "건너뛸 학생" : "건너뛴 학생"}</dt><dd className="font-semibold">{response.unmatchedTargetCount}명</dd></div>
+                <div><dt className="text-[#697077] dark:text-gray-400">매칭 문제</dt><dd className="font-semibold">{response.matchIssues.length}건</dd></div>
               </dl>
               {response.matchIssues.length > 0 && (
                 <div className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
@@ -110,12 +110,12 @@ export default function Acts29SyncButton() {
               {response.changes.length > 0 && (
                 <div className="max-h-48 overflow-auto rounded-lg border border-[#E8ECFF]">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-[#F2F4F6]"><tr><th className="p-2">학생</th><th className="p-2">반영 전 Acts29 출석</th><th className="p-2">{response.dryRun ? "반영할 출석" : "반영된 출석"}</th></tr></thead>
+                    <thead className="bg-[#F2F4F6] dark:bg-gray-800"><tr><th className="p-2">학생</th><th className="p-2">반영 전 Acts29 출석</th><th className="p-2">{response.dryRun ? "반영할 출석" : "반영된 출석"}</th></tr></thead>
                     <tbody>{response.changes.map((change) => <tr key={`${change.studentId}-${change.targetUserId}`} className="border-t border-[#E8ECFF]"><td className="p-2">{change.studentName}</td><td className="p-2">{change.previousAttendance || "미입력"}</td><td className="p-2">{change.nextAttendance}</td></tr>)}</tbody>
                   </table>
                 </div>
               )}
-              {response.dryRun && response.changedCount === 0 && <p className="text-sm text-[#697077]">매칭된 학생 중 변경할 출석이 없습니다.</p>}
+              {response.dryRun && response.changedCount === 0 && <p className="text-sm text-[#697077] dark:text-gray-400">매칭된 학생 중 변경할 출석이 없습니다.</p>}
             </div>
           )}
           <div className="flex flex-wrap justify-end gap-2">

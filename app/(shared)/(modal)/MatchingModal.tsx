@@ -95,7 +95,7 @@ function MatchingConfirmModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`sm:max-w-[400px] bg-white shadow-xl rounded-2xl p-0 overflow-hidden transition-all duration-300 ease-out border-none ${
+      <DialogContent className={`sm:max-w-[400px] bg-white dark:bg-gray-900 shadow-xl rounded-2xl p-0 overflow-hidden transition-all duration-300 ease-out border-none ${
         shouldAnimate 
           ? 'opacity-100 scale-100' 
           : 'opacity-0 scale-95'
@@ -123,7 +123,7 @@ function MatchingConfirmModal({
                   {selectedPerson.name}
                 </div>
                 {selectedPerson.school && (
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
                     {selectedPerson.school}
                   </div>
                 )}
@@ -148,7 +148,7 @@ function MatchingConfirmModal({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="px-13 py-2.5 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded-lg"
+            className="px-13 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-lg"
           >
             취소하기
           </Button>
@@ -245,7 +245,7 @@ export default function MatchingDialog({ open, onOpenChange }: MatchingDialogPro
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent 
           showCloseButton={true}
-          className={`sm:w-[80vh] sm:h-[80vh] bg-white border-none flex flex-col ${
+          className={`sm:w-[80vh] sm:h-[80vh] bg-white dark:bg-gray-900 border-none flex flex-col ${
             shouldAnimate ? "animate-slide-up" : ""
           }`}
         >
@@ -275,11 +275,11 @@ export default function MatchingDialog({ open, onOpenChange }: MatchingDialogPro
             </div>
           </DialogHeader>
           
-          <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-4">
-            <div className="flex-shrink-0 overflow-auto max-h-[50%]">
-              <FindClassList 
+          <div className="flex-1 flex flex-col gap-6 overflow-hidden pt-4 min-h-0">
+            <div className={`flex-1 min-h-0 overflow-hidden ${selectedItem ? "max-h-[50%]" : ""}`}>
+              <FindClassList
                 key={`${matchingActiveTab}-${refreshKey}`}
-                activeTab={matchingActiveTab} 
+                activeTab={matchingActiveTab}
                 onSelect={(item) => setSelectedItem(item)}
                 selectedItemId={selectedItem?.id}
                 excludedStudentIds={excludedStudentIds}
@@ -287,7 +287,7 @@ export default function MatchingDialog({ open, onOpenChange }: MatchingDialogPro
               />
             </div>
             {selectedItem && (
-              <div className="flex-1 overflow-auto" key={`${selectedItem.type}-${selectedItem.id}`}>
+              <div className="flex-1 min-h-0 overflow-hidden" key={`${selectedItem.type}-${selectedItem.id}`}>
                 <RestClassList 
                   selectedItem={selectedItem}
                   activeTab={matchingActiveTab}

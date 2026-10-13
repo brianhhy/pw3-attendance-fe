@@ -97,7 +97,7 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={true}
-        className={`sm:max-w-sm bg-white border-none ${shouldAnimate ? "animate-slide-up" : ""}`}
+        className={`sm:max-w-sm bg-white dark:bg-gray-900 border-none ${shouldAnimate ? "animate-slide-up" : ""}`}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -109,26 +109,26 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
         <div className="flex flex-col gap-5 pt-2">
           {savedEvents.length > 0 && (
             <div className="flex flex-col gap-2">
-              <p className="text-xs text-gray-500">저장된 이벤트</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">저장된 이벤트</p>
               {savedEvents
                 .slice()
                 .sort((a, b) => a.date.localeCompare(b.date))
                 .map((event) => (
                   <div
                     key={event.date}
-                    className="flex items-center justify-between bg-blue-50 rounded-lg px-4 py-3"
+                    className="flex items-center justify-between bg-blue-50 dark:bg-blue-950/40 rounded-lg px-4 py-3"
                   >
                     <div>
                       <p className="text-sm font-semibold text-[#2C79FF]">
                         {formatDisplayDate(event.date)}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         {getTypeLabel(event.type)}
                       </p>
                     </div>
                     <button
                       onClick={() => handleDelete(event.date)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"
                       aria-label="이벤트 삭제"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -139,24 +139,24 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
           )}
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">이벤트 유형</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">이벤트 유형</label>
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={() => setDropdownOpen((v) => !v)}
-                className="w-full flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2C79FF] focus:border-transparent"
+                className="w-full flex items-center justify-between border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2C79FF] focus:border-transparent"
               >
                 <span>{EVENT_TYPES.find((t) => t.value === selectedType)?.label}</span>
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${dropdownOpen ? "" : "rotate-180"}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform duration-200 ${dropdownOpen ? "" : "rotate-180"}`} />
               </button>
               {dropdownOpen && (
-                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden">
                   {EVENT_TYPES.map((type) => (
                     <button
                       key={type.value}
                       type="button"
                       onClick={() => { setSelectedType(type.value); setDropdownOpen(false); }}
-                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 text-left"
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 text-left"
                     >
                       <span>{type.label}</span>
                       {selectedType === type.value && <Check className="w-4 h-4 text-[#2C79FF]" />}
@@ -168,19 +168,19 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700">날짜 선택</label>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">날짜 선택</label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C79FF] focus:border-transparent"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-gray-800 dark:[color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-[#2C79FF] focus:border-transparent"
             />
           </div>
 
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => onOpenChange(false)}
-              className="flex-1 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              className="flex-1 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               닫기
             </button>

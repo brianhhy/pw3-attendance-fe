@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getStudentClassesByYear } from "@/app/(shared)/(api)/student";
 import { queryKeys } from "@/app/(shared)/(api)/queryKeys";
+import CustomScrollbar from "@/components/ui/CustomScrollbar";
 
 interface ClassInfo {
   id: number;
@@ -92,8 +93,8 @@ export default function RestClassList({ selectedItem, activeTab, onClassSelect }
   }
 
   return (
-    <div 
-      className={`max-h-[calc(100vh-300px)] flex flex-col transition-all duration-300 ease-out ${
+    <div
+      className={`h-full flex flex-col min-h-0 transition-all duration-300 ease-out ${
         shouldAnimate 
           ? 'opacity-100 translate-x-0' 
           : 'opacity-0 translate-x-5'
@@ -102,21 +103,21 @@ export default function RestClassList({ selectedItem, activeTab, onClassSelect }
       <h2 className="text-xl font-bold mb-4">
         가능한 반 목록
       </h2>
-      <div className="flex-1 overflow-y-auto">
+      <CustomScrollbar className="flex-1 min-h-0" contentClassName="pr-3">
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3, 4, 5].map((index) => (
               <div
                 key={index}
-                className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 animate-pulse"
+                className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 animate-pulse"
               >
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : classes.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
+          <div className="text-center text-gray-500 dark:text-gray-400 py-8">
             가능한 반이 없습니다.
           </div>
         ) : (
@@ -124,7 +125,7 @@ export default function RestClassList({ selectedItem, activeTab, onClassSelect }
             {classes.map((classItem) => (
               <div
                 key={classItem.id}
-                className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 cursor-pointer"
+                className="p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -137,18 +138,18 @@ export default function RestClassList({ selectedItem, activeTab, onClassSelect }
                   {getSchoolTypeName(classItem.schoolType)} {classItem.grade}학년 {classItem.classNumber}반
                 </div>
                 {activeTab === "student" && (
-                  <div className="text-sm text-gray-600 mt-1">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     담임: {classItem.teacherName || "없음"}
                   </div>
                 )}
                 {activeTab === "teacher" && (
-                  <div className="text-sm text-blue-600 mt-1">선택 가능</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">선택 가능</div>
                 )}
               </div>
             ))}
           </div>
         )}
-      </div>
+      </CustomScrollbar>
     </div>
   );
 }

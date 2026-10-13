@@ -107,6 +107,10 @@ const getTodayDateString = (): string => {
     return `${year}-${month}-${day}`;
 };
 
+// 날짜를 빠르게 연속으로 바꿀 때 getAttendances가 겹쳐 호출될 수 있다.
+// 응답 도착 순서가 요청 순서와 다를 수 있으므로, 가장 최근에 시작된 요청의 결과만 반영한다.
+let latestAttendancesRequestId = 0;
+
 const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     students: [],
     teachers: [],
@@ -158,6 +162,7 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
     getAttendances: async (date?: string) => {
         const targetDate = date || get().selectedDate || getTodayDateString();
         const schoolYear = new Date().getFullYear();
+        const requestId = ++latestAttendancesRequestId;
 
         try {
             const [classAttendanceData, teacherData, parentData] = await Promise.all([
@@ -166,6 +171,9 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
                 getParentAttendances(targetDate),
             ]);
 
+            // 응답이 오는 동안 더 최근 날짜의 요청이 시작됐다면, 이 결과는 오래된 것이므로 버린다.
+            if (requestId !== latestAttendancesRequestId) return;
+
             set({
                 classAttendanceData: classAttendanceData || [],
                 teacherAttendances: teacherData || [],
@@ -173,6 +181,7 @@ const useAttendanceStore = create<AttendanceStore>((set, get) => ({
                 selectedDate: targetDate,
             });
         } catch (error) {
+            if (requestId !== latestAttendancesRequestId) return;
             set({
                 classAttendanceData: [],
                 teacherAttendances: [],

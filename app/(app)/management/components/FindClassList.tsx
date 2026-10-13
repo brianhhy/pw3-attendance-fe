@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getStudentsList } from "@/app/(shared)/(api)/student";
 import { getTeacherList } from "@/app/(shared)/(api)/teacher";
 import { queryKeys } from "@/app/(shared)/(api)/queryKeys";
+import CustomScrollbar from "@/components/ui/CustomScrollbar";
 
 interface StudentItem {
   id: number;
@@ -28,6 +29,9 @@ interface TeacherItem {
   name: string;
   number: string;
   status: string;
+  classesByYear: {
+    [year: string]: any[];
+  } | null;
 }
 
 interface FindClassListProps {
@@ -53,6 +57,7 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
     queryKey: queryKeys.teachersList(),
     queryFn: getTeacherList,
     enabled: activeTab === "teacher",
+    select: (data: TeacherItem[]) => data.filter((t) => !t.classesByYear || Object.keys(t.classesByYear).length === 0),
   });
 
   const isLoading = isStudentsLoading || isTeachersLoading;
@@ -82,19 +87,19 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
 
   if (isLoading) {
     return (
-      <div className="max-h-[calc(100vh-300px)] max-w-[550px] flex flex-col">
+      <div className="h-full max-w-[550px] flex flex-col min-h-0">
         <div className="flex items-center justify-between mb-4 gap-4">
-          <div className="h-7 bg-gray-200 rounded w-48 animate-pulse"></div>
-          <div className="h-10 w-10 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div>
+          <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
         </div>
-        <div className="flex-1 overflow-y-auto space-y-2">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-2 scrollbar-transparent-track">
           {[1, 2, 3, 4, 5].map((index) => (
             <div
               key={index}
-              className="p-4 rounded-lg border border-gray-200 animate-pulse"
+              className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse"
             >
-              <div className="h-5 bg-gray-200 rounded w-24 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-32"></div>
+              <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-2"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
             </div>
           ))}
         </div>
@@ -103,7 +108,7 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
   }
 
   return (
-    <div className="max-h-[calc(100vh-300px)] max-w-[550px] flex flex-col">
+    <div className="h-full max-w-[550px] flex flex-col min-h-0">
       <div className="flex items-center justify-between mb-4 gap-4">
         <h2 className="text-xl font-medium">
           {activeTab === "student" ? "반 배정이 필요한 학생" : "반 배정이 필요한 선생님"}
@@ -124,16 +129,16 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
             placeholder={activeTab === "student" ? "학생 이름을 입력하세요." : "선생님 이름을 입력하세요."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className={`pl-10 bg-gray-50 border-none transition-all duration-300 ${
+            className={`pl-10 bg-gray-50 dark:bg-gray-800 border-none transition-all duration-300 ${
               isSearchOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
           />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <CustomScrollbar className="flex-1 min-h-0" contentClassName="pr-3">
         {activeTab === "student" ? (
           filteredStudents.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               {searchQuery ? "검색 결과가 없습니다" : "반 배정이 필요한 학생이 없습니다."}
             </div>
           ) : (
@@ -148,13 +153,13 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
                   }}
                   className={`p-4 rounded-lg border cursor-pointer transition-all ${
                     selectedItemId === student.id
-                      ? "border-[#2C79FF] bg-[#F7F8FF]"
-                      : "border-gray-200 hover:bg-[#F7F8FF] hover:border-[#2C79FF]"
+                      ? "border-[#2C79FF] bg-[#F7F8FF] dark:bg-[#2C79FF]/10"
+                      : "border-gray-200 dark:border-gray-700 hover:bg-[#F7F8FF] dark:hover:bg-[#2C79FF]/10 hover:border-[#2C79FF]"
                   }`}
                 >
                   <div className="font-semibold">{student.name}</div>
                   {student.school && (
-                    <div className="text-sm text-gray-600 mt-1">{student.school}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{student.school}</div>
                   )}
                 </div>
               ))}
@@ -162,7 +167,7 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
           )
         ) : (
           filteredTeachers.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               {searchQuery ? "검색 결과가 없습니다" : "반 배정이 필요한 선생님이 없습니다."}
             </div>
           ) : (
@@ -177,20 +182,20 @@ export default function FindClassList({ activeTab, onSelect, selectedItemId, exc
                   }}
                   className={`p-4 rounded-lg border cursor-pointer transition-all ${
                     selectedItemId === teacher.id
-                      ? "border-[#2C79FF] bg-[#F7F8FF]"
-                      : "border-gray-200 hover:bg-[#F7F8FF] hover:border-[#2C79FF]"
+                      ? "border-[#2C79FF] bg-[#F7F8FF] dark:bg-[#2C79FF]/10"
+                      : "border-gray-200 dark:border-gray-700 hover:bg-[#F7F8FF] dark:hover:bg-[#2C79FF]/10 hover:border-[#2C79FF]"
                   }`}
                 >
                   <div className="font-semibold">{teacher.name}</div>
                   {teacher.number && (
-                    <div className="text-sm text-gray-600 mt-1">담당 반: {teacher.number}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">담당 반: {teacher.number}</div>
                   )}
                 </div>
               ))}
             </div>
           )
         )}
-      </div>
+      </CustomScrollbar>
     </div>
   );
 }

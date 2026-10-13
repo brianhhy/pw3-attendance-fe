@@ -4,7 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { X, Sparkles } from "lucide-react";
 
-const Chating = dynamic(() => import("../(modal)/Chating"), { ssr: false });
+const Chatting = dynamic(() => import("../(modal)/Chatting"), { ssr: false });
 
 export default function AIButton() {
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -38,7 +38,7 @@ export default function AIButton() {
         )}
       </button>
 
-      <Chating
+      <Chatting
         isOpen={isChatOpen}
         isClosing={isClosing}
         onClose={handleClose}

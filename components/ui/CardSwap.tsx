@@ -249,6 +249,11 @@ const CardSwap = ({
           -webkit-backface-visibility: hidden;
         }
 
+        :global(.dark) .card {
+          background: #1f2937;
+          border-color: #2c79ff;
+        }
+
         @media (max-width: 768px) {
           .card-swap-container {
             transform: scale(0.75) translate(25%, 25%);

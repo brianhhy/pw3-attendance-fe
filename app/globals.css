@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: 0 0% 100%;
@@ -24,45 +27,139 @@
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-gmarket-sans);
   --font-mono: var(--font-geist-mono);
   --font-hakgyoansim: var(--font-hakgyoansim);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-  }
+.dark {
+  --background: 0 0% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 0 0% 14.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 14.9%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 0 0% 14.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 14.9%;
+  --input: 0 0% 14.9%;
+  --ring: 0 0% 83.1%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: var(--font-gmarket-sans), Arial, Helvetica, sans-serif;
+}
+
+/* View Transition API가 지원되는 브라우저에서는 그라데이션과 이미지까지 함께 교차 전환한다. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 350ms;
+  animation-timing-function: ease-in-out;
+}
+
+/* 미지원 브라우저에서는 테마를 바꾸는 동안에만 색상 관련 속성을 보간한다.
+   평소 hover 및 컴포넌트 애니메이션에는 영향을 주지 않는다. */
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition-property: background-color, border-color, color, fill, stroke, text-decoration-color, outline-color, box-shadow;
+  transition-duration: 350ms !important;
+  transition-timing-function: ease-in-out !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  .theme-transitioning *,
+  .theme-transitioning *::before,
+  .theme-transitioning *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* 브라우저 자동완성 시 강제로 입히는 배경/글자색을 막고 화면(라이트/다크)에 맞는 색을 유지한다. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #fff inset;
+  box-shadow: 0 0 0 1000px #fff inset;
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+  caret-color: #111827;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #111827 inset;
+  box-shadow: 0 0 0 1000px #111827 inset;
+  -webkit-text-fill-color: #f3f4f6 !important;
+  color: #f3f4f6 !important;
+  caret-color: #f3f4f6;
 }
 
 .font-hakgyoansim {
   font-family: var(--font-hakgyoansim), sans-serif;
+}
+
+/* 관리 페이지 스크롤 영역의 스크롤바 배경(트랙)을 투명하게 만든다. */
+.scrollbar-transparent-track {
+  scrollbar-color: #d9d9d9 transparent;
+}
+
+.scrollbar-transparent-track::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-transparent-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-transparent-track::-webkit-scrollbar-thumb {
+  background-color: #d9d9d9;
+  border-radius: 9999px;
+}
+
+.dark .scrollbar-transparent-track {
+  scrollbar-color: #374151 transparent;
+}
+
+.dark .scrollbar-transparent-track::-webkit-scrollbar-thumb {
+  background-color: #374151;
+}
+
+/* 스크롤은 되지만 스크롤바 자체가 보이지 않도록 완전히 숨긴다. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes fade-in-slide-down {
@@ -356,6 +453,43 @@ body {
   color: #374151;
 }
 
+.dark .monthly-report-markdown h1,
+.dark .monthly-report-markdown h2,
+.dark .monthly-report-markdown h3 {
+  color: #f3f4f6;
+}
+
+.dark .monthly-report-markdown p,
+.dark .monthly-report-markdown em,
+.dark .monthly-report-markdown td {
+  color: #d1d5db;
+}
+
+.dark .monthly-report-markdown strong {
+  color: #f9fafb;
+}
+
+.dark .monthly-report-markdown blockquote {
+  border-left-color: #2C79FF;
+  background: rgba(44, 121, 255, 0.1);
+  color: #d1d5db;
+}
+
+.dark .monthly-report-markdown code {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+.dark .monthly-report-markdown th {
+  border-color: #374151;
+  background: rgba(44, 121, 255, 0.12);
+  color: #f3f4f6;
+}
+
+.dark .monthly-report-markdown td {
+  border-color: #374151;
+}
+
 @keyframes birthdayTickerIn {
   from {
     opacity: 0;
@@ -369,4 +503,64 @@ body {
 
 .animate-birthday-ticker {
   animation: birthdayTickerIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* MagicBento (dashboard cards) */
+.magic-bento-card {
+  --glow-x: 50%;
+  --glow-y: 50%;
+  --glow-intensity: 0;
+  --glow-radius: 200px;
+  transition: box-shadow 0.3s ease;
+}
+
+.magic-bento-card--border-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 6px;
+  background: radial-gradient(
+    var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.8)) 0%,
+    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.4)) 30%,
+    transparent 60%
+  );
+  border-radius: inherit;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.magic-bento-card--border-glow:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 30px rgba(var(--glow-color), 0.25);
+}
+
+.magic-bento-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.global-spotlight {
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  z-index: 200 !important;
+  pointer-events: none;
+}
+
+.bento-section {
+  position: relative;
+  height: 100%;
 }

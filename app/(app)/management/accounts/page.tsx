@@ -84,22 +84,22 @@ export default function AccountsPage() {
   };
 
   if (!isSuperAdmin) {
-    return <div className="p-8 text-center text-[#697077]" role="alert">승인된 슈퍼 어드민만 계정 관리 화면에 접근할 수 있습니다.</div>;
+    return <div className="p-8 text-center text-[#697077] dark:text-gray-400" role="alert">승인된 슈퍼 어드민만 계정 관리 화면에 접근할 수 있습니다.</div>;
   }
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-4 sm:p-8">
       <div>
         <div className="mb-2 flex items-center gap-2 text-sm font-medium text-[#2C79FF]"><ShieldCheck className="h-4 w-4" />슈퍼 어드민 전용</div>
-        <h1 className="text-2xl font-bold text-[#1B1C1E]">계정 관리</h1>
-        <p className="mt-2 text-sm text-[#697077]">일반 관리자 계정을 조회하고 새 비밀번호를 지정할 수 있습니다.</p>
+        <h1 className="text-2xl font-bold text-[#1B1C1E] dark:text-gray-100">계정 관리</h1>
+        <p className="mt-2 text-sm text-[#697077] dark:text-gray-400">일반 관리자 계정을 조회하고 새 비밀번호를 지정할 수 있습니다.</p>
       </div>
       {notice && <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">{notice}</p>}
-      <section className="rounded-2xl border border-[#E8ECFF] bg-white p-4 shadow-sm sm:p-6" aria-label="관리자 계정 목록">
+      <section className="rounded-2xl border border-[#E8ECFF] dark:border-gray-700 bg-white dark:bg-gray-900 dark:text-gray-100 p-4 shadow-sm sm:p-6" aria-label="관리자 계정 목록">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex flex-col gap-2">
             <Label htmlFor="account-status">가입 상태</Label>
-            <select id="account-status" value={status} onChange={(event) => setStatus(event.target.value as ApprovalStatus)} className="h-10 rounded-md border border-gray-300 bg-white px-3 text-sm">
+            <select id="account-status" value={status} onChange={(event) => setStatus(event.target.value as ApprovalStatus)} className="h-10 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-sm">
               {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </div>
@@ -115,16 +115,16 @@ export default function AccountsPage() {
         {error ? (
           <p role="alert" className="py-8 text-center text-sm text-red-600">{errorMessage(error, "계정 목록을 불러오지 못했습니다. 새로고침해주세요.")}</p>
         ) : isPending ? (
-          <p role="status" className="py-8 text-center text-sm text-[#697077]">계정 목록을 불러오고 있습니다.</p>
+          <p role="status" className="py-8 text-center text-sm text-[#697077] dark:text-gray-400">계정 목록을 불러오고 있습니다.</p>
         ) : accounts.length === 0 ? (
-          <p className="py-8 text-center text-sm text-[#697077]">{searchTerm ? "검색 결과가 없습니다." : "해당 상태의 일반 관리자 계정이 없습니다."}</p>
+          <p className="py-8 text-center text-sm text-[#697077] dark:text-gray-400">{searchTerm ? "검색 결과가 없습니다." : "해당 상태의 일반 관리자 계정이 없습니다."}</p>
         ) : (
           <ul className="divide-y divide-[#E8ECFF]">
             {accounts.map((account) => (
               <li key={account.id} className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{account.name}</span><span className="rounded-full bg-[#F2F4F6] px-2 py-1 text-xs text-[#697077]">{statusLabels[status]}</span></div>
-                  <p className="mt-1 break-all text-sm text-[#697077]">{account.username} · {account.email}</p>
+                  <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{account.name}</span><span className="rounded-full bg-[#F2F4F6] dark:bg-gray-800 px-2 py-1 text-xs text-[#697077] dark:text-gray-400">{statusLabels[status]}</span></div>
+                  <p className="mt-1 break-all text-sm text-[#697077] dark:text-gray-400">{account.username} · {account.email}</p>
                 </div>
                 <button type="button" onClick={() => { setNotice(""); setTarget(account); }} className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-[#2C79FF] px-4 py-2 text-sm font-medium text-[#2C79FF] hover:bg-[#F7F8FF]">
                   <KeyRound className="h-4 w-4" />비밀번호 초기화
@@ -135,19 +135,19 @@ export default function AccountsPage() {
         )}
       </section>
       <Dialog open={!!target} onOpenChange={(open) => { if (!open) closeReset(); }}>
-        <DialogContent className="content-start overflow-y-auto sm:max-h-[calc(100dvh-2rem)]" showCloseButton={!submitting}>
+        <DialogContent className="content-start overflow-y-auto sm:max-h-[calc(100dvh-2rem)] dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100" showCloseButton={!submitting}>
           <DialogHeader>
             <DialogTitle>비밀번호 초기화</DialogTitle>
             <DialogDescription>{target?.name} ({target?.username}) 계정에 사용할 새 비밀번호를 입력하세요.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleReset} className="flex flex-col gap-5">
-            <div className="rounded-lg bg-[#F2F4F6] p-4 text-sm leading-relaxed text-[#697077]">
+            <div className="rounded-lg bg-[#F2F4F6] dark:bg-gray-800 p-4 text-sm leading-relaxed text-[#697077] dark:text-gray-400">
               가입 승인 상태는 유지됩니다. 기존 비밀번호와 자동 로그인은 사용할 수 없게 됩니다. 현재 로그인은 최대 토큰 만료 시점까지 유지될 수 있습니다.
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="reset-password">새 비밀번호</Label>
               <Input id="reset-password" type="password" autoComplete="new-password" value={password} disabled={submitting} onChange={(event) => setPassword(event.target.value)} aria-describedby="reset-password-hint reset-password-error" aria-invalid={!!passwordError} />
-              <p id="reset-password-hint" className="text-xs leading-relaxed text-[#697077]">8~72자, UTF-8 기준 최대 72바이트 · 공백만 입력 불가 · 영문·숫자·특수문자 조합은 필수가 아닙니다.</p>
+              <p id="reset-password-hint" className="text-xs leading-relaxed text-[#697077] dark:text-gray-400">8~72자, UTF-8 기준 최대 72바이트 · 공백만 입력 불가 · 영문·숫자·특수문자 조합은 필수가 아닙니다.</p>
               <p id="reset-password-error" aria-live="polite" className="text-xs text-red-600">{passwordError}</p>
             </div>
             <div className="flex flex-col gap-2">

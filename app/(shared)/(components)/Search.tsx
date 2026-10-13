@@ -26,7 +26,7 @@ export default function Search({
     >
       <button
         onClick={onToggle}
-        className="absolute left-0 z-10 flex items-center justify-center w-10 h-10 text-muted-foreground hover:text-foreground transition-colors"
+        className="absolute left-0 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
         aria-label="검색"
       >
         <SearchIcon className="h-5 w-5" />
@@ -35,7 +35,7 @@ export default function Search({
         placeholder={placeholder}
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        className={`pl-10 bg-gray-50 border-none transition-all duration-300 ${
+        className={`pl-10 bg-gray-50 dark:bg-gray-800 dark:text-gray-100 border-none transition-all duration-300 ${
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
