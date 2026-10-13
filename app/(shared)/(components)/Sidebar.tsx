@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LayoutDashboard, ClipboardCheck, Settings, BarChart, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, ClipboardCheck, Settings, BarChart, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users, FileText, LogOut, KeyRound } from "lucide-react";
 import { getTodayKST } from "../utils/dateUtil";
 import { logout } from "../(api)/auth";
 import useAuthStore from "../(store)/authStore";
@@ -42,7 +42,8 @@ interface SidebarProps {
 const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
     const pathname = usePathname();
     const router = useRouter();
-    const { clearAuth } = useAuthStore();
+    const { admin, clearAuth } = useAuthStore();
+    const isSuperAdmin = admin?.role === "SUPER_ADMIN" && admin.approvalStatus === "APPROVED";
     const [expandedMenu, setExpandedMenu] = useState<string | null>(
         pathname.startsWith("/management") ? "/management" : null
     );
@@ -65,9 +66,14 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
         }
     }, []);
 
+    const visibleMenuItems = baseMenuItems.map((item) =>
+        isSuperAdmin && item.href === "/management"
+            ? { ...item, subItems: [...(item.subItems ?? []), { href: "/management/accounts", label: "계정 관리", icon: Users }] }
+            : item
+    );
     const menuItems = showParentsMenu
-        ? [baseMenuItems[0], { href: "/parent-attendance", label: "부모님 출석체크", icon: Users }, ...baseMenuItems.slice(1)]
-        : baseMenuItems;
+        ? [visibleMenuItems[0], { href: "/parent-attendance", label: "부모님 출석체크", icon: Users }, ...visibleMenuItems.slice(1)]
+        : visibleMenuItems;
 
     const toggleMenu = (href: string) => {
         setExpandedMenu((prev) => (prev === href ? null : href));
@@ -192,6 +198,14 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
             </div>
 
             <div className="border-t border-[#D9D9D9] px-[4px] py-[8px]">
+                <Link
+                    href="/settings/password"
+                    onClick={() => { if (isMobile && onClose) onClose(); }}
+                    className={`flex items-center gap-[18px] rounded-[5px] px-[10px] py-[10px] text-[20px] font-medium hover:bg-[#F7F8FF] hover:text-[#2C79FF] ${pathname === "/settings/password" ? "bg-[#F7F8FF] text-[#2C79FF]" : "text-[#697077]"}`}
+                >
+                    <KeyRound className="h-[30px] w-[30px]" />
+                    <span>비밀번호 변경</span>
+                </Link>
                 <button
                     onClick={handleLogout}
                     className="w-full rounded-[5px] hover:bg-[#F7F8FF] px-[10px] py-[10px] text-[20px] font-medium flex flex-row items-center gap-[18px] text-[#697077] hover:text-[#2C79FF] group"

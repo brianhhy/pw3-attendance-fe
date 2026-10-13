@@ -1,19 +1,22 @@
 import Header from "@/app/(shared)/(components)/Header";
 import Sidebar from "@/app/(shared)/(components)/Sidebar";
+import AuthSession from "@/app/(shared)/(components)/AuthSession";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex h-full bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
-      {/* Sidebar */}
-      <Sidebar />
+    <AuthSession>
+      <div className="flex h-full bg-linear-to-b from-[#FFFFFF] to-[#ECEDFF]">
+        {/* Sidebar */}
+        <Sidebar />
 
-      {/* Right: Header + Main */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        {/* Right: Header + Main */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </AuthSession>
   );
 }

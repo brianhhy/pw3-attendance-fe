@@ -205,7 +205,7 @@ export default function LoginPage() {
                   회원가입
                 </button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="overflow-y-auto sm:max-h-[calc(100dvh-2rem)]">
                 <DialogHeader>
                   <DialogTitle>회원가입</DialogTitle>
                   <DialogDescription>아래 단계를 따라 회원가입을 진행하세요.</DialogDescription>
@@ -232,11 +232,15 @@ export default function LoginPage() {
                       <Label htmlFor="signup-id">아이디</Label>
                       <Input
                         id="signup-id"
+                        aria-describedby="signup-id-hint"
                         autoComplete="username"
                         value={signupId}
                         onChange={(e) => setSignupId(e.target.value)}
                         placeholder="사용할 아이디를 입력하세요"
                       />
+                      <p id="signup-id-hint" className="text-xs leading-relaxed text-[#697077]">
+                        4~50자 · 영문, 숫자, 점(.), 밑줄(_), 하이픈(-)만 사용할 수 있습니다. 이미 사용 중인 아이디는 사용할 수 없습니다.
+                      </p>
                     </div>
                   </Step>
                   <Step>
@@ -245,12 +249,16 @@ export default function LoginPage() {
                         <Label htmlFor="signup-password">비밀번호</Label>
                         <Input
                           id="signup-password"
+                          aria-describedby="signup-password-hint"
                           type="password"
                           autoComplete="new-password"
                           value={signupPassword}
                           onChange={(e) => setSignupPassword(e.target.value)}
-                          placeholder="8자 이상 입력하세요"
+                          placeholder="8~72자 입력하세요"
                         />
+                        <p id="signup-password-hint" className="text-xs leading-relaxed text-[#697077]">
+                          8~72자 · 영문·숫자·특수문자 조합은 필수가 아닙니다.
+                        </p>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <Label htmlFor="signup-password-confirm">비밀번호 확인</Label>
@@ -277,33 +285,45 @@ export default function LoginPage() {
                         <Label htmlFor="signup-name">이름</Label>
                         <Input
                           id="signup-name"
+                          aria-describedby="signup-name-hint"
                           autoComplete="name"
                           value={signupName}
                           onChange={(e) => setSignupName(e.target.value)}
                           placeholder="이름을 입력하세요"
                         />
+                        <p id="signup-name-hint" className="text-xs leading-relaxed text-[#697077]">
+                          최대 50자 · 공백만 입력할 수 없습니다.
+                        </p>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <Label htmlFor="signup-email">이메일</Label>
                         <Input
                           id="signup-email"
+                          aria-describedby="signup-email-hint"
                           type="email"
                           autoComplete="email"
                           value={signupEmail}
                           onChange={(e) => setSignupEmail(e.target.value)}
                           placeholder="이메일을 입력하세요"
                         />
+                        <p id="signup-email-hint" className="text-xs leading-relaxed text-[#697077]">
+                          올바른 이메일 형식(예: name@example.com) · 최대 254자 · 이미 사용 중인 이메일은 사용할 수 없습니다.
+                        </p>
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <Label htmlFor="signup-phone">휴대폰 번호</Label>
                         <Input
                           id="signup-phone"
+                          aria-describedby="signup-phone-hint"
                           type="tel"
                           autoComplete="tel"
                           value={signupPhone}
                           onChange={(e) => setSignupPhone(e.target.value)}
                           placeholder="휴대폰 번호를 입력하세요"
                         />
+                        <p id="signup-phone-hint" className="text-xs leading-relaxed text-[#697077]">
+                          입력은 최대 20자 · 숫자, +, 괄호, 공백, 하이픈(-)을 사용할 수 있습니다. 기호와 공백을 제외한 숫자는 9~15자리여야 합니다.
+                        </p>
                       </div>
                     </div>
                   </Step>

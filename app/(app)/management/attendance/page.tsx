@@ -4,6 +4,7 @@ import { useState } from "react";
 import { UserStar, Users } from "lucide-react";
 import ClassAttendanceCard from "../components/ClassAttendanceCard";
 import TeacherAttendanceSection from "../components/TeacherAttendanceCard";
+import Acts29SyncButton from "../components/Acts29SyncButton";
 
 type TabType = "teacher" | "student";
 
@@ -14,7 +15,7 @@ export default function AttendancePage() {
     <div className="h-full bg-gradient-to-b from-[#FFFFFF] to-[#ECEDFF] flex flex-col overflow-hidden">
 
       {/* 탭 */}
-      <div className="flex-shrink-0 flex justify-center lg:justify-start pt-6 pb-4 px-6">
+      <div className="flex-shrink-0 flex flex-wrap items-center justify-center gap-4 lg:justify-between pt-6 pb-4 px-6">
         <div className="relative inline-flex bg-white rounded-full p-1 shadow-md border-2 border-[#2C79FF]">
           <div
             className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-[#2C79FF] rounded-full transition-all duration-300 ease-in-out ${
@@ -40,6 +41,7 @@ export default function AttendancePage() {
             학생 출석
           </button>
         </div>
+        <Acts29SyncButton />
       </div>
 
       {/* 컨텐츠 */}
