@@ -1,4 +1,12 @@
 import axios from "./apiClient";
+import type { LoginResponse } from "./auth";
+
+export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export const getCurrentAdmin = async (): Promise<LoginResponse["admin"]> => {
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`);
+  return response.data;
+};
 
 export interface AdminApplicant {
   id: number;
@@ -15,9 +23,29 @@ export interface AdminApplicant {
   createdAt: string;
 }
 
-// 슈퍼어드민이 볼 수 있는 전체 관리자(가입 신청자 포함) 목록을 조회한다.
-export const getAdmins = async (): Promise<AdminApplicant[]> => {
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/admins`);
+// 상태를 생략하면 승인 대기 중인 계정을 조회한다.
+export const getAdmins = async (status: ApprovalStatus = "PENDING"): Promise<AdminApplicant[]> => {
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/admins`, {
+    params: { status },
+  });
+  return response.data;
+};
+
+export const resetAdminPassword = async (id: number, newPassword: string): Promise<void> => {
+  await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/admins/${id}/password-reset`, {
+    newPassword,
+  });
+};
+
+export const changeMyPassword = async (currentPassword: string, newPassword: string): Promise<LoginResponse["admin"]> => {
+  const profile = await getCurrentAdmin();
+  const response = await axios.patch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+    currentPassword,
+    newPassword,
+    name: profile.name,
+    email: profile.email,
+    phone: profile.phone,
+  });
   return response.data;
 };
 

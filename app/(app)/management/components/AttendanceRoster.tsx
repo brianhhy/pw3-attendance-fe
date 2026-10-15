@@ -16,6 +16,7 @@ import {
 import useAttendanceStore from "../../../(shared)/(store)/attendanceStore";
 import CustomScrollbar from "@/components/ui/CustomScrollbar";
 import DatePicker from "../../../(shared)/(components)/DatePicker";
+import Acts29SyncButton from "./Acts29SyncButton";
 
 type Status = "ATTEND" | "LATE" | "ABSENT" | "OTHER";
 
@@ -141,6 +142,7 @@ export default function AttendanceRoster() {
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <DatePicker value={selectedDate} onChange={setSelectedDate} />
+          <Acts29SyncButton />
           {STATUSES.map((s) => {
             const m = STATUS_META[s];
             return (

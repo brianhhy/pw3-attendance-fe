@@ -1,5 +1,18 @@
 import axios from "./apiClient";
 
+export interface StudentDailyAttendance {
+  studentId: number;
+  studentName: string;
+  attendanceStatus: "ATTEND" | "LATE" | "ABSENT" | "OTHER" | "UNCHECKED";
+}
+
+export const getStudentDailyAttendances = async (schoolYear: number, date: string): Promise<StudentDailyAttendance[]> => {
+  const response = await axios.get(
+    `${process.env.NEXT_PUBLIC_API_URL}/attendances/year/${schoolYear}/date/${date}`
+  );
+  return response.data;
+};
+
 export interface AttendanceStudentItem {
   studentClassId?: number;
   student_class_id?: number;

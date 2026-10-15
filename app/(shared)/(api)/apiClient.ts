@@ -75,6 +75,16 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config as RetriableRequestConfig | undefined;
 
+    // 현재 비밀번호 불일치는 세션 만료가 아니므로 재시도하거나 로그아웃하지 않는다.
+    if (
+      error.response?.status === 401 &&
+      error.response?.data?.code === "INVALID_CREDENTIALS" &&
+      originalRequest?.method === "patch" &&
+      originalRequest.url === `${process.env.NEXT_PUBLIC_API_URL}/auth/me`
+    ) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status !== 401 || !originalRequest) {
       return Promise.reject(error);
     }
