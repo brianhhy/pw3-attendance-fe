@@ -80,7 +80,7 @@ apiClient.interceptors.response.use(
       error.response?.status === 401 &&
       error.response?.data?.code === "INVALID_CREDENTIALS" &&
       originalRequest?.method === "patch" &&
-      originalRequest.url === `${process.env.NEXT_PUBLIC_API_URL}/auth/me`
+      originalRequest.url === `${process.env.API_URL}/auth/me`
     ) {
       return Promise.reject(error);
     }

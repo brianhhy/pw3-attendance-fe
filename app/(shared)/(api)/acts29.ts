@@ -30,7 +30,7 @@ type Acts29SyncApiResponse = Omit<Acts29SyncResponse, "date"> & {
 
 export const syncActs29Attendance = async (date: string, dryRun: boolean): Promise<Acts29SyncResponse> => {
   const response = await axios.post<Acts29SyncApiResponse>(
-    `${process.env.NEXT_PUBLIC_API_URL}/integrations/acts29/attendances/${encodeURIComponent(date)}/sync`,
+    `${process.env.API_URL}/integrations/acts29/attendances/${encodeURIComponent(date)}/sync`,
     { dryRun, ...(dryRun ? {} : { confirmDate: date }) }
   );
   const data = response.data;

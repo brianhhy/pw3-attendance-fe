@@ -16,7 +16,7 @@ interface AssignTeacherRequest {
 export const assignStudentToClass = async (data: AssignStudentRequest) => {
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/student-classes`,
+      `${process.env.API_URL}/student-classes`,
       {
         studentId: data.studentId,
         classRoomId: data.classRoomId,
@@ -40,7 +40,7 @@ export const assignStudentToClass = async (data: AssignStudentRequest) => {
 export const assignTeacherToClass = async (data: AssignTeacherRequest) => {
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/teacher-classes`,
+      `${process.env.API_URL}/teacher-classes`,
       {
         teacherId: data.teacherId,
         classRoomId: data.classRoomId,

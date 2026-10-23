@@ -9,7 +9,7 @@ export type SundayAttendanceSummaryItem = {
 // 일요일별 전체 출석 요약 조회
 export const getSundayAttendanceSummary = async () => {
   const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/attendances/summary/sundays`
+    `${process.env.API_URL}/attendances/summary/sundays`
   );
   return response.data as SundayAttendanceSummaryItem[];
 };

@@ -8,7 +8,7 @@ export interface StudentDailyAttendance {
 
 export const getStudentDailyAttendances = async (schoolYear: number, date: string): Promise<StudentDailyAttendance[]> => {
   const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/attendances/year/${schoolYear}/date/${date}`
+    `${process.env.API_URL}/attendances/year/${schoolYear}/date/${date}`
   );
   return response.data;
 };
@@ -28,7 +28,7 @@ export interface AttendanceClassItem {
 // 학생 출석 정보 (반별 출석 정보)
 export const getStudentAttendances = async (schoolYear: number, date: string): Promise<AttendanceClassItem[]> => {
     const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/attendances/classes/year/${schoolYear}/date/${date}`
+        `${process.env.API_URL}/attendances/classes/year/${schoolYear}/date/${date}`
     );
     return response.data;
 };
@@ -36,7 +36,7 @@ export const getStudentAttendances = async (schoolYear: number, date: string): P
 // 선생님 출석 정보
 export const getTeacherAttendances = async (date: string) => {
     const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/attendance/teachers/status?date=${date}`
+        `${process.env.API_URL}/attendance/teachers/status?date=${date}`
     );
     return response.data;
 };
@@ -45,7 +45,7 @@ export const getTeacherAttendances = async (date: string) => {
 
 // 선생님 출석 체크
 export const markTeacherAttendance = async (teacherId: number, status: "ATTEND" | "LATE" | "ABSENT" | "OTHER", date: string) => {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/attendance/teacher/mark?teacherId=${teacherId}&status=${status}&date=${date}`;
+    const url = `${process.env.API_URL}/attendance/teacher/mark?teacherId=${teacherId}&status=${status}&date=${date}`;
     
     try {
         const response = await axios.post(url, {}, {
@@ -61,7 +61,7 @@ export const markTeacherAttendance = async (teacherId: number, status: "ATTEND" 
 
 // 학생 출석 체크
 export const markStudentAttendance = async (studentClassId: number, date: string, status: "ATTEND" | "LATE" | "ABSENT" | "OTHER") => {
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/attendances/${studentClassId}/${date}`;
+    const url = `${process.env.API_URL}/attendances/${studentClassId}/${date}`;
     
     try {
         const response = await axios.put(url, { status }, {
@@ -79,7 +79,7 @@ export const markStudentAttendance = async (studentClassId: number, date: string
 export const getAttendanceReport = async (date: string) => {
     try {
         const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_API_URL}/attendances/report-by-date`,
+            `${process.env.API_URL}/attendances/report-by-date`,
             {
                 params: { date },
                 responseType: "text",
@@ -96,7 +96,7 @@ export const getAttendanceReport = async (date: string) => {
 // 부모님 출석 체크
 export const markParentAttendance = async (studentId: number, date: string, parentType: "MOTHER" | "FATHER", status: "ATTEND" | "ABSENT") => {
     const parent = parentType === "MOTHER" ? "mother" : "father";
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/parent-attendance/${studentId}/${date}/${parent}`;
+    const url = `${process.env.API_URL}/parent-attendance/${studentId}/${date}/${parent}`;
     const response = await axios.put(url, { status }, {
         headers: { 'Content-Type': 'application/json' }
     });
@@ -106,7 +106,7 @@ export const markParentAttendance = async (studentId: number, date: string, pare
 // 부모님 출석 조회
 export const getParentAttendances = async (date: string): Promise<{ studentId: number; studentName: string; date: number[]; motherStatus: string | null; fatherStatus: string | null }[]> => {
     const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/parent-attendance/date/${date}`
+        `${process.env.API_URL}/parent-attendance/date/${date}`
     );
     return response.data;
 };
@@ -120,7 +120,7 @@ export interface ParentAttendanceStats {
 
 export const getParentAttendanceStats = async (date: string): Promise<ParentAttendanceStats> => {
     const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/parent-attendance/date/${date}/stats`
+        `${process.env.API_URL}/parent-attendance/date/${date}/stats`
     );
     return response.data;
 };
@@ -128,7 +128,7 @@ export const getParentAttendanceStats = async (date: string): Promise<ParentAtte
 // 학년별 일요일 출석 통계
 export const getGradeSundayStats = async () => {
     const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/attendances/summary/grades/sundays`
+        `${process.env.API_URL}/attendances/summary/grades/sundays`
     );
     return response.data;
 };
