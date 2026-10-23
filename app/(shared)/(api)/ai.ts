@@ -1,6 +1,6 @@
 import axios from "./apiClient";
 
-const AI_API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const AI_API_BASE_URL = process.env.API_URL;
 
 export const sendChatMessage = async (question: string) => {
   const response = await axios.post(`${AI_API_BASE_URL}/ai/chat`, {

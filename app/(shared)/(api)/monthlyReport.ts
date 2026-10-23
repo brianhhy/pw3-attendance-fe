@@ -16,7 +16,7 @@ export interface MonthlyAttendanceReportResponse {
   reportData?: unknown;
 }
 
-const REPORT_API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/reports/monthly-attendance`;
+const REPORT_API_BASE_URL = `${process.env.API_URL}/reports/monthly-attendance`;
 
 export const getCachedMonthlyAttendanceReport = async (
   params: MonthlyAttendanceReportRequest

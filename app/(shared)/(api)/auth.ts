@@ -39,7 +39,7 @@ export const login = async (username: string, password: string): Promise<LoginRe
     };
 
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+      `${process.env.API_URL}/auth/login`,
       payload,
       {
         headers: {
@@ -65,7 +65,7 @@ interface SignupRequest {
 export const signup = async (data: SignupRequest) => {
   try {
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/signup`,
+      `${process.env.API_URL}/auth/signup`,
       data,
       {
         headers: {
@@ -100,7 +100,7 @@ export const logout = async () => {
     };
 
     const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/auth/logout`,
+      `${process.env.API_URL}/auth/logout`,
       payload,
       {
         headers: {
@@ -135,7 +135,7 @@ export const refresh = async (refreshToken: string): Promise<RefreshResponse> =>
   };
 
   const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+    `${process.env.API_URL}/auth/refresh`,
     payload,
     {
       headers: {

@@ -11,7 +11,7 @@ interface NewTeacherFormData {
 
 // 전체 선생님 목록을 조회한다.
 export const getTeacherList = async () => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher`);
+    const response = await axios.get(`${process.env.API_URL}/teacher`);
     return response.data;
 }
 
@@ -37,7 +37,7 @@ export const addNewTeacher = async (formData: NewTeacherFormData) => {
       payload.teacherType = upperType;
     }
 
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/teacher`, payload, {
+    const response = await axios.post(`${process.env.API_URL}/teacher`, payload, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -78,7 +78,7 @@ export const updateTeacher = async (teacherId: number, formData: NewTeacherFormD
       payload.teacherType = upperType;
     }
 
-    const response = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/teacher/${teacherId}`, payload, {
+    const response = await axios.put(`${process.env.API_URL}/teacher/${teacherId}`, payload, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -99,6 +99,6 @@ export const updateTeacher = async (teacherId: number, formData: NewTeacherFormD
 
 // 특정 선생님을 삭제한다.
 export const deleteTeacher = async (teacherId: number) => {
-    const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/teacher/${teacherId}`);
+    const response = await axios.delete(`${process.env.API_URL}/teacher/${teacherId}`);
     return response.data;
 }

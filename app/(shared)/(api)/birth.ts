@@ -23,7 +23,7 @@ export interface BirthdayResponse {
 
 export const getBirthdays = async (month: number): Promise<BirthdayResponse> => {
   const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/birthday/${month}`
+    `${process.env.API_URL}/birthday/${month}`
   );
   return response.data;
 };

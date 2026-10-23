@@ -9,7 +9,7 @@ export interface FaceImageResponse {
 
 const getFaceImagePath = (type: FaceImageOwnerType, id: number) => {
   const ownerPath = type === "student" ? "students" : "teacher";
-  return `${process.env.NEXT_PUBLIC_API_URL}/${ownerPath}/${id}/face-image`;
+  return `${process.env.API_URL}/${ownerPath}/${id}/face-image`;
 };
 
 // 학생 또는 선생님의 얼굴 사진을 조회할 수 있는 만료형 URL을 발급받는다.
