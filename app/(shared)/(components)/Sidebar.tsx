@@ -9,6 +9,7 @@ import { getTodayKST } from "../utils/dateUtil";
 import { logout } from "../(api)/auth";
 import useAuthStore from "../(store)/authStore";
 import { removeCookie } from "@/lib/utils";
+import { readEvents, EVENTS_CHANGED, EVENT_STORAGE_KEY } from "@/lib/events";
 
 interface MenuItem {
     href: string;
@@ -60,25 +61,32 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
         const initial = new Set<string>();
         if (pathname.startsWith("/management")) initial.add("/management");
         if (pathname.startsWith("/management/people")) initial.add("/management/people");
+        if (pathname.startsWith("/new-friends")) initial.add("/new-friends");
         return initial;
     });
     const [showParentsMenu, setShowParentsMenu] = useState(false);
+    const [showFriendsMenu, setShowFriendsMenu] = useState(false);
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem("pw3_event");
-            if (!raw) return;
-            const parsed = JSON.parse(raw);
-            const events = Array.isArray(parsed) ? parsed : [parsed];
+        const updateEvents = () => {
+            const events = readEvents();
             const today = getTodayKST();
             const hasToday = events.some(
                 (e: { date: string; type: string }) =>
                     e.date === today && e.type === "parents_observation"
             );
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowParentsMenu(hasToday);
-        } catch {
-            // ignore invalid data
-        }
+            setShowFriendsMenu(events.some((event) => event.type === "friend_invitation"));
+        };
+        const onStorage = (event: StorageEvent) => {
+            if (event.key === EVENT_STORAGE_KEY || event.key === null) updateEvents();
+        };
+        updateEvents();
+        window.addEventListener(EVENTS_CHANGED, updateEvents);
+        window.addEventListener("storage", onStorage);
+        return () => {
+            window.removeEventListener(EVENTS_CHANGED, updateEvents);
+            window.removeEventListener("storage", onStorage);
+        };
     }, []);
 
     const visibleMenuItems = baseMenuItems.map((item) =>
@@ -86,9 +94,18 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
             ? { ...item, subItems: [...(item.subItems ?? []), { href: "/management/accounts", label: "계정 관리", icon: Users }] }
             : item
     );
-    const menuItems = showParentsMenu
-        ? [visibleMenuItems[0], { href: "/parent-attendance", label: "부모님 출석체크", icon: Users }, ...visibleMenuItems.slice(1)]
-        : visibleMenuItems;
+    const menuItems: MenuItem[] = [
+        visibleMenuItems[0],
+        ...(showParentsMenu ? [{ href: "/parent-attendance", label: "부모님 출석체크", icon: Users }] : []),
+        ...(showFriendsMenu ? [{
+            href: "/new-friends", label: "친구초청예배", icon: Users,
+            subItems: [
+                { href: "/new-friends/register", label: "새친구 등록", icon: UserRound },
+                { href: "/new-friends", label: "등록된 친구", icon: Users },
+            ],
+        }] : []),
+        ...visibleMenuItems.slice(1),
+    ];
 
     const toggleMenu = (href: string) => {
         setExpandedMenus((prev) => {
