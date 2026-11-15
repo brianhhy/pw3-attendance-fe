@@ -8,17 +8,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CalendarDays, Check, ChevronDown, Trash2 } from "lucide-react";
-
-const LOCAL_STORAGE_KEY = "pw3_event";
+import Link from "next/link";
+import { readEvents, saveEvents, type SavedEvent } from "@/lib/events";
 
 const EVENT_TYPES = [
   { value: "parents_observation", label: "부모님 참관 수업" },
+  { value: "friend_invitation", label: "친구초청예배" },
 ];
-
-interface SavedEvent {
-  date: string;
-  type: string;
-}
 
 interface EventSettingProps {
   open: boolean;
@@ -31,6 +27,7 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
   const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,17 +46,8 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
 
   useEffect(() => {
     if (open) {
-      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setSavedEvents(Array.isArray(parsed) ? parsed : [parsed]);
-        } catch {
-          setSavedEvents([]);
-        }
-      } else {
-        setSavedEvents([]);
-      }
+      setSavedEvents(readEvents());
+      setSaveError("");
       setSelectedDate("");
       setSelectedType(EVENT_TYPES[0].value);
     }
@@ -68,20 +56,28 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
   const handleConfirm = () => {
     if (!selectedDate) return;
     const newEvent: SavedEvent = { date: selectedDate, type: selectedType };
-    const updated = [...savedEvents.filter((e) => e.date !== selectedDate), newEvent];
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+    const updated = [...savedEvents.filter((e) => e.date !== selectedDate || e.type !== selectedType), newEvent];
+    try {
+      saveEvents(updated);
+    } catch {
+      setSaveError("이벤트를 저장하지 못했습니다. 브라우저의 저장 공간 설정을 확인해주세요.");
+      return;
+    }
+    setSaveError("");
     setSavedEvents(updated);
     setSelectedDate("");
     setSelectedType(EVENT_TYPES[0].value);
   };
 
-  const handleDelete = (date: string) => {
-    const updated = savedEvents.filter((e) => e.date !== date);
-    if (updated.length === 0) {
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-    } else {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  const handleDelete = (date: string, type: string) => {
+    const updated = savedEvents.filter((e) => e.date !== date || e.type !== type);
+    try {
+      saveEvents(updated);
+    } catch {
+      setSaveError("이벤트를 삭제하지 못했습니다. 다시 시도해주세요.");
+      return;
     }
+    setSaveError("");
     setSavedEvents(updated);
   };
 
@@ -97,7 +93,7 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={true}
-        className={`sm:max-w-sm bg-white dark:bg-gray-900 border-none ${shouldAnimate ? "animate-slide-up" : ""}`}
+        className={`content-start overflow-y-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-sm bg-white dark:bg-gray-900 border-none ${shouldAnimate ? "animate-slide-up" : ""}`}
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -115,7 +111,7 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
                 .sort((a, b) => a.date.localeCompare(b.date))
                 .map((event) => (
                   <div
-                    key={event.date}
+                    key={`${event.date}-${event.type}`}
                     className="flex items-center justify-between bg-blue-50 dark:bg-blue-950/40 rounded-lg px-4 py-3"
                   >
                     <div>
@@ -125,9 +121,15 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         {getTypeLabel(event.type)}
                       </p>
+                      {event.type === "friend_invitation" && (
+                        <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#2C79FF]">
+                          <Link href="/new-friends/register" onClick={() => onOpenChange(false)} className="hover:underline">새친구 등록</Link>
+                          <Link href="/new-friends" onClick={() => onOpenChange(false)} className="hover:underline">등록된 친구 보기</Link>
+                        </div>
+                      )}
                     </div>
                     <button
-                      onClick={() => handleDelete(event.date)}
+                      onClick={() => handleDelete(event.date, event.type)}
                       className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 transition-colors"
                       aria-label="이벤트 삭제"
                     >
@@ -139,9 +141,10 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
           )}
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">이벤트 유형</label>
+            <label htmlFor="event-type" className="text-sm font-medium text-gray-700 dark:text-gray-300">이벤트 유형</label>
             <div className="relative" ref={dropdownRef}>
               <button
+                id="event-type"
                 type="button"
                 onClick={() => setDropdownOpen((v) => !v)}
                 className="w-full flex items-center justify-between border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2.5 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[#2C79FF] focus:border-transparent"
@@ -168,8 +171,9 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">날짜 선택</label>
+            <label htmlFor="event-date" className="text-sm font-medium text-gray-700 dark:text-gray-300">날짜 선택</label>
             <input
+              id="event-date"
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
@@ -177,6 +181,8 @@ export default function EventSetting({ open, onOpenChange }: EventSettingProps) 
             />
           </div>
 
+          <p className="text-xs text-gray-500 dark:text-gray-400">이벤트 설정은 현재 브라우저에 저장됩니다.</p>
+          {saveError && <p role="alert" className="text-sm text-red-600">{saveError}</p>}
           <div className="flex gap-2 pt-1">
             <button
               onClick={() => onOpenChange(false)}
