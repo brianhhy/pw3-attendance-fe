@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LayoutDashboard, ClipboardCheck, Settings, BarChart, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users, UserStar, FileText, LogOut, KeyRound } from "lucide-react";
+import { LayoutDashboard, ClipboardCheck, Settings, BarChart, X, LucideIcon, ChevronDown, UserRound, CalendarCheck, Users, UserStar, FileText, LogOut, KeyRound, Gift } from "lucide-react";
 import { getTodayKST } from "../utils/dateUtil";
 import { logout } from "../(api)/auth";
 import useAuthStore from "../(store)/authStore";
@@ -102,6 +102,7 @@ const Sidebar = ({ isMobile = false, onClose }: SidebarProps) => {
             subItems: [
                 { href: "/new-friends/register", label: "새친구 등록", icon: UserRound },
                 { href: "/new-friends", label: "등록된 친구", icon: Users },
+                { href: "/new-friends/raffle", label: "상품 추첨", icon: Gift },
             ],
         }] : []),
         ...visibleMenuItems.slice(1),
